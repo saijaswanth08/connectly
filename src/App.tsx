@@ -16,6 +16,14 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function ProtectedAppLayout() {
+  return (
+    <ProtectedRoute>
+      <AppLayout />
+    </ProtectedRoute>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -27,7 +35,7 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            <Route element={<ProtectedAppLayout />}>
               <Route path="/dashboard" element={<AppDashboard />} />
               <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
               <Route path="/dashboard/meetings" element={<MeetingsPage />} />
