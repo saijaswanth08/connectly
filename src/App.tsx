@@ -3,14 +3,15 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
-import DashboardPage from "@/pages/DashboardPage";
-import ContactsPage from "@/pages/ContactsPage";
-import ContactDetailPage from "@/pages/ContactDetailPage";
+import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
+import AppDashboard from "@/pages/AppDashboard";
+import ContactDetailView from "@/pages/ContactDetailView";
 import MeetingsPage from "@/pages/MeetingsPage";
-import RemindersPage from "@/pages/RemindersPage";
-import AnalyticsPage from "@/pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,18 +22,19 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/contacts" element={<ContactsPage />} />
-            <Route path="/contacts/:id" element={<ContactDetailPage />} />
-            <Route path="/meetings" element={<MeetingsPage />} />
-            <Route path="/reminders" element={<RemindersPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<AppDashboard />} />
+              <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
+              <Route path="/dashboard/meetings" element={<MeetingsPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
