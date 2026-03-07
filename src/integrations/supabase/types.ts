@@ -14,7 +14,175 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string | null
+          id: string
+          importance: string
+          job_title: string | null
+          linkedin_url: string | null
+          meeting_date: string | null
+          meeting_location: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          importance?: string
+          job_title?: string | null
+          linkedin_url?: string | null
+          meeting_date?: string | null
+          meeting_location?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          importance?: string
+          job_title?: string | null
+          linkedin_url?: string | null
+          meeting_date?: string | null
+          meeting_location?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meetings: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          id: string
+          location: string | null
+          meeting_link: string | null
+          meeting_time: string | null
+          meeting_type: string
+          notes: string | null
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          meeting_link?: string | null
+          meeting_time?: string | null
+          meeting_type?: string
+          notes?: string | null
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          meeting_link?: string | null
+          meeting_time?: string | null
+          meeting_type?: string
+          notes?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          subscription_plan: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id: string
+          name?: string
+          subscription_plan?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          subscription_plan?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      voice_notes: {
+        Row: {
+          audio_file_url: string
+          contact_id: string | null
+          created_at: string
+          id: string
+          transcription: string | null
+          user_id: string
+        }
+        Insert: {
+          audio_file_url: string
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          transcription?: string | null
+          user_id: string
+        }
+        Update: {
+          audio_file_url?: string
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          transcription?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_notes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

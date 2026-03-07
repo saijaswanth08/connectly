@@ -38,14 +38,14 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 border-b border-border bg-card/90 backdrop-blur-lg">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link to="/" className="font-display text-xl font-bold text-foreground tracking-tight">
-            Relate<span className="text-primary">CRM</span>
+            Network<span className="text-primary">Memory</span>
           </Link>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/dashboard">Login</Link>
+              <Link to="/login">Login</Link>
             </Button>
             <Button size="sm" className="rounded-full px-5" asChild>
-              <Link to="/dashboard">Sign Up</Link>
+              <Link to="/signup">Sign Up</Link>
             </Button>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function LandingPage() {
             </motion.p>
             <motion.div custom={2} variants={fadeUp} className="flex flex-wrap gap-3 pt-2">
               <Button size="lg" className="rounded-full gap-2 px-7 text-base" asChild>
-                <Link to="/dashboard">
+                <Link to="/signup">
                   Sign Up For Free <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -155,7 +155,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
             <span className="font-display text-lg font-bold text-foreground">
-              Relate<span className="text-primary">CRM</span>
+              Network<span className="text-primary">Memory</span>
             </span>
             <nav className="flex flex-wrap gap-6 text-sm text-muted-foreground">
               <a href="#about" className="hover:text-foreground transition-colors">About</a>
@@ -165,7 +165,7 @@ export default function LandingPage() {
             </nav>
           </div>
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} RelateCRM. All rights reserved.
+            © {new Date().getFullYear()} NetworkMemory. All rights reserved.
           </p>
         </div>
       </footer>
