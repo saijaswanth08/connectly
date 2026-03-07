@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Calendar, BarChart3, Bell, Settings, Zap } from "lucide-react";
+import { LayoutDashboard, Calendar, Settings, Zap } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -7,22 +7,15 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Contacts", url: "/contacts", icon: Users },
-  { title: "Meetings", url: "/meetings", icon: Calendar },
-  { title: "Reminders", url: "/reminders", icon: Bell },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
-];
-
-const bottomItems = [
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Meetings", url: "/dashboard/meetings", icon: Calendar },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + "/");
 
   return (
     <Sidebar collapsible="icon">
@@ -33,8 +26,8 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-display text-sm font-bold text-sidebar-accent-foreground">NetCRM</span>
-              <span className="text-xs text-sidebar-foreground">Networking Intelligence</span>
+              <span className="font-display text-sm font-bold text-sidebar-accent-foreground">NetworkMemory</span>
+              <span className="text-xs text-sidebar-foreground">Networking CRM</span>
             </div>
           )}
         </div>
@@ -60,20 +53,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarMenu>
-          {bottomItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                <NavLink to={item.url} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground">
-                  <item.icon className="h-4 w-4" />
-                  {!collapsed && <span>{item.title}</span>}
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarFooter>
+      <SidebarFooter />
     </Sidebar>
   );
 }
