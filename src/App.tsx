@@ -24,7 +24,7 @@ import VideoMeetingsPage from "@/pages/VideoMeetingsPage";
 import HelpCenterPage from "@/pages/HelpCenterPage";
 import ReportIssuePage from "@/pages/ReportIssuePage";
 import ContactSupportPage from "@/pages/ContactSupportPage";
-import RemindersPage from "@/pages/RemindersPage";
+import RemindersPage from "./pages/RemindersPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
