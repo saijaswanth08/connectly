@@ -38,10 +38,7 @@ export function AppSidebar() {
             <ConnectlyLogoIcon size={30} />
           </div>
           {!collapsed && (
-            <div className="flex flex-col">
-              <span className="font-display text-sm font-bold tracking-tight bg-gradient-to-r from-[#5B7CFA] to-[#8B5CF6] bg-clip-text text-transparent">Connectly</span>
-              <span className="text-[11px] text-sidebar-foreground">Personal CRM</span>
-            </div>
+            <span className="font-display text-[22px] font-bold tracking-tight bg-gradient-to-r from-[#5B7CFA] to-[#8B5CF6] bg-clip-text text-transparent">Connectly</span>
           )}
         </div>
       </SidebarHeader>
