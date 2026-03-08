@@ -36,7 +36,16 @@ import NetworkingInsightsPage from "./pages/NetworkingInsightsPage";
 import MessagesPage from "./pages/MessagesPage";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes – data considered fresh, no refetch
+      gcTime: 10 * 60 * 1000,   // 10 minutes – keep unused cache before garbage collection
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function ProtectedAppLayout() {
   return (
