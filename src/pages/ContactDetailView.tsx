@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save, Trash2, Building2, Mail, Phone, MapPin, Linkedin } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ContactReminders } from "@/components/ContactReminders";
 
 export default function ContactDetailView() {
   const { id } = useParams<{ id: string }>();
