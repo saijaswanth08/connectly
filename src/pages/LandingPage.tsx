@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  Users, FileText, Bell, ArrowRight, Search, BarChart3, Clock, Network, Sparkles, Menu, X,
+  Users, FileText, Bell, ArrowRight, Search, BarChart3, Clock, Sparkles, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import HeroFloatingElements from "@/components/landing/HeroFloatingElements";
 import NetworkGraphAnimated from "@/components/landing/NetworkGraphAnimated";
+import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 import { useState } from "react";
 
 const fadeUp = {
