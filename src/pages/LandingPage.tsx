@@ -36,8 +36,11 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-lg">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link to="/" className="font-display text-xl font-bold text-foreground tracking-tight">
-            Network<span className="text-primary">Memory</span>
+          <Link to="/" className="flex flex-col">
+            <span className="font-display text-xl font-bold text-foreground tracking-tight">
+              Network<span className="text-primary">Memory</span>
+            </span>
+            <span className="text-[10px] text-muted-foreground -mt-0.5">Build stronger professional relationships.</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
