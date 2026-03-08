@@ -17,10 +17,10 @@ export default function PublicProfilePage() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["public-profile", username],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("profiles")
         .select("*")
-        .eq("username" as string, username!)
+        .eq("username", username!)
         .single();
       if (error) throw error;
       return data;
