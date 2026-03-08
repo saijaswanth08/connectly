@@ -16,7 +16,6 @@ import { ContactDetailPanel } from "@/components/ContactDetailPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DbContact } from "@/lib/api";
 import { NetworkingInsightsWidget } from "@/components/NetworkingInsightsWidget";
-import { NetworkingInsightsWidget } from "@/components/NetworkingInsightsWidget";
 
 const importanceBg: Record<string, string> = {
   vip: "bg-vip/15 text-vip border-vip/30",
