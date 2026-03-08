@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calendar, Users, Bell, Zap, Video } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Bell, Zap, Video, Network } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
