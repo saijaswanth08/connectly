@@ -261,15 +261,7 @@ export default function RemindersPage() {
             </div>
             <div className="space-y-2">
               <Label>Related Contact</Label>
-              <Select value={contactId} onValueChange={setContactId}>
-                <SelectTrigger><SelectValue placeholder="Select contact" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No contact</SelectItem>
-                  {contacts.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ContactSearchSelect value={contactId} onChange={setContactId} />
             </div>
             <div className="space-y-2">
               <Label>Message</Label>
