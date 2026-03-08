@@ -30,6 +30,7 @@ import AccountSettingsPage from "./pages/AccountSettingsPage";
 import FollowUpsPage from "./pages/FollowUpsPage";
 import RecentInteractionsPage from "./pages/RecentInteractionsPage";
 import NetworkingInsightsPage from "./pages/NetworkingInsightsPage";
+import MessagesPage from "./pages/MessagesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
