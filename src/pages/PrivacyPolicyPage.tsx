@@ -49,7 +49,7 @@ export default function PrivacyPolicyPage() {
             <Link to="/" className="gap-2"><ArrowLeft className="h-4 w-4" /> Back</Link>
           </Button>
           <Link to="/" className="font-display text-lg font-bold text-foreground">
-            Network<span className="text-primary">Memory</span>
+            Connect<span className="text-primary">ly</span>
           </Link>
           <div className="w-20" />
         </div>
