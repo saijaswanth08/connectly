@@ -160,8 +160,15 @@ export default function MessagesPage() {
                           {getInitials(contact.name)}
                         </AvatarFallback>
                       </Avatar>
-                      {/* Simulated online status for demo */}
-                      <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-card" />
+                      {(() => {
+                        const presence = getPresenceStatus(presenceRecords, contact.id);
+                        return (
+                          <div className={cn(
+                            "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-card",
+                            presence.isOnline ? "bg-emerald-500" : "bg-muted-foreground/40"
+                          )} />
+                        );
+                      })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
