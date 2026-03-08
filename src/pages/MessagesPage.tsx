@@ -221,10 +221,19 @@ export default function MessagesPage() {
                   <h3 className="text-sm font-semibold text-foreground">
                     {selectedContact.name}
                   </h3>
-                  <p className="text-[11px] text-green-600 flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block" />
-                    Online
-                  </p>
+                  {(() => {
+                    const presence = getPresenceStatus(presenceRecords, selectedContact.id);
+                    return presence.isOnline ? (
+                      <p className="text-[11px] text-emerald-600 flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
+                        Online
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground">
+                        {formatLastSeen(presence.lastSeen)}
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
 
