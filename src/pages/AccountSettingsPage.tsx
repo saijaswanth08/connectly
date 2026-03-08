@@ -202,24 +202,68 @@ export default function AccountSettingsPage() {
         </Button>
       </div>
 
-      {/* Change Password */}
+      {/* Reset Password via Email */}
       <div className="rounded-xl bg-card border border-border/50 p-6 shadow-sm space-y-4">
-        <h2 className="font-display font-semibold flex items-center gap-2">
-          <Lock className="h-4 w-4" /> Change Password
-        </h2>
-        <div className="space-y-3 max-w-sm">
-          <div className="space-y-1.5">
-            <Label>New Password</Label>
-            <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min 6 characters" />
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <ShieldCheck className="h-4 w-4 text-primary" />
           </div>
-          <div className="space-y-1.5">
-            <Label>Confirm Password</Label>
-            <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter password" />
-          </div>
+          <h2 className="font-display font-semibold">Reset Password</h2>
         </div>
-        <Button onClick={handleChangePassword} disabled={changingPw || !newPassword} variant="outline" className="gap-2">
-          <Lock className="h-4 w-4" /> {changingPw ? "Updating..." : "Update Password"}
-        </Button>
+        <p className="text-sm text-muted-foreground">
+          For security reasons, password changes require email verification. We'll send a secure reset link to your registered email address.
+        </p>
+        {resetSent ? (
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-primary" />
+              <p className="text-sm font-medium text-foreground">Reset link sent!</p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Check your inbox at <strong className="text-foreground">{email}</strong> and click the link to set a new password. The link expires in 60 minutes.
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={() => setResetSent(false)}
+            >
+              Send again
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Mail className="h-4 w-4" />
+              <span>{email}</span>
+            </div>
+            <Button
+              variant="outline"
+              className="gap-2"
+              disabled={sendingReset}
+              onClick={async () => {
+                if (!email) {
+                  toast({ title: "No email found", variant: "destructive" });
+                  return;
+                }
+                setSendingReset(true);
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: `${window.location.origin}/reset-password`,
+                });
+                setSendingReset(false);
+                if (error) {
+                  toast({ title: "Error", description: error.message, variant: "destructive" });
+                } else {
+                  setResetSent(true);
+                  toast({ title: "Reset link sent!", description: "Check your email inbox." });
+                }
+              }}
+            >
+              <Mail className="h-4 w-4" />
+              {sendingReset ? "Sending..." : "Send Reset Link"}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

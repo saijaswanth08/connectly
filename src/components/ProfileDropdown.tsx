@@ -161,8 +161,8 @@ export function ProfileDropdown() {
           <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
             <UserCircle className="mr-2 h-4 w-4" /> My Profile
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/dashboard/change-password")}>
-            <KeyRound className="mr-2 h-4 w-4" /> Change Password
+          <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
+            <KeyRound className="mr-2 h-4 w-4" /> Reset Password
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => navigate("/help")}>
