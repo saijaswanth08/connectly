@@ -157,26 +157,23 @@ export function ProfileDropdown() {
             </Avatar>
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[220px]">
-          <DropdownMenuItem onClick={() => setViewProfileOpen(true)}>
-            <User className="mr-2 h-4 w-4" /> View Profile
+        <DropdownMenuContent align="end" className="w-[220px] rounded-xl shadow-lg">
+          <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
+            <UserCircle className="mr-2 h-4 w-4" /> My Profile
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => { setUploadDialogOpen(true); setPreviewUrl(null); setSelectedFile(null); }}>
-            <ImagePlus className="mr-2 h-4 w-4" /> Update Profile Photo
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setDeleteDialogOpen(true)}
-            disabled={!avatarUrl}
-          >
-            <Trash2 className="mr-2 h-4 w-4" /> Delete Profile Photo
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
             <Settings className="mr-2 h-4 w-4" /> Account Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => navigate("/help")}>
+            <HelpCircle className="mr-2 h-4 w-4" /> Help & Support
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/report-issue")}>
+            <AlertTriangle className="mr-2 h-4 w-4" /> Report Issue
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-            <LogOut className="mr-2 h-4 w-4" /> Logout
+            <LogOut className="mr-2 h-4 w-4" /> Sign Out
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

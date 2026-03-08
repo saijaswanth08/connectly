@@ -15,7 +15,6 @@ const mainItems = [
   { title: "Video Meetings", url: "/dashboard/video-meetings", icon: Video },
   { title: "Reminders", url: "/dashboard/reminders", icon: Bell },
   { title: "Network Map", url: "/dashboard/network", icon: Network },
-  { title: "My Profile", url: "/dashboard/profile", icon: UserCircle },
 ];
 
 const widgetItems = [
