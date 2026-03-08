@@ -57,7 +57,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: "Connectly <onboarding@resend.dev>",
-        to: ["connectly.support@gmail.com"],
+        to: ["saijashuunallamaru@gmail.com"],
         subject: `Connectly Issue Report: ${title.trim().substring(0, 100)}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
