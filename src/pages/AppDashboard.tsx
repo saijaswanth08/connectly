@@ -31,6 +31,7 @@ export default function AppDashboard() {
 
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<DbContact | null>(null);
   const [form, setForm] = useState({
     name: "", company: "", job_title: "", email: "", phone: "",
     linkedin_url: "", meeting_location: "", notes: "", importance: "medium", tags: "",
