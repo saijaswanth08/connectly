@@ -43,7 +43,7 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 md:grid-cols-2">
           <motion.div initial="hidden" animate="visible" className="space-y-6">
             <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-bold text-foreground sm:text-5xl">
-              About Network<span className="text-primary">Memory</span>
+              About Connect<span className="text-primary">ly</span>
             </motion.h1>
             <motion.p custom={1} variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed">
               NetworkMemory is a personal networking CRM designed for professionals who meet many people during conferences, meetings, and events.
