@@ -37,6 +37,7 @@ import { format } from "date-fns";
 export function ProfileDropdown() {
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
