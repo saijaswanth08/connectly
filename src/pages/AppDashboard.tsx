@@ -197,7 +197,7 @@ export default function AppDashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {filtered.map((c, i) => (
-            <motion.div key={c.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="glass-card rounded-xl p-5 space-y-3 group">
+            <motion.div key={c.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="glass-card rounded-xl p-5 space-y-3 group cursor-pointer" onClick={() => setSelectedContact(c)}>
               <div className="flex items-start justify-between">
                 <div className="min-w-0">
                   <button onClick={() => setSelectedContact(c)} className="font-display font-semibold text-foreground hover:text-primary transition-colors truncate block text-left">{c.name}</button>
