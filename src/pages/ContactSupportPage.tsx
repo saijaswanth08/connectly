@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { MessageSquare, Mail, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MessageSquare, Mail, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function ContactSupportPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
     name: user?.user_metadata?.full_name || "",
@@ -43,6 +45,14 @@ export default function ContactSupportPage() {
   return (
     <div className="flex-1 overflow-auto">
       <div className="max-w-lg mx-auto px-4 py-10 space-y-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="group inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+          Back
+        </button>
+
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 mx-auto">
