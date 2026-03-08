@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchContacts, createContact, updateContact, deleteContact, searchContacts, fetchMeetings, createMeeting, DbContact, DbMeeting } from "@/lib/api";
+import { fetchContacts, createContact, updateContact, deleteContact, searchContacts, fetchMeetings, createMeeting, updateMeeting, deleteMeeting, DbContact, DbMeeting } from "@/lib/api";
 
 export function useContacts() {
   return useQuery<DbContact[]>({
@@ -50,6 +50,22 @@ export function useCreateMeeting() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: createMeeting,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["meetings"] }),
+  });
+}
+
+export function useUpdateMeeting() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<DbMeeting> }) => updateMeeting(id, updates),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["meetings"] }),
+  });
+}
+
+export function useDeleteMeeting() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: deleteMeeting,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["meetings"] }),
   });
 }
