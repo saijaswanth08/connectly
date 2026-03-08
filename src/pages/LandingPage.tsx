@@ -326,7 +326,7 @@ export default function LandingPage() {
 
           <div className="mt-10 border-t border-border pt-6 text-center">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} NetworkMemory. All rights reserved.
+              © {new Date().getFullYear()} Connectly. All rights reserved.
             </p>
           </div>
         </div>

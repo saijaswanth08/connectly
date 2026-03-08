@@ -35,7 +35,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-display text-sm font-bold text-sidebar-accent-foreground tracking-tight">NetworkMemory</span>
+              <span className="font-display text-sm font-bold text-sidebar-accent-foreground tracking-tight">Connectly</span>
               <span className="text-[11px] text-sidebar-foreground">Personal CRM</span>
             </div>
           )}
