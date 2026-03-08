@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
               Privacy Policy
             </motion.h1>
             <motion.p custom={2} variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed">
-              Your privacy is important to us. NetworkMemory is designed to securely store your contact information and professional networking data. We ensure that all data is handled responsibly and securely.
+              Your privacy is important to us. Connectly is designed to securely store your contact information and professional networking data. We ensure that all data is handled responsibly and securely.
             </motion.p>
             <motion.p custom={3} variants={fadeUp} className="text-sm text-muted-foreground">
               Last updated: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
