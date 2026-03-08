@@ -266,7 +266,12 @@ export default function MyProfilePage() {
                   </p>
                 )}
               </div>
-              {form.bio && <p className="text-xs text-muted-foreground">{form.bio}</p>}
+              {form.email && (
+                <span className="text-xs text-muted-foreground truncate max-w-[200px]">{form.email}</span>
+              )}
+              {form.phone && (
+                <span className="text-xs text-muted-foreground">{form.phone}</span>
+              )}
               <div className="flex gap-3 pt-1">
                 {form.email && <Mail className="h-4 w-4 text-muted-foreground" />}
                 {form.phone && <Phone className="h-4 w-4 text-muted-foreground" />}
