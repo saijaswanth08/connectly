@@ -166,6 +166,9 @@ export default function AppDashboard() {
         <NetworkOverviewWidget />
       </div>
 
+      {/* Networking Insights */}
+      <NetworkingInsightsWidget />
+
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
