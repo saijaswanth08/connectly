@@ -184,8 +184,8 @@ export default function ChangePasswordPage() {
         {step === "success" && (
           <Card className="rounded-2xl shadow-sm border-border">
             <CardHeader className="text-center space-y-3 pb-4">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent">
+                <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
               <CardTitle className="font-display text-xl font-bold text-foreground">
                 Password Updated Successfully
