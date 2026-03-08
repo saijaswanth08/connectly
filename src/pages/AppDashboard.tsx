@@ -89,7 +89,7 @@ export default function AppDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-lg font-medium text-muted-foreground">Welcome back, {user?.user_metadata?.full_name || user?.email?.split("@")[0]}</p>
-          <h1 className="text-4xl font-display font-bold text-foreground tracking-tight mt-1">Contacts</h1>
+          <h1 className="text-2xl font-display font-bold text-foreground tracking-tight mt-1">Contacts</h1>
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>
