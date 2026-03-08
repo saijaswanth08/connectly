@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Plus, Search, Users, Calendar, Trash2, Building2, Mail, Phone, MapPin, Linkedin, Tag, Star } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ContactDetailModal } from "@/components/ContactDetailModal";
+import { DbContact } from "@/lib/api";
 
 const importanceBg: Record<string, string> = {
   vip: "bg-vip/20 text-vip border-vip/30",
