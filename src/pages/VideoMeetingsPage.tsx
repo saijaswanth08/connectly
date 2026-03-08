@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Video, Plus, Copy, Link, Clock, Users, CalendarIcon, Check, ExternalLink } from "lucide-react";
+import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,22 +14,24 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useMeetings, useCreateMeeting } from "@/hooks/useContacts";
-import { useContacts } from "@/hooks/useContacts";
+import { useMeetings, useCreateMeeting, useContacts } from "@/hooks/useContacts";
+import { JitsiMeetingRoom } from "@/components/JitsiMeetingRoom";
 import { cn } from "@/lib/utils";
 
-function generateMeetingLink() {
-  const id = Math.random().toString(36).substring(2, 10);
-  return `https://meet.connectly.app/room-${id}`;
+function generateRoomId() {
+  const id = Math.random().toString(36).substring(2, 8);
+  return `connectly-meeting-${id}`;
 }
 
 export default function VideoMeetingsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: meetings = [], isLoading } = useMeetings();
+  const { data: meetings = [] } = useMeetings();
   const { data: contacts = [] } = useContacts();
   const createMeeting = useCreateMeeting();
 
+  const [activeRoom, setActiveRoom] = useState<string | null>(null);
+  const [joinCode, setJoinCode] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -39,17 +41,16 @@ export default function VideoMeetingsPage() {
     meetingType: "video_call",
     contactId: "",
     notes: "",
-    meetingLink: "",
   });
 
   const handleInstantMeeting = () => {
     if (!user) return;
-    const link = generateMeetingLink();
+    const roomId = generateRoomId();
     createMeeting.mutate(
       {
         user_id: user.id,
         title: "Instant Meeting",
-        meeting_link: link,
+        meeting_link: `https://meet.jit.si/${roomId}`,
         meeting_type: "video_call",
         location: "Online",
         meeting_time: new Date().toISOString(),
@@ -59,20 +60,30 @@ export default function VideoMeetingsPage() {
       },
       {
         onSuccess: () => {
-          toast({
-            title: "Meeting created!",
-            description: "Your meeting link is ready. Share it with participants.",
-          });
-          copyToClipboard(link, "instant");
+          setActiveRoom(roomId);
+          toast({ title: "Meeting started!", description: "Your meeting room is live." });
         },
       }
     );
   };
 
+  const handleJoinMeeting = () => {
+    const code = joinCode.trim();
+    if (!code) return;
+    // Support full URL or just room code
+    const roomId = code.includes("meet.jit.si/")
+      ? code.split("meet.jit.si/")[1]?.split(/[#?]/)[0]
+      : code;
+    if (roomId) {
+      setActiveRoom(roomId);
+      setJoinCode("");
+    }
+  };
+
   const handleSchedule = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !form.title || !form.date) return;
-    const link = form.meetingLink || generateMeetingLink();
+    const roomId = generateRoomId();
     const meetingTime = new Date(form.date);
     const [h, m] = form.time.split(":").map(Number);
     meetingTime.setHours(h, m);
@@ -81,7 +92,7 @@ export default function VideoMeetingsPage() {
       {
         user_id: user.id,
         title: form.title,
-        meeting_link: link,
+        meeting_link: `https://meet.jit.si/${roomId}`,
         meeting_type: form.meetingType,
         location: "Online",
         meeting_time: meetingTime.toISOString(),
@@ -92,7 +103,7 @@ export default function VideoMeetingsPage() {
       {
         onSuccess: () => {
           toast({ title: "Meeting scheduled!", description: `"${form.title}" has been scheduled.` });
-          setForm({ title: "", date: undefined, time: "09:00", meetingType: "video_call", contactId: "", notes: "", meetingLink: "" });
+          setForm({ title: "", date: undefined, time: "09:00", meetingType: "video_call", contactId: "", notes: "" });
           setScheduleOpen(false);
         },
       }
@@ -105,15 +116,32 @@ export default function VideoMeetingsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const joinFromHistory = (link: string) => {
+    const roomId = link.includes("meet.jit.si/")
+      ? link.split("meet.jit.si/")[1]?.split(/[#?]/)[0]
+      : null;
+    if (roomId) setActiveRoom(roomId);
+  };
+
+  // If a meeting room is active, show the embedded Jitsi view
+  if (activeRoom) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto">
+        <JitsiMeetingRoom roomId={activeRoom} onLeave={() => setActiveRoom(null)} />
+      </div>
+    );
+  }
+
   const upcoming = meetings.filter((m) => m.status === "scheduled" && m.meeting_time && new Date(m.meeting_time) >= new Date());
   const past = meetings.filter((m) => m.status !== "scheduled" || (m.meeting_time && new Date(m.meeting_time) < new Date()));
 
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-display font-bold">Video Meetings</h1>
-          <p className="text-sm text-muted-foreground">Create, schedule, and manage your meeting links</p>
+          <p className="text-sm text-muted-foreground">Start, join, or schedule video meetings</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleInstantMeeting} className="gap-2" disabled={createMeeting.isPending}>
@@ -121,14 +149,10 @@ export default function VideoMeetingsPage() {
           </Button>
           <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Plus className="h-4 w-4" /> Schedule Meeting
-              </Button>
+              <Button variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Schedule</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle className="font-display">Schedule a Meeting</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle className="font-display">Schedule a Meeting</DialogTitle></DialogHeader>
               <form onSubmit={handleSchedule} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="title">Meeting Title *</Label>
@@ -154,34 +178,14 @@ export default function VideoMeetingsPage() {
                     <Input id="time" type="time" value={form.time} onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))} />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Meeting Type</Label>
-                    <Select value={form.meetingType} onValueChange={(v) => setForm((f) => ({ ...f, meetingType: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="video_call">Video Call</SelectItem>
-                        <SelectItem value="conference">Conference</SelectItem>
-                        <SelectItem value="webinar">Webinar</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Contact</Label>
-                    <Select value={form.contactId} onValueChange={(v) => setForm((f) => ({ ...f, contactId: v }))}>
-                      <SelectTrigger><SelectValue placeholder="Select contact" /></SelectTrigger>
-                      <SelectContent>
-                        {contacts.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="link">Meeting Link (optional)</Label>
-                  <Input id="link" value={form.meetingLink} onChange={(e) => setForm((f) => ({ ...f, meetingLink: e.target.value }))} placeholder="https://zoom.us/j/... or leave blank to auto-generate" />
+                  <Label>Contact (optional)</Label>
+                  <Select value={form.contactId} onValueChange={(v) => setForm((f) => ({ ...f, contactId: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Select contact" /></SelectTrigger>
+                    <SelectContent>
+                      {contacts.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="notes">Description</Label>
@@ -197,6 +201,23 @@ export default function VideoMeetingsPage() {
         </div>
       </div>
 
+      {/* Join Meeting */}
+      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="font-display font-semibold mb-3">Join a Meeting</h2>
+        <div className="flex gap-2">
+          <Input
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value)}
+            placeholder="Enter meeting code or link (e.g. connectly-meeting-abc123)"
+            onKeyDown={(e) => e.key === "Enter" && handleJoinMeeting()}
+          />
+          <Button onClick={handleJoinMeeting} className="gap-2 shrink-0" disabled={!joinCode.trim()}>
+            <LogIn className="h-4 w-4" /> Join
+          </Button>
+        </div>
+      </div>
+
+      {/* Meeting History */}
       <Tabs defaultValue="upcoming" className="space-y-4">
         <TabsList>
           <TabsTrigger value="upcoming">Upcoming ({upcoming.length})</TabsTrigger>
@@ -223,25 +244,18 @@ export default function VideoMeetingsPage() {
                   <Badge variant="secondary" className="capitalize">{m.meeting_type.replace("_", " ")}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                  {m.meeting_time && (
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {format(new Date(m.meeting_time), "PPp")}
-                    </span>
-                  )}
+                  {m.meeting_time && (<span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{format(new Date(m.meeting_time), "PPp")}</span>)}
                   <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />Up to 30 participants</span>
                 </div>
                 {m.meeting_link && (
                   <div className="flex items-center gap-2">
                     <code className="flex-1 truncate rounded-md bg-muted px-3 py-1.5 text-xs text-muted-foreground">{m.meeting_link}</code>
-                    <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={() => copyToClipboard(m.meeting_link, m.id)}>
+                    <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={() => copyToClipboard(m.meeting_link!, m.id)}>
                       {copiedId === m.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                       {copiedId === m.id ? "Copied" : "Copy"}
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1.5 shrink-0" asChild>
-                      <a href={m.meeting_link} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-3.5 w-3.5" /> Join
-                      </a>
+                    <Button size="sm" variant="default" className="gap-1.5 shrink-0" onClick={() => joinFromHistory(m.meeting_link!)}>
+                      <Video className="h-3.5 w-3.5" /> Join
                     </Button>
                   </div>
                 )}
@@ -270,10 +284,7 @@ export default function VideoMeetingsPage() {
                   <Badge variant="outline" className="capitalize">{m.status}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                  {m.meeting_time && (
-                    <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{format(new Date(m.meeting_time), "PPp")}</span>
-                  )}
-                  <span className="flex items-center gap-1"><Link className="h-3.5 w-3.5" />{m.meeting_type.replace("_", " ")}</span>
+                  {m.meeting_time && (<span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{format(new Date(m.meeting_time), "PPp")}</span>)}
                 </div>
               </motion.div>
             );
