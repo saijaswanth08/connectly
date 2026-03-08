@@ -124,7 +124,8 @@ export default function HeroFloatingElements() {
       {floatingCards.map((card) => (
         <motion.div
           key={card.name}
-          className={`absolute ${card.className} z-10 hidden sm:block`}
+          className={`absolute ${card.className} z-10 hidden sm:block will-change-transform`}
+          style={{ transform: "translateZ(0)" }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{
             opacity: 1,
@@ -134,13 +135,13 @@ export default function HeroFloatingElements() {
             rotate: card.rotate,
           }}
           transition={{
-            opacity: { delay: card.delay * 0.3, duration: 0.6 },
-            scale: { delay: card.delay * 0.3, duration: 0.6 },
+            opacity: { delay: card.delay * 0.3, duration: 0.4 },
+            scale: { delay: card.delay * 0.3, duration: 0.4 },
             y: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
             x: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
             rotate: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
           }}
-          whileHover={{ scale: 1.06, transition: { duration: 0.2 } }}
+          whileHover={{ scale: 1.06, transition: { duration: 0.15 } }}
         >
           <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-md cursor-default select-none">
             <Avatar className="h-9 w-9">
