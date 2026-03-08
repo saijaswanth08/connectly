@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Zap } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
+import { z } from "zod";
+
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[a-zA-Z]/, "Must contain at least one letter")
+  .regex(/[0-9]/, "Must contain at least one number");
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
