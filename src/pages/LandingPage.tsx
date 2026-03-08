@@ -251,7 +251,7 @@ export default function LandingPage() {
                 Build stronger professional relationships.
               </p>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                NetworkMemory helps professionals organize contacts, meeting notes, and relationships in one simple workspace.
+                Connectly helps professionals organize contacts, meeting notes, and relationships in one simple workspace.
               </p>
             </div>
 
