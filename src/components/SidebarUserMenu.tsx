@@ -10,8 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  User,
-  Settings,
   HelpCircle,
   LogOut,
   ChevronsUpDown,
