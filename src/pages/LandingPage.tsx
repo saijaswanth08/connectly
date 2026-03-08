@@ -37,11 +37,13 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-lg">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link to="/" className="flex flex-col">
-            <span className="font-display text-xl font-bold text-foreground tracking-tight">
-              Connect<span className="text-primary">ly</span>
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#5B7CFA] to-[#8B5CF6] shadow-md shadow-[#5B7CFA]/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-[#5B7CFA]/30">
+              <Network className="h-[18px] w-[18px] text-white" />
+            </div>
+            <span className="text-[22px] font-extrabold tracking-tight bg-gradient-to-r from-[#5B7CFA] to-[#8B5CF6] bg-clip-text text-transparent transition-opacity duration-200 group-hover:opacity-80">
+              Connectly
             </span>
-            <span className="text-[10px] text-muted-foreground -mt-0.5">Build stronger professional relationships.</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
