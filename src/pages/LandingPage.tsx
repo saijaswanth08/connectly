@@ -257,13 +257,13 @@ export default function LandingPage() {
 
             {/* Platform */}
             <div className="space-y-4">
-              <h4 className="font-display font-semibold text-foreground text-sm">Network Tools</h4>
+              <h4 className="font-display font-semibold text-foreground text-sm">Company</h4>
               <nav className="flex flex-col gap-2.5 text-sm text-muted-foreground">
                 {[
-                  { label: "Contacts", to: "/contacts" },
-                  { label: "Relationship Timeline", to: "/analytics" },
-                  { label: "Meeting Notes", to: "/meetings" },
-                  { label: "Follow-Up Reminders", to: "/reminders" },
+                  { label: "About", to: "/about" },
+                  { label: "Features", to: "/features" },
+                  { label: "Privacy Policy", to: "/privacy-policy" },
+                  { label: "Contact Us", to: "/contact" },
                 ].map((link) => (
                   <Link
                     key={link.label}
