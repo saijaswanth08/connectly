@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Plus, Search, Users, Calendar, Trash2, Building2, Mail, Phone, MapPin, Linkedin, Tag, Star, Bell, Filter } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ContactDetailPanel } from "@/components/ContactDetailPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DbContact } from "@/lib/api";
