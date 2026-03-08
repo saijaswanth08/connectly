@@ -33,9 +33,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2.5 group cursor-pointer">
+        <div className="flex items-center gap-2 group cursor-pointer">
           <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
-            <ConnectlyLogoIcon size={30} />
+            <ConnectlyLogoIcon size={28} />
           </div>
           {!collapsed && (
             <span className="font-display text-[22px] font-bold tracking-tight bg-gradient-to-r from-[#5B7CFA] to-[#8B5CF6] bg-clip-text text-transparent">Connectly</span>
