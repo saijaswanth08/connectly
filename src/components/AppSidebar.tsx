@@ -48,36 +48,48 @@ export function AppSidebar() {
         <SidebarGroup className="pt-4">
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink
-                      to={item.url}
-                      end
-                      className="rounded-lg text-sm font-medium transition-colors duration-200 hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-              {widgetItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink
-                      to={item.url}
-                      end
-                      className="rounded-lg text-sm font-medium transition-colors duration-200 hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {mainItems.map((item) => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={active}>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className={cn(
+                          "rounded-lg transition-all duration-200 hover:bg-sidebar-accent/50",
+                          active ? "text-[15px] font-bold py-2.5" : "text-sm font-medium"
+                        )}
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                      >
+                        <item.icon className={cn("shrink-0 transition-all duration-200", active ? "h-[18px] w-[18px]" : "h-4 w-4")} />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+              {widgetItems.map((item) => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={active}>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className={cn(
+                          "rounded-lg transition-all duration-200 hover:bg-sidebar-accent/50",
+                          active ? "text-[15px] font-bold py-2.5" : "text-sm font-medium"
+                        )}
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                      >
+                        <item.icon className={cn("shrink-0 transition-all duration-200", active ? "h-[18px] w-[18px]" : "h-4 w-4")} />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
