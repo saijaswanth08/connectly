@@ -5,9 +5,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dashboardPreview from "@/assets/dashboard-preview.png";
-import { lazy, Suspense, useState } from "react";
-
-const NetworkVisualization3D = lazy(() => import("@/components/landing/NetworkVisualization3D"));
+import HeroFloatingElements from "@/components/landing/HeroFloatingElements";
+import NetworkGraphAnimated from "@/components/landing/NetworkGraphAnimated";
+import { useState } from "react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -97,23 +97,8 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_-10%,hsl(var(--soft-blue)/0.08),transparent)]" />
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-[45%_1fr] md:py-32">
-          {/* Left — 3D Network Visualization */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="order-2 md:order-1"
-          >
-            <Suspense fallback={
-              <div className="w-full h-[320px] sm:h-[380px] md:h-[440px] rounded-3xl bg-muted/30 animate-pulse" />
-            }>
-              <NetworkVisualization3D />
-            </Suspense>
-          </motion.div>
-
-          {/* Right — Text content */}
-          <motion.div initial="hidden" animate="visible" className="space-y-8 order-1 md:order-2">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2 md:py-32">
+          <motion.div initial="hidden" animate="visible" className="space-y-8">
             <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem]">
               Remember Every{" "}
               <span className="text-gradient">Connection</span>{" "}
@@ -133,6 +118,8 @@ export default function LandingPage() {
               </Button>
             </motion.div>
           </motion.div>
+
+          <HeroFloatingElements />
         </div>
       </section>
 
@@ -147,10 +134,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
               className="flex justify-center"
             >
-              <div className="relative">
-                <div className="absolute -inset-4 rounded-2xl bg-[radial-gradient(ellipse_at_center,hsl(var(--soft-blue)/0.06),transparent)]" />
-                <Network className="relative h-48 w-48 text-primary opacity-20" strokeWidth={0.5} />
-              </div>
+              <NetworkGraphAnimated />
             </motion.div>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="space-y-5">
               <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
