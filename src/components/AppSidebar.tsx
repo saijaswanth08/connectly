@@ -10,6 +10,7 @@ import { SidebarUserMenu } from "@/components/SidebarUserMenu";
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Contacts", url: "/dashboard", icon: Users },
+  { title: "Messages", url: "/dashboard/messages", icon: MessagesSquare },
   { title: "Interactions", url: "/dashboard/interactions", icon: Calendar },
   { title: "Video Meetings", url: "/dashboard/video-meetings", icon: Video },
   { title: "Reminders", url: "/dashboard/reminders", icon: Bell },
