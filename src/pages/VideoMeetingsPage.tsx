@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn, Bell } from "lucide-react";
+import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn, Bell, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
