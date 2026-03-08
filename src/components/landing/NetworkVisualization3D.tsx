@@ -78,29 +78,31 @@ function ConnectionLine({ start, end, color = "#5B7CFA" }: {
   end: [number, number, number];
   color?: string;
 }) {
-  const lineRef = useRef<THREE.Line>(null);
+  const ref = useRef<THREE.Mesh>(null);
 
-  const geometry = useMemo(() => {
-    const geo = new THREE.BufferGeometry();
-    const points = [
-      new THREE.Vector3(...start),
-      new THREE.Vector3(...end),
-    ];
-    geo.setFromPoints(points);
-    return geo;
+  const { midpoint, length, quaternion } = useMemo(() => {
+    const s = new THREE.Vector3(...start);
+    const e = new THREE.Vector3(...end);
+    const mid = s.clone().add(e).multiplyScalar(0.5);
+    const dir = e.clone().sub(s);
+    const len = dir.length();
+    const quat = new THREE.Quaternion();
+    quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+    return { midpoint: mid, length: len, quaternion: quat };
   }, [start, end]);
 
   useFrame(({ clock }) => {
-    if (lineRef.current) {
-      const mat = lineRef.current.material as THREE.LineBasicMaterial;
+    if (ref.current) {
+      const mat = ref.current.material as THREE.MeshBasicMaterial;
       mat.opacity = 0.15 + Math.sin(clock.getElapsedTime() * 0.8) * 0.08;
     }
   });
 
   return (
-    <line ref={lineRef as any} geometry={geometry}>
-      <lineBasicMaterial color={color} transparent opacity={0.2} />
-    </line>
+    <mesh ref={ref} position={midpoint} quaternion={quaternion}>
+      <cylinderGeometry args={[0.008, 0.008, length, 4]} />
+      <meshBasicMaterial color={color} transparent opacity={0.2} />
+    </mesh>
   );
 }
 
