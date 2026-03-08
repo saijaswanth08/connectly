@@ -10,8 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  User,
-  Settings,
   HelpCircle,
   LogOut,
   ChevronsUpDown,
@@ -85,18 +83,6 @@ export function SidebarUserMenu() {
         className="w-[220px] mb-1"
         sideOffset={8}
       >
-        <DropdownMenuItem onClick={() => navigate("/dashboard/profile-settings")}>
-          <User className="mr-2 h-4 w-4" />
-          Profile Settings
-        </DropdownMenuItem>
-
-        <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
-          <Settings className="mr-2 h-4 w-4" />
-          Account Settings
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
         <DropdownMenuItem onClick={() => navigate("/help")}>
           <HelpCircle className="mr-2 h-4 w-4" />
           Help Center
