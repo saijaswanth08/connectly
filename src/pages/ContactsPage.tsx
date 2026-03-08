@@ -25,7 +25,6 @@ export default function ContactsPage() {
           <h1 className="text-2xl font-display font-bold">Contacts</h1>
           <p className="text-sm text-muted-foreground">{contacts.length} people in your network</p>
         </div>
-        <AddContactDialog />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">

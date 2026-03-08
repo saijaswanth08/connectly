@@ -152,9 +152,6 @@ export default function RemindersPage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Reminders</h1>
           <p className="text-sm text-muted-foreground">{upcoming.length} upcoming · {completed.length} completed</p>
         </div>
-        <Button onClick={openCreate} className="gap-2">
-          <Plus className="h-4 w-4" /> Add Reminder
-        </Button>
       </div>
 
       {/* Empty state */}

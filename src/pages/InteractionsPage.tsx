@@ -276,18 +276,6 @@ export default function InteractionsPage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Interactions</h1>
           <p className="text-sm text-muted-foreground">Track all your professional interactions including meetings, calls, conferences, and networking events.</p>
         </div>
-        <Dialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 rounded-xl"><Plus className="h-4 w-4" /> Add Interaction</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="font-display">Add Interaction</DialogTitle>
-              <DialogDescription>Record a new professional interaction.</DialogDescription>
-            </DialogHeader>
-            {renderForm(handleAdd, "Save Interaction", createInteraction.isPending)}
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Search & Filter */}
