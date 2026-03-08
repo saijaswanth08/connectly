@@ -32,6 +32,9 @@ export default function VideoMeetingsPage() {
   const createMeeting = useCreateMeeting();
 
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
+  const [lastMeetingContactId, setLastMeetingContactId] = useState<string | null>(null);
+  const [showFollowUp, setShowFollowUp] = useState(false);
+  const createReminder = useCreateReminder();
   const [joinCode, setJoinCode] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
