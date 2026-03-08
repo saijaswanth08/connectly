@@ -105,7 +105,7 @@ export default function LandingPage() {
               You Make
             </motion.h1>
             <motion.p custom={1} variants={fadeUp} className="max-w-lg text-lg text-muted-foreground leading-relaxed">
-              NetworkMemory helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
+              Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
             </motion.p>
             <motion.div custom={2} variants={fadeUp} className="flex flex-wrap gap-3 pt-2">
               <Button size="lg" className="rounded-full gap-2 px-8 text-base shadow-md hover:shadow-lg transition-shadow" asChild>
