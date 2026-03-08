@@ -39,7 +39,7 @@ export default function LandingPage() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link to="/" className="flex flex-col">
             <span className="font-display text-xl font-bold text-foreground tracking-tight">
-              Network<span className="text-primary">Memory</span>
+              Connect<span className="text-primary">ly</span>
             </span>
             <span className="text-[10px] text-muted-foreground -mt-0.5">Build stronger professional relationships.</span>
           </Link>
