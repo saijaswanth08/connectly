@@ -39,7 +39,7 @@ export default function LandingPage() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link to="/" className="flex flex-col">
             <span className="font-display text-xl font-bold text-foreground tracking-tight">
-              Network<span className="text-primary">Memory</span>
+              Connect<span className="text-primary">ly</span>
             </span>
             <span className="text-[10px] text-muted-foreground -mt-0.5">Build stronger professional relationships.</span>
           </Link>
@@ -105,7 +105,7 @@ export default function LandingPage() {
               You Make
             </motion.h1>
             <motion.p custom={1} variants={fadeUp} className="max-w-lg text-lg text-muted-foreground leading-relaxed">
-              NetworkMemory helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
+              Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
             </motion.p>
             <motion.div custom={2} variants={fadeUp} className="flex flex-wrap gap-3 pt-2">
               <Button size="lg" className="rounded-full gap-2 px-8 text-base shadow-md hover:shadow-lg transition-shadow" asChild>
@@ -144,7 +144,7 @@ export default function LandingPage() {
                 Professionals meet many people at conferences, meetings, and events. Remembering every conversation becomes difficult.
               </motion.p>
               <motion.p custom={2} variants={fadeUp} className="text-muted-foreground leading-relaxed">
-                NetworkMemory helps you store contacts, notes, and relationship history in one place so you never forget an important connection.
+                Connectly helps you store contacts, notes, and relationship history in one place so you never forget an important connection.
               </motion.p>
             </motion.div>
           </div>
@@ -205,7 +205,7 @@ export default function LandingPage() {
           >
             <img
               src={dashboardPreview}
-              alt="NetworkMemory CRM dashboard preview"
+              alt="Connectly CRM dashboard preview"
               className="w-full max-w-4xl rounded-2xl border border-border shadow-lg"
             />
           </motion.div>
@@ -245,13 +245,13 @@ export default function LandingPage() {
             {/* Brand */}
             <div className="space-y-4">
               <span className="font-display text-lg font-bold text-foreground">
-                Network<span className="text-primary">Memory</span>
+                Connect<span className="text-primary">ly</span>
               </span>
               <p className="font-display text-sm font-medium text-foreground">
                 Build stronger professional relationships.
               </p>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                NetworkMemory helps professionals organize contacts, meeting notes, and relationships in one simple workspace.
+                Connectly helps professionals organize contacts, meeting notes, and relationships in one simple workspace.
               </p>
             </div>
 
@@ -326,7 +326,7 @@ export default function LandingPage() {
 
           <div className="mt-10 border-t border-border pt-6 text-center">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} NetworkMemory. All rights reserved.
+              © {new Date().getFullYear()} Connectly. All rights reserved.
             </p>
           </div>
         </div>

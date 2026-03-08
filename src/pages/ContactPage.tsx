@@ -18,9 +18,9 @@ const fadeUp = {
 };
 
 const socials = [
-  { icon: Instagram, label: "Instagram", link: "https://instagram.com/networkmemory", handle: "@networkmemory", color: "text-pink-500" },
+  { icon: Instagram, label: "Instagram", link: "https://instagram.com/connectly", handle: "@connectly", color: "text-pink-500" },
   { icon: MessageCircle, label: "WhatsApp", link: "https://wa.me/1234567890", handle: "+1 234 567 890", color: "text-green-500" },
-  { icon: Linkedin, label: "LinkedIn", link: "https://linkedin.com/company/networkmemory", handle: "NetworkMemory", color: "text-blue-500" },
+  { icon: Linkedin, label: "LinkedIn", link: "https://linkedin.com/company/connectly", handle: "Connectly", color: "text-blue-500" },
 ];
 
 export default function ContactPage() {
@@ -41,7 +41,7 @@ export default function ContactPage() {
             <Link to="/" className="gap-2"><ArrowLeft className="h-4 w-4" /> Back</Link>
           </Button>
           <Link to="/" className="font-display text-lg font-bold text-foreground">
-            Network<span className="text-primary">Memory</span>
+            Connect<span className="text-primary">ly</span>
           </Link>
           <div className="w-20" />
         </div>
@@ -56,7 +56,7 @@ export default function ContactPage() {
               Contact Us
             </motion.h1>
             <motion.p custom={1} variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed">
-              Have questions about NetworkMemory? We would love to hear from you.
+              Have questions about Connectly? We would love to hear from you.
             </motion.p>
           </motion.div>
           <motion.div
@@ -116,7 +116,7 @@ export default function ContactPage() {
                 <h3 className="font-display text-lg font-semibold text-foreground">Get in touch</h3>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Mail className="h-4 w-4 text-primary" />
-                  <span>support@networkmemory.com</span>
+                  <span>support@connectly.com</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Phone className="h-4 w-4 text-primary" />
@@ -147,7 +147,7 @@ export default function ContactPage() {
       {/* Footer */}
       <footer className="border-t border-border bg-card py-8">
         <div className="mx-auto max-w-6xl px-6 text-center">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} NetworkMemory. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Connectly. All rights reserved.</p>
         </div>
       </footer>
     </div>

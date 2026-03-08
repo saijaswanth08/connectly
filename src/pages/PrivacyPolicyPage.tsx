@@ -20,7 +20,7 @@ const sections = [
   {
     icon: Eye,
     title: "How We Use Information",
-    items: ["Provide and improve the NetworkMemory platform", "Deliver contact management and networking features", "Enhance user experience and personalization", "We never sell your personal data to third parties"],
+    items: ["Provide and improve the Connectly platform", "Deliver contact management and networking features", "Enhance user experience and personalization", "We never sell your personal data to third parties"],
   },
   {
     icon: Lock,
@@ -49,7 +49,7 @@ export default function PrivacyPolicyPage() {
             <Link to="/" className="gap-2"><ArrowLeft className="h-4 w-4" /> Back</Link>
           </Button>
           <Link to="/" className="font-display text-lg font-bold text-foreground">
-            Network<span className="text-primary">Memory</span>
+            Connect<span className="text-primary">ly</span>
           </Link>
           <div className="w-20" />
         </div>
@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
               Privacy Policy
             </motion.h1>
             <motion.p custom={2} variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed">
-              Your privacy is important to us. NetworkMemory is designed to securely store your contact information and professional networking data. We ensure that all data is handled responsibly and securely.
+              Your privacy is important to us. Connectly is designed to securely store your contact information and professional networking data. We ensure that all data is handled responsibly and securely.
             </motion.p>
             <motion.p custom={3} variants={fadeUp} className="text-sm text-muted-foreground">
               Last updated: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
@@ -118,7 +118,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="font-display text-xl font-semibold text-foreground">Questions?</h2>
             <p className="text-sm text-muted-foreground">
               If you have any questions about this Privacy Policy, please contact us at{" "}
-              <a href="mailto:support@networkmemory.com" className="text-primary hover:underline">support@networkmemory.com</a>
+              <a href="mailto:support@connectly.com" className="text-primary hover:underline">support@connectly.com</a>
             </p>
           </motion.div>
         </div>
@@ -127,7 +127,7 @@ export default function PrivacyPolicyPage() {
       {/* Footer */}
       <footer className="border-t border-border bg-card py-8">
         <div className="mx-auto max-w-6xl px-6 text-center">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} NetworkMemory. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Connectly. All rights reserved.</p>
         </div>
       </footer>
     </div>

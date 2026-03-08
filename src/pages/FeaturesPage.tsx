@@ -32,7 +32,7 @@ export default function FeaturesPage() {
             <Link to="/" className="gap-2"><ArrowLeft className="h-4 w-4" /> Back</Link>
           </Button>
           <Link to="/" className="font-display text-lg font-bold text-foreground">
-            Network<span className="text-primary">Memory</span>
+            Connect<span className="text-primary">ly</span>
           </Link>
           <div className="w-20" />
         </div>
@@ -92,7 +92,7 @@ export default function FeaturesPage() {
       {/* Footer */}
       <footer className="border-t border-border bg-card py-8">
         <div className="mx-auto max-w-6xl px-6 text-center">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} NetworkMemory. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Connectly. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -31,7 +31,7 @@ export default function AboutPage() {
             <Link to="/" className="gap-2"><ArrowLeft className="h-4 w-4" /> Back</Link>
           </Button>
           <Link to="/" className="font-display text-lg font-bold text-foreground">
-            Network<span className="text-primary">Memory</span>
+            Connect<span className="text-primary">ly</span>
           </Link>
           <div className="w-20" />
         </div>
@@ -43,13 +43,13 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 md:grid-cols-2">
           <motion.div initial="hidden" animate="visible" className="space-y-6">
             <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-bold text-foreground sm:text-5xl">
-              About Network<span className="text-primary">Memory</span>
+              About Connect<span className="text-primary">ly</span>
             </motion.h1>
             <motion.p custom={1} variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed">
-              NetworkMemory is a personal networking CRM designed for professionals who meet many people during conferences, meetings, and events.
+              Connectly is a personal networking CRM designed for professionals who meet many people during conferences, meetings, and events.
             </motion.p>
             <motion.p custom={2} variants={fadeUp} className="text-muted-foreground leading-relaxed">
-              Remembering every conversation and contact becomes difficult. NetworkMemory helps you store contacts, notes, and relationship details in one organized workspace. Professionals can easily track interactions, remember conversations, and build stronger relationships.
+              Remembering every conversation and contact becomes difficult. Connectly helps you store contacts, notes, and relationship details in one organized workspace. Professionals can easily track interactions, remember conversations, and build stronger relationships.
             </motion.p>
           </motion.div>
           <motion.div
@@ -74,7 +74,7 @@ export default function AboutPage() {
               Our Mission
             </motion.h2>
             <motion.p custom={2} variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed">
-              Our mission is to help professionals never forget an important connection. Networking is powerful, but remembering details is hard. NetworkMemory ensures every relationship stays meaningful and organized.
+              Our mission is to help professionals never forget an important connection. Networking is powerful, but remembering details is hard. Connectly ensures every relationship stays meaningful and organized.
             </motion.p>
           </motion.div>
         </div>
@@ -115,7 +115,7 @@ export default function AboutPage() {
       {/* Footer */}
       <footer className="border-t border-border bg-card py-8">
         <div className="mx-auto max-w-6xl px-6 text-center">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} NetworkMemory. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Connectly. All rights reserved.</p>
         </div>
       </footer>
     </div>
