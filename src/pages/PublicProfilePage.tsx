@@ -20,10 +20,10 @@ export default function PublicProfilePage() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("username" as any, username)
+        .eq("username" as string, username!)
         .single();
       if (error) throw error;
-      return data as any;
+      return data;
     },
     enabled: !!username,
   });
