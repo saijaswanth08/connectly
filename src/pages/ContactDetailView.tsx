@@ -135,6 +135,11 @@ export default function ContactDetailView() {
           <p className="text-xs text-muted-foreground">Added {new Date(contact.created_at).toLocaleDateString()}</p>
         </div>
       )}
+
+      {/* Follow-Up Reminders */}
+      <div className="glass-card rounded-xl p-6">
+        <ContactReminders contactId={contact.id} contactName={contact.name} />
+      </div>
     </div>
   );
 }

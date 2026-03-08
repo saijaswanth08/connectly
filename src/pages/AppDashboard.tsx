@@ -156,6 +156,9 @@ export default function AppDashboard() {
         ))}
       </div>
 
+      {/* Upcoming Reminders Widget */}
+      <UpcomingRemindersWidget />
+
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
