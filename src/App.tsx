@@ -28,6 +28,7 @@ import ContactSupportPage from "@/pages/ContactSupportPage";
 import RemindersPage from "./pages/RemindersPage";
 import NetworkMapPage from "./pages/NetworkMapPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 import MyProfilePage from "./pages/MyProfilePage";
 import FollowUpsPage from "./pages/FollowUpsPage";
 import RecentInteractionsPage from "./pages/RecentInteractionsPage";
@@ -73,6 +74,7 @@ const App = () => (
               <Route path="/dashboard/reminders" element={<RemindersPage />} />
               <Route path="/dashboard/network" element={<NetworkMapPage />} />
               <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
+              <Route path="/dashboard/change-password" element={<ChangePasswordPage />} />
               <Route path="/dashboard/profile" element={<MyProfilePage />} />
               <Route path="/dashboard/follow-ups" element={<FollowUpsPage />} />
               <Route path="/dashboard/recent-interactions" element={<RecentInteractionsPage />} />
