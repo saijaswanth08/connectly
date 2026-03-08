@@ -28,6 +28,7 @@ export default function AppDashboard() {
   const { user } = useAuth();
   const { data: contacts = [], isLoading } = useContacts();
   const { data: meetings = [] } = useMeetings();
+  const { data: reminders = [] } = useReminders();
   const createContact = useCreateContact();
   const deleteContactMut = useDeleteContact();
   const { toast } = useToast();
