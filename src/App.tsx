@@ -9,6 +9,8 @@ import { AppLayout } from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import AppDashboard from "@/pages/AppDashboard";
 import ContactDetailView from "@/pages/ContactDetailView";
 import MeetingsPage from "@/pages/MeetingsPage";
