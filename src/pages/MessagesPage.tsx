@@ -8,6 +8,7 @@ import {
   useRealtimeMessages,
   useRealtimeConversations,
 } from "@/hooks/useMessages";
+import { useAllPresence, getPresenceStatus, formatLastSeen } from "@/hooks/usePresence";
 import { DbContact } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ export default function MessagesPage() {
   const { data: messages = [] } = useMessages(selectedConversationId);
   const sendMessage = useSendMessage();
   const getOrCreateConv = useGetOrCreateConversation();
+  const { data: presenceRecords = [] } = useAllPresence();
 
   useRealtimeMessages(selectedConversationId);
   useRealtimeConversations();
@@ -158,8 +160,15 @@ export default function MessagesPage() {
                           {getInitials(contact.name)}
                         </AvatarFallback>
                       </Avatar>
-                      {/* Simulated online status for demo */}
-                      <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-card" />
+                      {(() => {
+                        const presence = getPresenceStatus(presenceRecords, contact.id);
+                        return (
+                          <div className={cn(
+                            "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-card",
+                            presence.isOnline ? "bg-emerald-500" : "bg-muted-foreground/40"
+                          )} />
+                        );
+                      })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
@@ -212,10 +221,19 @@ export default function MessagesPage() {
                   <h3 className="text-sm font-semibold text-foreground">
                     {selectedContact.name}
                   </h3>
-                  <p className="text-[11px] text-green-600 flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block" />
-                    Online
-                  </p>
+                  {(() => {
+                    const presence = getPresenceStatus(presenceRecords, selectedContact.id);
+                    return presence.isOnline ? (
+                      <p className="text-[11px] text-emerald-600 flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
+                        Online
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground">
+                        {formatLastSeen(presence.lastSeen)}
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
 
