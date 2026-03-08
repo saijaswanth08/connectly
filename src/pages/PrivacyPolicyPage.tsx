@@ -118,7 +118,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="font-display text-xl font-semibold text-foreground">Questions?</h2>
             <p className="text-sm text-muted-foreground">
               If you have any questions about this Privacy Policy, please contact us at{" "}
-              <a href="mailto:support@networkmemory.com" className="text-primary hover:underline">support@networkmemory.com</a>
+              <a href="mailto:support@connectly.com" className="text-primary hover:underline">support@connectly.com</a>
             </p>
           </motion.div>
         </div>
