@@ -27,6 +27,8 @@ import ContactSupportPage from "@/pages/ContactSupportPage";
 import RemindersPage from "./pages/RemindersPage";
 import NetworkMapPage from "./pages/NetworkMapPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
+import FollowUpsPage from "./pages/FollowUpsPage";
+import InteractionsPage from "./pages/InteractionsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
