@@ -224,7 +224,7 @@ export default function AppDashboard() {
               {c.notes && <p className="text-xs text-muted-foreground line-clamp-2">{c.notes}</p>}
 
               <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDelete(c.id)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -232,6 +232,13 @@ export default function AppDashboard() {
           ))}
         </div>
       )}
+
+      <ContactDetailModal
+        contact={selectedContact}
+        open={!!selectedContact}
+        onOpenChange={(open) => { if (!open) setSelectedContact(null); }}
+        onDelete={(id) => handleDelete(id)}
+      />
     </div>
   );
 }
