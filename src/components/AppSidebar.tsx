@@ -1,13 +1,11 @@
-import { LayoutDashboard, Calendar, Users, Bell, Settings, LogOut, Zap, StickyNote } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Bell, Zap } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import { SidebarUserMenu } from "@/components/SidebarUserMenu";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -20,11 +18,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const { user, signOut } = useAuth();
   const isActive = (path: string) => location.pathname === path;
-
-  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
-  const initials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
@@ -63,22 +57,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8 shrink-0">
-            <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">{initials}</AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-sidebar-accent-foreground truncate">{userName}</p>
-              <p className="text-[10px] text-sidebar-foreground truncate">{user?.email}</p>
-            </div>
-          )}
-          {!collapsed && (
-            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-sidebar-foreground hover:text-destructive" onClick={signOut}>
-              <LogOut className="h-3.5 w-3.5" />
-            </Button>
-          )}
-        </div>
+        <SidebarUserMenu />
       </SidebarFooter>
     </Sidebar>
   );
