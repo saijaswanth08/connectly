@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Zap } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
+import { z } from "zod";
+
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[a-zA-Z]/, "Must contain at least one letter")
+  .regex(/[0-9]/, "Must contain at least one number");
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -23,12 +31,16 @@ export default function ResetPasswordPage() {
     }
   }, []);
 
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast({ title: "Password too short", description: "Must be at least 6 characters", variant: "destructive" });
+    const result = passwordSchema.safeParse(password);
+    if (!result.success) {
+      setPasswordErrors(result.error.errors.map((err) => err.message));
       return;
     }
+    setPasswordErrors([]);
     if (password !== confirmPassword) {
       toast({ title: "Passwords don't match", description: "Please make sure your passwords match", variant: "destructive" });
       return;
@@ -65,7 +77,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold text-foreground">
-            <Zap className="h-7 w-7 text-primary" />
+            <ConnectlyLogoIcon size={28} />
             Connect<span className="text-primary">ly</span>
           </Link>
           <h1 className="font-display text-xl font-semibold text-foreground mt-4">Set new password</h1>
@@ -75,7 +87,12 @@ export default function ResetPasswordPage() {
         <form onSubmit={handleReset} className="rounded-2xl border border-border bg-card p-8 shadow-sm space-y-5">
           <div className="space-y-2">
             <Label htmlFor="password">New Password</Label>
-            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="rounded-lg" />
+            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => { setPassword(e.target.value); if (passwordErrors.length) { const r = passwordSchema.safeParse(e.target.value); setPasswordErrors(r.success ? [] : r.error.errors.map(err => err.message)); } }} required className="rounded-lg" />
+            {passwordErrors.length > 0 && (
+              <ul className="text-xs text-destructive space-y-0.5 mt-1">
+                {passwordErrors.map((err) => <li key={err}>• {err}</li>)}
+              </ul>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
