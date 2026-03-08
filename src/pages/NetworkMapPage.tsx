@@ -428,9 +428,6 @@ export default function NetworkMapPage() {
             onMouseLeave={handleMouseUp}
             onWheel={handleWheel}
           />
-          <div className="absolute bottom-3 right-3 text-[10px] text-muted-foreground bg-card/80 backdrop-blur-sm rounded-md px-2 py-1 border border-border/50">
-            {filteredContacts.length} nodes · {connections.length} connections · {Math.round(zoom * 100)}%
-          </div>
         </div>
       )}
 
