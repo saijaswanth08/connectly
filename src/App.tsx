@@ -29,6 +29,7 @@ import NetworkMapPage from "./pages/NetworkMapPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import FollowUpsPage from "./pages/FollowUpsPage";
 import RecentInteractionsPage from "./pages/RecentInteractionsPage";
+import NetworkingInsightsPage from "./pages/NetworkingInsightsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
