@@ -35,7 +35,7 @@ export default function RemindersPage() {
   // Form state
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
-  const [contactId, setContactId] = useState<string>("none");
+  const [contactId, setContactId] = useState<string | null>(null);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState("10:00");
 
