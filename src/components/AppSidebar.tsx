@@ -19,6 +19,7 @@ const mainItems = [
 const widgetItems = [
   { title: "Upcoming Follow-Ups", url: "/dashboard/follow-ups", icon: Clock },
   { title: "Recent Interactions", url: "/dashboard/recent-interactions", icon: MessageSquare },
+  { title: "Networking Insights", url: "/dashboard/insights", icon: Lightbulb },
 ];
 
 export function AppSidebar() {
