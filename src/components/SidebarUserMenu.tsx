@@ -121,19 +121,6 @@ export function SidebarUserMenu() {
           Contact Support
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator />
-
-        {/* Dark Mode Toggle */}
-        <div
-          className="flex items-center justify-between rounded-sm px-2 py-1.5 text-sm cursor-pointer hover:bg-accent"
-          onClick={toggleDarkMode}
-        >
-          <div className="flex items-center">
-            <Moon className="mr-2 h-4 w-4" />
-            Dark Mode
-          </div>
-          <Switch checked={isDark} onCheckedChange={() => toggleDarkMode()} className="scale-75" />
-        </div>
 
         <DropdownMenuSeparator />
 
