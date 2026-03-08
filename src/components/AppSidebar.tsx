@@ -47,17 +47,17 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup className="pt-4">
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu>
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink
                       to={item.url}
                       end
-                      className="rounded-lg text-base font-medium py-2.5 px-3 transition-all duration-200 hover:bg-sidebar-accent/60 hover:scale-[1.02]"
+                      className="rounded-lg text-sm font-medium transition-colors duration-200 hover:bg-sidebar-accent/50"
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
                     >
-                      <item.icon className="h-5 w-5" />
+                      <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -69,10 +69,10 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end
-                      className="rounded-lg text-base font-medium py-2.5 px-3 transition-all duration-200 hover:bg-sidebar-accent/60 hover:scale-[1.02]"
+                      className="rounded-lg text-sm font-medium transition-colors duration-200 hover:bg-sidebar-accent/50"
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
                     >
-                      <item.icon className="h-5 w-5" />
+                      <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
