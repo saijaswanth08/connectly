@@ -175,7 +175,7 @@ export default function LandingPage() {
                 viewport={{ once: true, margin: "-40px" }}
                 custom={i}
                 variants={fadeUp}
-                className="group rounded-2xl border border-border bg-card p-7 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                className="group rounded-2xl border border-border bg-card p-7 shadow-sm transition-shadow duration-150 hover:shadow-md"
               >
                 <div className="mb-4 inline-flex rounded-xl bg-accent p-3">
                   <feature.icon className="h-5 w-5 text-primary" />
