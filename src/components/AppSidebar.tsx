@@ -1,6 +1,6 @@
-import { LayoutDashboard, Calendar, Users, Bell, Zap, Video, Network } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
@@ -14,6 +14,11 @@ const mainItems = [
   { title: "Video Meetings", url: "/dashboard/video-meetings", icon: Video },
   { title: "Reminders", url: "/dashboard/reminders", icon: Bell },
   { title: "Network Map", url: "/dashboard/network", icon: Network },
+];
+
+const widgetItems = [
+  { title: "Upcoming Follow-Ups", url: "/dashboard/follow-ups", icon: Clock },
+  { title: "Recent Interactions", url: "/dashboard/interactions", icon: MessageSquare },
 ];
 
 export function AppSidebar() {
@@ -44,6 +49,24 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                    <NavLink to={item.url} end className="hover:bg-sidebar-accent/50 rounded-lg" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest">Widgets</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {widgetItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink to={item.url} end className="hover:bg-sidebar-accent/50 rounded-lg" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
