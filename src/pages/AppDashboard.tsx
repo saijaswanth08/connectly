@@ -18,6 +18,7 @@ import { DbContact } from "@/lib/api";
 import { UpcomingRemindersWidget } from "@/components/UpcomingRemindersWidget";
 import { RecentInteractionsWidget } from "@/components/RecentInteractionsWidget";
 import { NetworkOverviewWidget } from "@/components/NetworkOverviewWidget";
+import { NetworkingInsightsWidget } from "@/components/NetworkingInsightsWidget";
 
 const importanceBg: Record<string, string> = {
   vip: "bg-vip/15 text-vip border-vip/30",
@@ -164,6 +165,9 @@ export default function AppDashboard() {
         <RecentInteractionsWidget />
         <NetworkOverviewWidget />
       </div>
+
+      {/* Networking Insights */}
+      <NetworkingInsightsWidget />
 
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">

@@ -26,6 +26,7 @@ import ReportIssuePage from "@/pages/ReportIssuePage";
 import ContactSupportPage from "@/pages/ContactSupportPage";
 import RemindersPage from "./pages/RemindersPage";
 import NetworkMapPage from "./pages/NetworkMapPage";
+import AccountSettingsPage from "./pages/AccountSettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/dashboard/video-meetings" element={<VideoMeetingsPage />} />
               <Route path="/dashboard/reminders" element={<RemindersPage />} />
               <Route path="/dashboard/network" element={<NetworkMapPage />} />
+              <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
               <Route path="/help" element={<HelpCenterPage />} />
               <Route path="/report-issue" element={<ReportIssuePage />} />
               <Route path="/support" element={<ContactSupportPage />} />

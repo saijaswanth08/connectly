@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { User, ImagePlus, Trash2, Settings, LogOut, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -36,6 +37,7 @@ import { format } from "date-fns";
 export function ProfileDropdown() {
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
@@ -169,7 +171,7 @@ export function ProfileDropdown() {
             <Trash2 className="mr-2 h-4 w-4" /> Delete Profile Photo
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => toast.info("Account settings coming soon.")}>
+          <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
             <Settings className="mr-2 h-4 w-4" /> Account Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />

@@ -95,14 +95,12 @@ export function SidebarUserMenu() {
         className="w-[220px] mb-1"
         sideOffset={8}
       >
-        {/* Profile Settings */}
-        <DropdownMenuItem onClick={() => toast.info("Profile settings coming soon.")}>
+        <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
           <User className="mr-2 h-4 w-4" />
           Profile Settings
         </DropdownMenuItem>
 
-        {/* Account Settings */}
-        <DropdownMenuItem onClick={() => toast.info("Account settings coming soon.")}>
+        <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
           <Settings className="mr-2 h-4 w-4" />
           Account Settings
         </DropdownMenuItem>

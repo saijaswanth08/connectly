@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn, Bell } from "lucide-react";
+import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn, Bell, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import { useMeetings, useCreateMeeting, useContacts } from "@/hooks/useContacts"
 import { useCreateReminder } from "@/hooks/useReminders";
 import { JitsiMeetingRoom } from "@/components/JitsiMeetingRoom";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 function generateRoomId() {
   const id = Math.random().toString(36).substring(2, 8);
@@ -38,6 +39,8 @@ export default function VideoMeetingsPage() {
   const [joinCode, setJoinCode] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [aiSummaries, setAiSummaries] = useState<Record<string, string>>({});
+  const [generatingAi, setGeneratingAi] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     date: undefined as Date | undefined,
@@ -128,13 +131,30 @@ export default function VideoMeetingsPage() {
   };
 
   const handleLeaveRoom = () => {
-    // Find if the last meeting had a contact
     const lastMeeting = meetings.find((m) => m.meeting_link?.includes(activeRoom!));
     if (lastMeeting?.contact_id) {
       setLastMeetingContactId(lastMeeting.contact_id);
       setShowFollowUp(true);
     }
     setActiveRoom(null);
+  };
+
+  const handleGenerateAiNotes = async (meeting: typeof meetings[0]) => {
+    const contact = contacts.find((c) => c.id === meeting.contact_id);
+    setGeneratingAi(meeting.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-meeting-notes", {
+        body: { meetingTitle: meeting.title, contactName: contact?.name, notes: meeting.notes },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setAiSummaries((prev) => ({ ...prev, [meeting.id]: data.summary }));
+      toast({ title: "AI summary generated!" });
+    } catch (e: any) {
+      toast({ title: "Error generating summary", description: e.message, variant: "destructive" });
+    } finally {
+      setGeneratingAi(null);
+    }
   };
 
   const handleCreateFollowUp = async () => {
@@ -342,6 +362,17 @@ export default function VideoMeetingsPage() {
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                   {m.meeting_time && (<span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{format(new Date(m.meeting_time), "PPp")}</span>)}
                 </div>
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => handleGenerateAiNotes(m)} disabled={generatingAi === m.id}>
+                    {generatingAi === m.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    {generatingAi === m.id ? "Generating..." : "AI Summary"}
+                  </Button>
+                </div>
+                {aiSummaries[m.id] && (
+                  <div className="mt-2 rounded-lg bg-accent/50 border border-border/50 p-4 text-sm text-foreground whitespace-pre-wrap">
+                    {aiSummaries[m.id]}
+                  </div>
+                )}
               </motion.div>
             );
           })}
