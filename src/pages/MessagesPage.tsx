@@ -244,7 +244,7 @@ export default function MessagesPage() {
                                 : "bg-muted text-foreground rounded-bl-md"
                             )}
                           >
-                            <p className="text-base leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                            <p className="text-4xl font-bold leading-tight whitespace-pre-wrap">{msg.content}</p>
                             <p
                               className={cn(
                                 "text-[10px] mt-1",
