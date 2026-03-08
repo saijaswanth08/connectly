@@ -39,6 +39,8 @@ export default function VideoMeetingsPage() {
   const [joinCode, setJoinCode] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [aiSummaries, setAiSummaries] = useState<Record<string, string>>({});
+  const [generatingAi, setGeneratingAi] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     date: undefined as Date | undefined,
