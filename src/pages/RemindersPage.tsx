@@ -75,7 +75,7 @@ export default function RemindersPage() {
     setEditingReminder(r);
     setTitle(r.title);
     setMessage(r.message || "");
-    setContactId(r.contact_id || "none");
+    setContactId(r.contact_id || null);
     const d = new Date(r.reminder_date);
     setDate(d);
     setTime(format(d, "HH:mm"));
