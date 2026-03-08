@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useContacts, useCreateContact, useDeleteContact } from "@/hooks/useContacts";
 import { useMeetings } from "@/hooks/useContacts";
+import { useReminders } from "@/hooks/useReminders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,7 @@ import { Plus, Search, Users, Calendar, Trash2, Building2, Mail, Phone, MapPin, 
 import { ContactDetailPanel } from "@/components/ContactDetailPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DbContact } from "@/lib/api";
+import { UpcomingRemindersWidget } from "@/components/UpcomingRemindersWidget";
 
 const importanceBg: Record<string, string> = {
   vip: "bg-vip/15 text-vip border-vip/30",
