@@ -95,3 +95,51 @@ export async function createMeeting(meeting: Omit<DbMeeting, "id" | "created_at"
   if (error) throw error;
   return data as DbMeeting;
 }
+
+// Reminders API
+export interface DbReminder {
+  id: string;
+  user_id: string;
+  contact_id: string | null;
+  title: string;
+  message: string;
+  reminder_date: string;
+  completed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function fetchReminders(): Promise<DbReminder[]> {
+  const { data, error } = await supabase
+    .from("reminders")
+    .select("*")
+    .order("reminder_date", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as DbReminder[];
+}
+
+export async function createReminder(reminder: Omit<DbReminder, "id" | "created_at" | "updated_at">): Promise<DbReminder> {
+  const { data, error } = await supabase
+    .from("reminders")
+    .insert(reminder)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as DbReminder;
+}
+
+export async function updateReminder(id: string, updates: Partial<DbReminder>): Promise<DbReminder> {
+  const { data, error } = await supabase
+    .from("reminders")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as DbReminder;
+}
+
+export async function deleteReminder(id: string): Promise<void> {
+  const { error } = await supabase.from("reminders").delete().eq("id", id);
+  if (error) throw error;
+}
