@@ -1,4 +1,4 @@
-import { Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare, UserCircle } from "lucide-react";
+import { Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
