@@ -53,12 +53,8 @@ export default function LandingPage() {
             Network<span className="text-primary">Memory</span>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <a href="#about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</a>
-            <a href="#hub" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
-          </div>
+          {/* Spacer for right-aligned buttons */}
+          <div className="hidden md:block" />
 
           <div className="hidden md:flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
@@ -78,9 +74,6 @@ export default function LandingPage() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-card px-6 py-4 space-y-3">
-            <a href="#features" className="block text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Features</a>
-            <a href="#about" className="block text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>About</a>
-            <a href="#hub" className="block text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
             <div className="flex gap-3 pt-2">
               <Button variant="outline" size="sm" className="rounded-full" asChild>
                 <Link to="/login">Login</Link>
@@ -259,10 +252,10 @@ export default function LandingPage() {
               Network<span className="text-primary">Memory</span>
             </span>
             <nav className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-              <a href="#about" className="hover:text-foreground transition-colors">About</a>
-              <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-              <Link to="/dashboard" className="hover:text-foreground transition-colors">Contact</Link>
-              <span className="hover:text-foreground transition-colors cursor-pointer">Privacy Policy</span>
+              <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
+              <Link to="/features" className="hover:text-foreground transition-colors">Features</Link>
+              <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+              <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             </nav>
           </div>
           <p className="mt-8 text-center text-xs text-muted-foreground">

@@ -11,6 +11,10 @@ import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
+import AboutPage from "@/pages/AboutPage";
+import FeaturesPage from "@/pages/FeaturesPage";
+import ContactPage from "@/pages/ContactPage";
+import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import AppDashboard from "@/pages/AppDashboard";
 import ContactDetailView from "@/pages/ContactDetailView";
 import MeetingsPage from "@/pages/MeetingsPage";
@@ -39,6 +43,10 @@ const App = () => (
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route element={<ProtectedAppLayout />}>
               <Route path="/dashboard" element={<AppDashboard />} />
               <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
