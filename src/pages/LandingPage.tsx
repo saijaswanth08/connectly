@@ -144,7 +144,7 @@ export default function LandingPage() {
                 Professionals meet many people at conferences, meetings, and events. Remembering every conversation becomes difficult.
               </motion.p>
               <motion.p custom={2} variants={fadeUp} className="text-muted-foreground leading-relaxed">
-                NetworkMemory helps you store contacts, notes, and relationship history in one place so you never forget an important connection.
+                Connectly helps you store contacts, notes, and relationship history in one place so you never forget an important connection.
               </motion.p>
             </motion.div>
           </div>
