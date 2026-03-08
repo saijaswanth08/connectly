@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calendar, Users, Bell, Zap } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Bell, Zap, Video } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -11,6 +11,7 @@ const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Contacts", url: "/dashboard", icon: Users },
   { title: "Meetings", url: "/dashboard/meetings", icon: Calendar },
+  { title: "Video Meetings", url: "/dashboard/video-meetings", icon: Video },
   { title: "Reminders", url: "/dashboard/reminders", icon: Bell },
 ];
 
