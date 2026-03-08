@@ -127,7 +127,7 @@ export default function VideoMeetingsPage() {
   if (activeRoom) {
     return (
       <div className="p-6 max-w-6xl mx-auto">
-        <JitsiMeetingRoom roomId={activeRoom} onLeave={() => setActiveRoom(null)} />
+        <JitsiMeetingRoom roomId={activeRoom} onLeave={() => setActiveRoom(null)} title="Connectly Meeting" />
       </div>
     );
   }
