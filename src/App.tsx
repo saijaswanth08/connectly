@@ -30,6 +30,7 @@ import AccountSettingsPage from "./pages/AccountSettingsPage";
 import FollowUpsPage from "./pages/FollowUpsPage";
 import RecentInteractionsPage from "./pages/RecentInteractionsPage";
 import NetworkingInsightsPage from "./pages/NetworkingInsightsPage";
+import MessagesPage from "./pages/MessagesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
                 <Route path="/dashboard" element={<AppDashboard />} />
                 <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
               <Route path="/dashboard/interactions" element={<InteractionsPage />} />
+              <Route path="/dashboard/messages" element={<MessagesPage />} />
               <Route path="/dashboard/video-meetings" element={<VideoMeetingsPage />} />
               <Route path="/dashboard/reminders" element={<RemindersPage />} />
               <Route path="/dashboard/network" element={<NetworkMapPage />} />
