@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare } from "lucide-react";
+import { Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -8,7 +8,6 @@ import {
 import { SidebarUserMenu } from "@/components/SidebarUserMenu";
 
 const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Contacts", url: "/dashboard", icon: Users },
   { title: "Messages", url: "/dashboard/messages", icon: MessagesSquare },
   { title: "Interactions", url: "/dashboard/interactions", icon: Calendar },
