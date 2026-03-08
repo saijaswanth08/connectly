@@ -15,8 +15,7 @@ import { Plus, Search, Users, Calendar, Trash2, Building2, Mail, Phone, MapPin, 
 import { ContactDetailPanel } from "@/components/ContactDetailPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DbContact } from "@/lib/api";
-import { UpcomingRemindersWidget } from "@/components/UpcomingRemindersWidget";
-import { RecentInteractionsWidget } from "@/components/RecentInteractionsWidget";
+import { NetworkingInsightsWidget } from "@/components/NetworkingInsightsWidget";
 import { NetworkingInsightsWidget } from "@/components/NetworkingInsightsWidget";
 
 const importanceBg: Record<string, string> = {
