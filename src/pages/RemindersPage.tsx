@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ContactSearchSelect } from "@/components/ContactSearchSelect";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Calendar } from "@/components/ui/calendar";
@@ -35,7 +35,7 @@ export default function RemindersPage() {
   // Form state
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
-  const [contactId, setContactId] = useState<string>("none");
+  const [contactId, setContactId] = useState<string | null>(null);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState("10:00");
 
@@ -60,7 +60,7 @@ export default function RemindersPage() {
   function resetForm() {
     setTitle("");
     setMessage("");
-    setContactId("none");
+    setContactId(null);
     setDate(undefined);
     setTime("10:00");
     setEditingReminder(null);
@@ -75,7 +75,7 @@ export default function RemindersPage() {
     setEditingReminder(r);
     setTitle(r.title);
     setMessage(r.message || "");
-    setContactId(r.contact_id || "none");
+    setContactId(r.contact_id || null);
     const d = new Date(r.reminder_date);
     setDate(d);
     setTime(format(d, "HH:mm"));
@@ -95,7 +95,7 @@ export default function RemindersPage() {
           updates: {
             title,
             message,
-            contact_id: contactId === "none" ? null : contactId,
+            contact_id: contactId,
             reminder_date: reminderDate.toISOString(),
           },
         });
@@ -105,7 +105,7 @@ export default function RemindersPage() {
           user_id: user.id,
           title,
           message,
-          contact_id: contactId === "none" ? null : contactId,
+          contact_id: contactId,
           reminder_date: reminderDate.toISOString(),
           completed: false,
         });
@@ -261,15 +261,7 @@ export default function RemindersPage() {
             </div>
             <div className="space-y-2">
               <Label>Related Contact</Label>
-              <Select value={contactId} onValueChange={setContactId}>
-                <SelectTrigger><SelectValue placeholder="Select contact" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No contact</SelectItem>
-                  {contacts.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ContactSearchSelect value={contactId} onChange={setContactId} />
             </div>
             <div className="space-y-2">
               <Label>Message</Label>
