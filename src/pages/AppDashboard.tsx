@@ -200,7 +200,7 @@ export default function AppDashboard() {
             <motion.div key={c.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="glass-card rounded-xl p-5 space-y-3 group">
               <div className="flex items-start justify-between">
                 <div className="min-w-0">
-                  <Link to={`/dashboard/contacts/${c.id}`} className="font-display font-semibold text-foreground hover:text-primary transition-colors truncate block">{c.name}</Link>
+                  <button onClick={() => setSelectedContact(c)} className="font-display font-semibold text-foreground hover:text-primary transition-colors truncate block text-left">{c.name}</button>
                   {c.company && <p className="text-sm text-muted-foreground flex items-center gap-1"><Building2 className="h-3.5 w-3.5" />{c.job_title ? `${c.job_title} at ${c.company}` : c.company}</p>}
                 </div>
                 <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border ${importanceBg[c.importance] || importanceBg.medium}`}>{c.importance}</span>
