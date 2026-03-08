@@ -122,7 +122,7 @@ export default function MessagesPage() {
           isMobile ? "w-full" : "w-80 shrink-0"
         )}>
           <div className="p-4 border-b border-border/50">
-            <h2 className="text-lg font-semibold text-foreground mb-3">Messages</h2>
+            <h2 className="text-4xl font-bold text-foreground mb-3">Messages</h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -286,8 +286,8 @@ export default function MessagesPage() {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
               <MessageSquare className="h-16 w-16 mb-4 opacity-20" />
-              <h3 className="text-lg font-medium text-foreground">Your Messages</h3>
-              <p className="text-sm mt-1">Select a contact to start chatting</p>
+              <h3 className="text-4xl font-bold text-foreground">Your Messages</h3>
+              <p className="text-lg mt-2">Select a contact to start chatting</p>
             </div>
           )}
         </div>
