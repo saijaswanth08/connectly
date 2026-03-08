@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Plus, Search, Users, Calendar, Trash2, Building2, Mail, Phone, MapPin, Linkedin, Tag, Star } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ContactDetailModal } from "@/components/ContactDetailModal";
+import { DbContact } from "@/lib/api";
 
 const importanceBg: Record<string, string> = {
   vip: "bg-vip/20 text-vip border-vip/30",
@@ -30,6 +31,7 @@ export default function AppDashboard() {
 
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<DbContact | null>(null);
   const [form, setForm] = useState({
     name: "", company: "", job_title: "", email: "", phone: "",
     linkedin_url: "", meeting_location: "", notes: "", importance: "medium", tags: "",
@@ -195,10 +197,10 @@ export default function AppDashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {filtered.map((c, i) => (
-            <motion.div key={c.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="glass-card rounded-xl p-5 space-y-3 group">
+            <motion.div key={c.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="glass-card rounded-xl p-5 space-y-3 group cursor-pointer" onClick={() => setSelectedContact(c)}>
               <div className="flex items-start justify-between">
                 <div className="min-w-0">
-                  <Link to={`/dashboard/contacts/${c.id}`} className="font-display font-semibold text-foreground hover:text-primary transition-colors truncate block">{c.name}</Link>
+                  <button onClick={() => setSelectedContact(c)} className="font-display font-semibold text-foreground hover:text-primary transition-colors truncate block text-left">{c.name}</button>
                   {c.company && <p className="text-sm text-muted-foreground flex items-center gap-1"><Building2 className="h-3.5 w-3.5" />{c.job_title ? `${c.job_title} at ${c.company}` : c.company}</p>}
                 </div>
                 <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border ${importanceBg[c.importance] || importanceBg.medium}`}>{c.importance}</span>
@@ -222,7 +224,7 @@ export default function AppDashboard() {
               {c.notes && <p className="text-xs text-muted-foreground line-clamp-2">{c.notes}</p>}
 
               <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDelete(c.id)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -230,6 +232,13 @@ export default function AppDashboard() {
           ))}
         </div>
       )}
+
+      <ContactDetailModal
+        contact={selectedContact}
+        open={!!selectedContact}
+        onOpenChange={(open) => { if (!open) setSelectedContact(null); }}
+        onDelete={(id) => handleDelete(id)}
+      />
     </div>
   );
 }
