@@ -90,6 +90,11 @@ export function ContactDetailPanel({ contact, open, onOpenChange, onEdit, onDele
 
           <Separator />
 
+          {/* Relationship Strength */}
+          <RelationshipStrength contactId={contact.id} />
+
+          <Separator />
+
           {/* Tags */}
           {contact.tags && contact.tags.length > 0 && (
             <>

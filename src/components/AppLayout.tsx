@@ -3,10 +3,16 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { GlobalSearch } from "@/components/GlobalSearch";
+import { FloatingQuickAdd } from "@/components/FloatingQuickAdd";
 import { usePresenceTracker } from "@/hooks/usePresence";
+import { useKeyboardShortcuts } from "@/components/KeyboardShortcuts";
 
 export function AppLayout() {
   usePresenceTracker();
+  useKeyboardShortcuts();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-muted/30">
@@ -15,8 +21,10 @@ export function AppLayout() {
           <header className="h-14 flex items-center justify-between border-b border-border/40 px-4 bg-card/80 backdrop-blur-sm sticky top-0 z-30">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="mr-2" />
+              <GlobalSearch />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
               <NotificationBell />
               <ProfileDropdown />
             </div>
@@ -25,6 +33,7 @@ export function AppLayout() {
             <Outlet />
           </main>
         </div>
+        <FloatingQuickAdd />
       </div>
     </SidebarProvider>
   );
