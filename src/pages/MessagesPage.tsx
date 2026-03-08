@@ -122,7 +122,7 @@ export default function MessagesPage() {
           isMobile ? "w-full" : "w-80 shrink-0"
         )}>
           <div className="p-4 border-b border-border/50">
-            <h2 className="text-4xl font-bold text-foreground mb-3">Messages</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-3">Messages</h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
