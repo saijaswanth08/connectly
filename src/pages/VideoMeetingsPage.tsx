@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn } from "lucide-react";
+import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useMeetings, useCreateMeeting, useContacts } from "@/hooks/useContacts";
+import { useCreateReminder } from "@/hooks/useReminders";
 import { JitsiMeetingRoom } from "@/components/JitsiMeetingRoom";
 import { cn } from "@/lib/utils";
 
