@@ -31,12 +31,16 @@ export default function ResetPasswordPage() {
     }
   }, []);
 
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast({ title: "Password too short", description: "Must be at least 6 characters", variant: "destructive" });
+    const result = passwordSchema.safeParse(password);
+    if (!result.success) {
+      setPasswordErrors(result.error.errors.map((err) => err.message));
       return;
     }
+    setPasswordErrors([]);
     if (password !== confirmPassword) {
       toast({ title: "Passwords don't match", description: "Please make sure your passwords match", variant: "destructive" });
       return;
