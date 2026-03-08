@@ -10,7 +10,7 @@ import { SidebarUserMenu } from "@/components/SidebarUserMenu";
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Contacts", url: "/dashboard", icon: Users },
-  { title: "Meetings", url: "/dashboard/meetings", icon: Calendar },
+  { title: "Interactions", url: "/dashboard/interactions", icon: Calendar },
   { title: "Video Meetings", url: "/dashboard/video-meetings", icon: Video },
   { title: "Reminders", url: "/dashboard/reminders", icon: Bell },
   { title: "Network Map", url: "/dashboard/network", icon: Network },
@@ -18,7 +18,7 @@ const mainItems = [
 
 const widgetItems = [
   { title: "Upcoming Follow-Ups", url: "/dashboard/follow-ups", icon: Clock },
-  { title: "Recent Interactions", url: "/dashboard/interactions", icon: MessageSquare },
+  { title: "Recent Interactions", url: "/dashboard/recent-interactions", icon: MessageSquare },
 ];
 
 export function AppSidebar() {

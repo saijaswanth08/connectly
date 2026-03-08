@@ -19,7 +19,7 @@ import ContactPage from "@/pages/ContactPage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import AppDashboard from "@/pages/AppDashboard";
 import ContactDetailView from "@/pages/ContactDetailView";
-import MeetingsPage from "@/pages/MeetingsPage";
+import InteractionsPage from "@/pages/InteractionsPage";
 import VideoMeetingsPage from "@/pages/VideoMeetingsPage";
 import HelpCenterPage from "@/pages/HelpCenterPage";
 import ReportIssuePage from "@/pages/ReportIssuePage";
@@ -28,7 +28,7 @@ import RemindersPage from "./pages/RemindersPage";
 import NetworkMapPage from "./pages/NetworkMapPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import FollowUpsPage from "./pages/FollowUpsPage";
-import InteractionsPage from "./pages/InteractionsPage";
+import RecentInteractionsPage from "./pages/RecentInteractionsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,13 +63,13 @@ const App = () => (
               <Route element={<ProtectedAppLayout />}>
                 <Route path="/dashboard" element={<AppDashboard />} />
                 <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
-              <Route path="/dashboard/meetings" element={<MeetingsPage />} />
+              <Route path="/dashboard/interactions" element={<InteractionsPage />} />
               <Route path="/dashboard/video-meetings" element={<VideoMeetingsPage />} />
               <Route path="/dashboard/reminders" element={<RemindersPage />} />
               <Route path="/dashboard/network" element={<NetworkMapPage />} />
               <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
               <Route path="/dashboard/follow-ups" element={<FollowUpsPage />} />
-              <Route path="/dashboard/interactions" element={<InteractionsPage />} />
+              <Route path="/dashboard/recent-interactions" element={<RecentInteractionsPage />} />
               <Route path="/help" element={<HelpCenterPage />} />
               <Route path="/report-issue" element={<ReportIssuePage />} />
               <Route path="/support" element={<ContactSupportPage />} />
