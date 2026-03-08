@@ -46,7 +46,7 @@ export default function AboutPage() {
               About Connect<span className="text-primary">ly</span>
             </motion.h1>
             <motion.p custom={1} variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed">
-              NetworkMemory is a personal networking CRM designed for professionals who meet many people during conferences, meetings, and events.
+              Connectly is a personal networking CRM designed for professionals who meet many people during conferences, meetings, and events.
             </motion.p>
             <motion.p custom={2} variants={fadeUp} className="text-muted-foreground leading-relaxed">
               Remembering every conversation and contact becomes difficult. NetworkMemory helps you store contacts, notes, and relationship details in one organized workspace. Professionals can easily track interactions, remember conversations, and build stronger relationships.
