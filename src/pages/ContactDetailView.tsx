@@ -141,6 +141,11 @@ export default function ContactDetailView() {
       <div className="glass-card rounded-xl p-6">
         <ContactReminders contactId={contact.id} contactName={contact.name} />
       </div>
+
+      {/* Relationship Timeline */}
+      <div className="glass-card rounded-xl p-6">
+        <ContactTimeline contactId={contact.id} contactName={contact.name} />
+      </div>
     </div>
   );
 }
