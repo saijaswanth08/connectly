@@ -8,6 +8,7 @@ import {
   useRealtimeMessages,
   useRealtimeConversations,
 } from "@/hooks/useMessages";
+import { useAllPresence, getPresenceStatus, formatLastSeen } from "@/hooks/usePresence";
 import { DbContact } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

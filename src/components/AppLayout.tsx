@@ -3,8 +3,10 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { usePresenceTracker } from "@/hooks/usePresence";
 
 export function AppLayout() {
+  usePresenceTracker();
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-muted/30">
