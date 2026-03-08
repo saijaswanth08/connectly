@@ -174,3 +174,30 @@ export async function deleteTimelineEvent(id: string): Promise<void> {
   const { error } = await supabase.from("timeline_events").delete().eq("id", id);
   if (error) throw error;
 }
+
+// Contact Connections API
+export interface DbContactConnection {
+  id: string;
+  user_id: string;
+  contact_id_a: string;
+  contact_id_b: string;
+  relationship_type: string;
+  created_at: string;
+}
+
+export async function fetchContactConnections(): Promise<DbContactConnection[]> {
+  const { data, error } = await supabase.from("contact_connections").select("*");
+  if (error) throw error;
+  return (data ?? []) as DbContactConnection[];
+}
+
+export async function createContactConnection(conn: Omit<DbContactConnection, "id" | "created_at">): Promise<DbContactConnection> {
+  const { data, error } = await supabase.from("contact_connections").insert(conn).select().single();
+  if (error) throw error;
+  return data as DbContactConnection;
+}
+
+export async function deleteContactConnection(id: string): Promise<void> {
+  const { error } = await supabase.from("contact_connections").delete().eq("id", id);
+  if (error) throw error;
+}
