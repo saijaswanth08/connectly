@@ -33,13 +33,13 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary">
-            <Zap className="h-5 w-5 text-primary-foreground" />
+        <div className="flex items-center gap-2.5 group cursor-pointer">
+          <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
+            <ConnectlyLogoIcon size={30} />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-display text-sm font-bold text-sidebar-accent-foreground tracking-tight">Connectly</span>
+              <span className="font-display text-sm font-bold tracking-tight bg-gradient-to-r from-[#5B7CFA] to-[#8B5CF6] bg-clip-text text-transparent">Connectly</span>
               <span className="text-[11px] text-sidebar-foreground">Personal CRM</span>
             </div>
           )}

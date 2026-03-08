@@ -38,11 +38,11 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-lg">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#5B7CFA] to-[#8B5CF6] shadow-md shadow-[#5B7CFA]/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-[#5B7CFA]/30">
-              <Network className="h-[18px] w-[18px] text-white" />
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="transition-transform duration-200 group-hover:scale-105">
+              <ConnectlyLogoIcon size={34} />
             </div>
-            <span className="text-[22px] font-extrabold tracking-tight bg-gradient-to-r from-[#5B7CFA] to-[#8B5CF6] bg-clip-text text-transparent transition-opacity duration-200 group-hover:opacity-80">
+            <span className="hidden sm:inline text-[22px] font-extrabold tracking-tight bg-gradient-to-r from-[#5B7CFA] to-[#8B5CF6] bg-clip-text text-transparent transition-opacity duration-200 group-hover:opacity-80">
               Connectly
             </span>
           </Link>
