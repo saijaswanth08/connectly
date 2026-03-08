@@ -19,23 +19,22 @@ export default function ContactsPage() {
 
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header: title | search | empty */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold">Contacts</h1>
           <p className="text-sm text-muted-foreground">{contacts.length} people in your network</p>
         </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+        <div className="relative w-full sm:max-w-[460px] sm:mx-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, company, or email..."
+            placeholder="Search contacts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 rounded-full border-border/60 shadow-sm focus-visible:ring-primary/30"
           />
         </div>
+        <div className="hidden sm:block" />
       </div>
 
       <div className="flex flex-wrap gap-2">
