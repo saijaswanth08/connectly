@@ -96,6 +96,22 @@ export async function createMeeting(meeting: Omit<DbMeeting, "id" | "created_at"
   return data as DbMeeting;
 }
 
+export async function updateMeeting(id: string, updates: Partial<DbMeeting>): Promise<DbMeeting> {
+  const { data, error } = await supabase
+    .from("meetings")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as DbMeeting;
+}
+
+export async function deleteMeeting(id: string): Promise<void> {
+  const { error } = await supabase.from("meetings").delete().eq("id", id);
+  if (error) throw error;
+}
+
 // Reminders API
 export interface DbReminder {
   id: string;
