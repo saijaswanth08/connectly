@@ -105,7 +105,7 @@ export default function RemindersPage() {
           user_id: user.id,
           title,
           message,
-          contact_id: contactId === "none" ? null : contactId,
+          contact_id: contactId,
           reminder_date: reminderDate.toISOString(),
           completed: false,
         });
