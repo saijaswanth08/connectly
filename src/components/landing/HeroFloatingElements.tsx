@@ -164,7 +164,8 @@ export default function HeroFloatingElements() {
       {floatingCards.slice(0, 2).map((card, i) => (
         <motion.div
           key={`m-${card.name}`}
-          className={`absolute sm:hidden z-10 ${i === 0 ? "top-6 right-2" : "bottom-16 left-2"}`}
+          className={`absolute sm:hidden z-10 will-change-transform ${i === 0 ? "top-6 right-2" : "bottom-16 left-2"}`}
+          style={{ transform: "translateZ(0)" }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{
             opacity: 1,
@@ -172,8 +173,8 @@ export default function HeroFloatingElements() {
             y: card.y,
           }}
           transition={{
-            opacity: { delay: 0.4 + i * 0.3, duration: 0.6 },
-            scale: { delay: 0.4 + i * 0.3, duration: 0.6 },
+            opacity: { delay: 0.4 + i * 0.3, duration: 0.4 },
+            scale: { delay: 0.4 + i * 0.3, duration: 0.4 },
             y: { delay: 0.4 + i * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
           }}
         >
