@@ -3,14 +3,9 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/useAuth";
+import { ProfileDropdown } from "@/components/ProfileDropdown";
 
 export function AppLayout() {
-  const { user } = useAuth();
-  const initials = (user?.user_metadata?.full_name || user?.email || "U")
-    .split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-muted/30">
@@ -24,9 +19,7 @@ export function AppLayout() {
               <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
                 <Bell className="h-4 w-4 text-muted-foreground" />
               </Button>
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">{initials}</AvatarFallback>
-              </Avatar>
+              <ProfileDropdown />
             </div>
           </header>
           <main className="flex-1 overflow-auto">
