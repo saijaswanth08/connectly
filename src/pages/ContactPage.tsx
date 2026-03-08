@@ -56,7 +56,7 @@ export default function ContactPage() {
               Contact Us
             </motion.h1>
             <motion.p custom={1} variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed">
-              Have questions about NetworkMemory? We would love to hear from you.
+              Have questions about Connectly? We would love to hear from you.
             </motion.p>
           </motion.div>
           <motion.div
