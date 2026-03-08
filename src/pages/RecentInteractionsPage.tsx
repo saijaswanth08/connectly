@@ -1,4 +1,5 @@
 import { RecentInteractionsWidget } from "@/components/RecentInteractionsWidget";
+import { NetworkingInsightsWidget } from "@/components/NetworkingInsightsWidget";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -13,6 +14,7 @@ export default function RecentInteractionsPage() {
         <h1 className="font-display text-2xl font-bold">Recent Interactions</h1>
       </div>
       <RecentInteractionsWidget />
+      <NetworkingInsightsWidget />
     </div>
   );
 }
