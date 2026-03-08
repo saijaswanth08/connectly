@@ -161,9 +161,6 @@ export function ProfileDropdown() {
           <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
             <UserCircle className="mr-2 h-4 w-4" /> My Profile
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
-            <Settings className="mr-2 h-4 w-4" /> Account Settings
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => navigate("/help")}>
             <HelpCircle className="mr-2 h-4 w-4" /> Help & Support
