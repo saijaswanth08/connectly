@@ -71,6 +71,7 @@ const App = () => (
               <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
               <Route path="/dashboard/follow-ups" element={<FollowUpsPage />} />
               <Route path="/dashboard/recent-interactions" element={<RecentInteractionsPage />} />
+              <Route path="/dashboard/insights" element={<NetworkingInsightsPage />} />
               <Route path="/help" element={<HelpCenterPage />} />
               <Route path="/report-issue" element={<ReportIssuePage />} />
               <Route path="/support" element={<ContactSupportPage />} />
