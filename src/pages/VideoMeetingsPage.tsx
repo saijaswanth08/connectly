@@ -131,13 +131,30 @@ export default function VideoMeetingsPage() {
   };
 
   const handleLeaveRoom = () => {
-    // Find if the last meeting had a contact
     const lastMeeting = meetings.find((m) => m.meeting_link?.includes(activeRoom!));
     if (lastMeeting?.contact_id) {
       setLastMeetingContactId(lastMeeting.contact_id);
       setShowFollowUp(true);
     }
     setActiveRoom(null);
+  };
+
+  const handleGenerateAiNotes = async (meeting: typeof meetings[0]) => {
+    const contact = contacts.find((c) => c.id === meeting.contact_id);
+    setGeneratingAi(meeting.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-meeting-notes", {
+        body: { meetingTitle: meeting.title, contactName: contact?.name, notes: meeting.notes },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setAiSummaries((prev) => ({ ...prev, [meeting.id]: data.summary }));
+      toast({ title: "AI summary generated!" });
+    } catch (e: any) {
+      toast({ title: "Error generating summary", description: e.message, variant: "destructive" });
+    } finally {
+      setGeneratingAi(null);
+    }
   };
 
   const handleCreateFollowUp = async () => {
