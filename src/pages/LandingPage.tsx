@@ -11,11 +11,11 @@ import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 import { useState } from "react";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 16 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: "easeOut" as const },
+    transition: { delay: i * 0.06, duration: 0.35, ease: "easeOut" as const },
   }),
 };
 
@@ -175,7 +175,7 @@ export default function LandingPage() {
                 viewport={{ once: true, margin: "-40px" }}
                 custom={i}
                 variants={fadeUp}
-                className="group rounded-2xl border border-border bg-card p-7 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                className="group rounded-2xl border border-border bg-card p-7 shadow-sm transition-shadow duration-150 hover:shadow-md"
               >
                 <div className="mb-4 inline-flex rounded-xl bg-accent p-3">
                   <feature.icon className="h-5 w-5 text-primary" />
@@ -209,6 +209,8 @@ export default function LandingPage() {
             <img
               src={dashboardPreview}
               alt="Connectly CRM dashboard preview"
+              loading="lazy"
+              decoding="async"
               className="w-full max-w-4xl rounded-2xl border border-border shadow-lg"
             />
           </motion.div>

@@ -124,7 +124,8 @@ export default function HeroFloatingElements() {
       {floatingCards.map((card) => (
         <motion.div
           key={card.name}
-          className={`absolute ${card.className} z-10 hidden sm:block`}
+          className={`absolute ${card.className} z-10 hidden sm:block will-change-transform`}
+          style={{ transform: "translateZ(0)" }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{
             opacity: 1,
@@ -134,13 +135,13 @@ export default function HeroFloatingElements() {
             rotate: card.rotate,
           }}
           transition={{
-            opacity: { delay: card.delay * 0.3, duration: 0.6 },
-            scale: { delay: card.delay * 0.3, duration: 0.6 },
+            opacity: { delay: card.delay * 0.3, duration: 0.4 },
+            scale: { delay: card.delay * 0.3, duration: 0.4 },
             y: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
             x: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
             rotate: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
           }}
-          whileHover={{ scale: 1.06, transition: { duration: 0.2 } }}
+          whileHover={{ scale: 1.06, transition: { duration: 0.15 } }}
         >
           <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-md cursor-default select-none">
             <Avatar className="h-9 w-9">
@@ -163,7 +164,8 @@ export default function HeroFloatingElements() {
       {floatingCards.slice(0, 2).map((card, i) => (
         <motion.div
           key={`m-${card.name}`}
-          className={`absolute sm:hidden z-10 ${i === 0 ? "top-6 right-2" : "bottom-16 left-2"}`}
+          className={`absolute sm:hidden z-10 will-change-transform ${i === 0 ? "top-6 right-2" : "bottom-16 left-2"}`}
+          style={{ transform: "translateZ(0)" }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{
             opacity: 1,
@@ -171,8 +173,8 @@ export default function HeroFloatingElements() {
             y: card.y,
           }}
           transition={{
-            opacity: { delay: 0.4 + i * 0.3, duration: 0.6 },
-            scale: { delay: 0.4 + i * 0.3, duration: 0.6 },
+            opacity: { delay: 0.4 + i * 0.3, duration: 0.4 },
+            scale: { delay: 0.4 + i * 0.3, duration: 0.4 },
             y: { delay: 0.4 + i * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
           }}
         >
@@ -197,14 +199,15 @@ export default function HeroFloatingElements() {
       {floatingBubbles.map((bubble) => (
         <motion.div
           key={bubble.text}
-          className={`absolute ${bubble.className} z-10 hidden md:flex`}
+          className={`absolute ${bubble.className} z-10 hidden md:flex will-change-transform`}
+          style={{ transform: "translateZ(0)" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, y: bubble.y }}
           transition={{
-            opacity: { delay: bubble.delay * 0.3, duration: 0.6 },
+            opacity: { delay: bubble.delay * 0.3, duration: 0.4 },
             y: { delay: bubble.delay * 0.3, duration: bubble.duration, repeat: Infinity, ease: "easeInOut" },
           }}
-          whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+          whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
         >
           <div className="flex items-center gap-2 rounded-lg border border-border bg-card/90 backdrop-blur-sm px-3 py-2 shadow-sm cursor-default select-none">
             <bubble.icon className="h-3.5 w-3.5 text-primary shrink-0" />
