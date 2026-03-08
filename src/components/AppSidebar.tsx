@@ -13,6 +13,7 @@ const mainItems = [
   { title: "Meetings", url: "/dashboard/meetings", icon: Calendar },
   { title: "Video Meetings", url: "/dashboard/video-meetings", icon: Video },
   { title: "Reminders", url: "/dashboard/reminders", icon: Bell },
+  { title: "Network Map", url: "/dashboard/network", icon: Network },
 ];
 
 export function AppSidebar() {
