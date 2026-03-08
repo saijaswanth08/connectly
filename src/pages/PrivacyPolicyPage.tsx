@@ -20,7 +20,7 @@ const sections = [
   {
     icon: Eye,
     title: "How We Use Information",
-    items: ["Provide and improve the NetworkMemory platform", "Deliver contact management and networking features", "Enhance user experience and personalization", "We never sell your personal data to third parties"],
+    items: ["Provide and improve the Connectly platform", "Deliver contact management and networking features", "Enhance user experience and personalization", "We never sell your personal data to third parties"],
   },
   {
     icon: Lock,
