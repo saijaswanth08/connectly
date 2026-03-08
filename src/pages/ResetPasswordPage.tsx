@@ -19,19 +19,47 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [valid, setValid] = useState(false);
+  const [status, setStatus] = useState<"loading" | "ready" | "invalid">("loading");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    // Check for recovery token in URL hash
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setValid(true);
-    }
-  }, []);
+    // Listen for the PASSWORD_RECOVERY event which fires after Supabase
+    // processes the recovery token from the URL hash and establishes a session.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setStatus("ready");
+      }
+    });
 
-  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+    // Also check if we already have a session (e.g. page reload after token was processed)
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const hash = window.location.hash;
+      if (session && hash.includes("type=recovery")) {
+        setStatus("ready");
+      } else if (!hash.includes("type=recovery") && !hash.includes("access_token")) {
+        // No recovery token at all — invalid link
+        setStatus("invalid");
+      }
+      // If hash has token but no session yet, keep loading — onAuthStateChange will fire
+    };
+
+    // Small delay to let Supabase client process the hash
+    const timeout = setTimeout(checkSession, 1000);
+
+    // Fallback: if nothing happens after 5s, mark invalid
+    const fallback = setTimeout(() => {
+      setStatus((prev) => (prev === "loading" ? "invalid" : prev));
+    }, 5000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+      clearTimeout(fallback);
+    };
+  }, []);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,18 +73,43 @@ export default function ResetPasswordPage() {
       toast({ title: "Passwords don't match", description: "Please make sure your passwords match", variant: "destructive" });
       return;
     }
+
+    // Verify session exists before updating
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({ title: "Session expired", description: "Please log in again to change your password.", variant: "destructive" });
+      navigate("/login");
+      return;
+    }
+
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      if (error.message.toLowerCase().includes("session")) {
+        toast({ title: "Session expired", description: "Please log in again and retry.", variant: "destructive" });
+        navigate("/login");
+      } else {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      }
     } else {
       toast({ title: "Password updated", description: "You can now sign in with your new password." });
       navigate("/login");
     }
   };
 
-  if (!valid) {
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
+          <p className="text-sm text-muted-foreground">Verifying your reset link...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "invalid") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="w-full max-w-md text-center space-y-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
