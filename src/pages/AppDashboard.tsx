@@ -139,7 +139,7 @@ export default function AppDashboard() {
           { icon: Users, label: "Total Contacts", value: contacts.length, color: "text-primary" },
           { icon: Star, label: "VIP Contacts", value: vipCount, color: "text-vip" },
           { icon: Calendar, label: "Meetings", value: meetings.length, color: "text-chart-2" },
-          { icon: Bell, label: "Reminders", value: 0, color: "text-chart-3" },
+          { icon: Bell, label: "Reminders", value: reminders.filter(r => !r.completed).length, color: "text-chart-3" },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
             className="rounded-xl bg-card border border-border/50 p-5 shadow-sm hover:shadow-md transition-shadow">
