@@ -15,7 +15,6 @@ export default function AccountSettingsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
