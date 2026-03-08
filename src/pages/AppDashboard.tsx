@@ -254,9 +254,6 @@ export default function AppDashboard() {
       )}
 
 
-      {/* Networking Insights */}
-      <NetworkingInsightsWidget />
-
       {/* Contact Detail Side Panel */}
       <ContactDetailPanel
         contact={selectedContact}
