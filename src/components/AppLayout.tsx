@@ -25,7 +25,6 @@ export function AppLayout() {
             </div>
             <div className="flex items-center gap-1">
               <NotificationBell />
-              <NotificationBell />
               <ProfileDropdown />
             </div>
           </header>
