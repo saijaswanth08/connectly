@@ -273,7 +273,7 @@ export default function InteractionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Interactions</h1>
+          <h1 className="text-4xl font-display font-bold text-foreground">Interactions</h1>
           <p className="text-sm text-muted-foreground">Track all your professional interactions including meetings, calls, conferences, and networking events.</p>
         </div>
         <Dialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) resetForm(); }}>
