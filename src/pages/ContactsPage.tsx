@@ -1,7 +1,6 @@
 import { useContactsStore } from "@/lib/contacts-store";
 import { ContactCard } from "@/components/ContactCard";
 import { Input } from "@/components/ui/input";
-import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { ContactTag } from "@/lib/types";
 import { motion } from "framer-motion";
