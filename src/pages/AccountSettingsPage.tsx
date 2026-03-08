@@ -64,24 +64,62 @@ export default function AccountSettingsPage() {
   };
 
   const handleChangePassword = async () => {
+    if (!newPassword.trim()) {
+      toast({ title: "New password is required", variant: "destructive" });
+      return;
+    }
+
+    if (newPassword.length < 8 || !/[a-zA-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      toast({
+        title: "Weak password",
+        description: "Password must be at least 8 characters and include letters and numbers.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
-      toast({ title: "Passwords don't match", variant: "destructive" });
+      toast({ title: "Passwords do not match", variant: "destructive" });
       return;
     }
-    if (newPassword.length < 6) {
-      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
-      return;
-    }
+
     setChangingPw(true);
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast({
+          title: "Session expired",
+          description: "Your session has expired. Please login again to change your password.",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      toast({ title: "Password updated!" });
+
+      toast({
+        title: "Password Updated Successfully",
+        description: "Your Connectly account password has been changed.",
+      });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      if (String(e?.message || "").toLowerCase().includes("session")) {
+        toast({
+          title: "Session expired",
+          description: "Your session has expired. Please login again to change your password.",
+          variant: "destructive",
+        });
+        navigate("/login");
+      } else {
+        toast({ title: "Error", description: e.message, variant: "destructive" });
+      }
     } finally {
       setChangingPw(false);
     }
