@@ -5,8 +5,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dashboardPreview from "@/assets/dashboard-preview.png";
-import HeroFloatingElements from "@/components/landing/HeroFloatingElements";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
+
+const NetworkVisualization3D = lazy(() => import("@/components/landing/NetworkVisualization3D"));
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
