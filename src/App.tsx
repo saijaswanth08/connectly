@@ -20,6 +20,9 @@ import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import AppDashboard from "@/pages/AppDashboard";
 import ContactDetailView from "@/pages/ContactDetailView";
 import MeetingsPage from "@/pages/MeetingsPage";
+import HelpCenterPage from "@/pages/HelpCenterPage";
+import ReportIssuePage from "@/pages/ReportIssuePage";
+import ContactSupportPage from "@/pages/ContactSupportPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
