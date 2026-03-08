@@ -19,7 +19,7 @@ import ContactPage from "@/pages/ContactPage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import AppDashboard from "@/pages/AppDashboard";
 import ContactDetailView from "@/pages/ContactDetailView";
-import MeetingsPage from "@/pages/MeetingsPage";
+import InteractionsPage from "@/pages/InteractionsPage";
 import VideoMeetingsPage from "@/pages/VideoMeetingsPage";
 import HelpCenterPage from "@/pages/HelpCenterPage";
 import ReportIssuePage from "@/pages/ReportIssuePage";
