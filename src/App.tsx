@@ -28,6 +28,7 @@ import ContactSupportPage from "@/pages/ContactSupportPage";
 import RemindersPage from "./pages/RemindersPage";
 import NetworkMapPage from "./pages/NetworkMapPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
+import ProfileSettingsPage from "./pages/ProfileSettingsPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import MyProfilePage from "./pages/MyProfilePage";
 import FollowUpsPage from "./pages/FollowUpsPage";
@@ -39,8 +40,8 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes – data considered fresh, no refetch
-      gcTime: 10 * 60 * 1000,   // 10 minutes – keep unused cache before garbage collection
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
@@ -77,21 +78,22 @@ const App = () => (
               <Route element={<ProtectedAppLayout />}>
                 <Route path="/dashboard" element={<AppDashboard />} />
                 <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
-              <Route path="/dashboard/interactions" element={<InteractionsPage />} />
-              <Route path="/dashboard/messages" element={<MessagesPage />} />
-              <Route path="/dashboard/video-meetings" element={<VideoMeetingsPage />} />
-              <Route path="/dashboard/reminders" element={<RemindersPage />} />
-              <Route path="/dashboard/network" element={<NetworkMapPage />} />
-              <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
-              <Route path="/dashboard/change-password" element={<ChangePasswordPage />} />
-              <Route path="/dashboard/profile" element={<MyProfilePage />} />
-              <Route path="/dashboard/follow-ups" element={<FollowUpsPage />} />
-              <Route path="/dashboard/recent-interactions" element={<RecentInteractionsPage />} />
-              <Route path="/dashboard/insights" element={<NetworkingInsightsPage />} />
-              <Route path="/help" element={<HelpCenterPage />} />
-              <Route path="/report-issue" element={<ReportIssuePage />} />
-              <Route path="/support" element={<ContactSupportPage />} />
-            </Route>
+                <Route path="/dashboard/interactions" element={<InteractionsPage />} />
+                <Route path="/dashboard/messages" element={<MessagesPage />} />
+                <Route path="/dashboard/video-meetings" element={<VideoMeetingsPage />} />
+                <Route path="/dashboard/reminders" element={<RemindersPage />} />
+                <Route path="/dashboard/network" element={<NetworkMapPage />} />
+                <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
+                <Route path="/dashboard/profile-settings" element={<ProfileSettingsPage />} />
+                <Route path="/dashboard/change-password" element={<ChangePasswordPage />} />
+                <Route path="/dashboard/profile" element={<MyProfilePage />} />
+                <Route path="/dashboard/follow-ups" element={<FollowUpsPage />} />
+                <Route path="/dashboard/recent-interactions" element={<RecentInteractionsPage />} />
+                <Route path="/dashboard/insights" element={<NetworkingInsightsPage />} />
+                <Route path="/help" element={<HelpCenterPage />} />
+                <Route path="/report-issue" element={<ReportIssuePage />} />
+                <Route path="/support" element={<ContactSupportPage />} />
+              </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
