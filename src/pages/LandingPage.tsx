@@ -205,7 +205,7 @@ export default function LandingPage() {
           >
             <img
               src={dashboardPreview}
-              alt="NetworkMemory CRM dashboard preview"
+              alt="Connectly CRM dashboard preview"
               className="w-full max-w-4xl rounded-2xl border border-border shadow-lg"
             />
           </motion.div>
