@@ -111,16 +111,15 @@ export function SidebarUserMenu() {
         <DropdownMenuSeparator />
 
         {/* Help & Support */}
-        <DropdownMenuItem onClick={() => toast.info("Help center coming soon.")}>
+        <DropdownMenuItem onClick={() => navigate("/help")}>
           <HelpCircle className="mr-2 h-4 w-4" />
           Help Center
-          <ExternalLink className="ml-auto h-3 w-3 text-muted-foreground" />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => toast.info("Report issue coming soon.")}>
+        <DropdownMenuItem onClick={() => navigate("/report-issue")}>
           <AlertTriangle className="mr-2 h-4 w-4" />
           Report Issue
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/contact")}>
+        <DropdownMenuItem onClick={() => navigate("/support")}>
           <MessageSquare className="mr-2 h-4 w-4" />
           Contact Support
         </DropdownMenuItem>
