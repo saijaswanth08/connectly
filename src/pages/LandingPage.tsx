@@ -26,11 +26,7 @@ const features = [
   { icon: BarChart3, title: "Networking Insights", description: "Understand your professional connections better." },
 ];
 
-const navLinks = [
-  { label: "Features", href: "/features" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-];
+const navLinks: { label: string; href: string }[] = [];
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
