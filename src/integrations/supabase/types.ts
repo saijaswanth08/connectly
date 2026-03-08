@@ -366,6 +366,36 @@ export type Database = {
           },
         ]
       }
+      user_2fa: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          recovery_codes: string[] | null
+          secret_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          recovery_codes?: string[] | null
+          secret_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          recovery_codes?: string[] | null
+          secret_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_presence: {
         Row: {
           id: string

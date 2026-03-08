@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, ShieldCheck, Lock, Shield } from "lucide-react";
+import { Mail, ShieldCheck, Lock } from "lucide-react";
+import { TwoFactorSettings } from "@/components/TwoFactorSettings";
 import { z } from "zod";
 
 const passwordSchema = z
@@ -176,21 +177,8 @@ export default function AccountSettingsPage() {
         )}
       </div>
 
-      {/* Security Info */}
-      <div className="rounded-xl bg-card border border-border/50 p-6 shadow-sm space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <h2 className="font-display font-semibold">Two-Factor Authentication</h2>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Two-factor authentication adds an extra layer of security to your account. This feature is coming soon.
-        </p>
-        <Button variant="outline" disabled className="gap-2 opacity-60">
-          Coming Soon
-        </Button>
-      </div>
+      {/* Two-Factor Authentication */}
+      <TwoFactorSettings />
     </div>
   );
 }
