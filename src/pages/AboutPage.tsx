@@ -74,7 +74,7 @@ export default function AboutPage() {
               Our Mission
             </motion.h2>
             <motion.p custom={2} variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed">
-              Our mission is to help professionals never forget an important connection. Networking is powerful, but remembering details is hard. NetworkMemory ensures every relationship stays meaningful and organized.
+              Our mission is to help professionals never forget an important connection. Networking is powerful, but remembering details is hard. Connectly ensures every relationship stays meaningful and organized.
             </motion.p>
           </motion.div>
         </div>
