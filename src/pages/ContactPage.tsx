@@ -18,9 +18,9 @@ const fadeUp = {
 };
 
 const socials = [
-  { icon: Instagram, label: "Instagram", link: "https://instagram.com/networkmemory", handle: "@networkmemory", color: "text-pink-500" },
+  { icon: Instagram, label: "Instagram", link: "https://instagram.com/connectly", handle: "@connectly", color: "text-pink-500" },
   { icon: MessageCircle, label: "WhatsApp", link: "https://wa.me/1234567890", handle: "+1 234 567 890", color: "text-green-500" },
-  { icon: Linkedin, label: "LinkedIn", link: "https://linkedin.com/company/networkmemory", handle: "NetworkMemory", color: "text-blue-500" },
+  { icon: Linkedin, label: "LinkedIn", link: "https://linkedin.com/company/connectly", handle: "Connectly", color: "text-blue-500" },
 ];
 
 export default function ContactPage() {
