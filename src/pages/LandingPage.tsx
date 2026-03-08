@@ -147,10 +147,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
               className="flex justify-center"
             >
-              <div className="relative">
-                <div className="absolute -inset-4 rounded-2xl bg-[radial-gradient(ellipse_at_center,hsl(var(--soft-blue)/0.06),transparent)]" />
-                <Network className="relative h-48 w-48 text-primary opacity-20" strokeWidth={0.5} />
-              </div>
+              <NetworkGraphAnimated />
             </motion.div>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="space-y-5">
               <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
