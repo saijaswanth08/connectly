@@ -136,25 +136,39 @@ export default function AppDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { icon: Users, label: "Total Contacts", value: contacts.length, color: "text-primary" },
-          { icon: Star, label: "VIP Contacts", value: vipCount, color: "text-vip" },
-          { icon: Calendar, label: "Interactions", value: meetings.length, color: "text-chart-2" },
-          { icon: Bell, label: "Reminders", value: reminders.filter(r => !r.completed).length, color: "text-chart-3" },
-        ].map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="rounded-xl bg-card border border-border/50 p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-display font-bold text-foreground">{s.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
-              </div>
-              <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center">
-                <s.icon className={`h-5 w-5 ${s.color}`} />
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl bg-card border border-border/50 p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-7 w-12 rounded-lg" />
+                  <Skeleton className="h-3 w-20 rounded" />
+                </div>
+                <Skeleton className="h-10 w-10 rounded-xl" />
               </div>
             </div>
-          </motion.div>
-        ))}
+          ))
+        ) : (
+          [
+            { icon: Users, label: "Total Contacts", value: contacts.length, color: "text-primary" },
+            { icon: Star, label: "VIP Contacts", value: vipCount, color: "text-vip" },
+            { icon: Calendar, label: "Interactions", value: meetings.length, color: "text-chart-2" },
+            { icon: Bell, label: "Reminders", value: reminders.filter(r => !r.completed).length, color: "text-chart-3" },
+          ].map((s, i) => (
+            <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className="rounded-xl bg-card border border-border/50 p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-display font-bold text-foreground">{s.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+                </div>
+                <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center">
+                  <s.icon className={`h-5 w-5 ${s.color}`} />
+                </div>
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
 
       {/* Search & Filter Bar */}
