@@ -87,7 +87,12 @@ export default function ResetPasswordPage() {
         <form onSubmit={handleReset} className="rounded-2xl border border-border bg-card p-8 shadow-sm space-y-5">
           <div className="space-y-2">
             <Label htmlFor="password">New Password</Label>
-            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="rounded-lg" />
+            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => { setPassword(e.target.value); if (passwordErrors.length) { const r = passwordSchema.safeParse(e.target.value); setPasswordErrors(r.success ? [] : r.error.errors.map(err => err.message)); } }} required className="rounded-lg" />
+            {passwordErrors.length > 0 && (
+              <ul className="text-xs text-destructive space-y-0.5 mt-1">
+                {passwordErrors.map((err) => <li key={err}>• {err}</li>)}
+              </ul>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
