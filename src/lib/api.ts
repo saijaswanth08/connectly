@@ -143,3 +143,34 @@ export async function deleteReminder(id: string): Promise<void> {
   const { error } = await supabase.from("reminders").delete().eq("id", id);
   if (error) throw error;
 }
+
+// Timeline Events API
+export interface DbTimelineEvent {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  event_type: string;
+  title: string;
+  description: string;
+  event_date: string;
+  created_at: string;
+}
+
+export async function fetchTimelineEvents(contactId?: string): Promise<DbTimelineEvent[]> {
+  let query = supabase.from("timeline_events").select("*").order("event_date", { ascending: false });
+  if (contactId) query = query.eq("contact_id", contactId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []) as DbTimelineEvent[];
+}
+
+export async function createTimelineEvent(event: Omit<DbTimelineEvent, "id" | "created_at">): Promise<DbTimelineEvent> {
+  const { data, error } = await supabase.from("timeline_events").insert(event).select().single();
+  if (error) throw error;
+  return data as DbTimelineEvent;
+}
+
+export async function deleteTimelineEvent(id: string): Promise<void> {
+  const { error } = await supabase.from("timeline_events").delete().eq("id", id);
+  if (error) throw error;
+}

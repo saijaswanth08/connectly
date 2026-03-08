@@ -16,6 +16,7 @@ import { ContactDetailPanel } from "@/components/ContactDetailPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DbContact } from "@/lib/api";
 import { UpcomingRemindersWidget } from "@/components/UpcomingRemindersWidget";
+import { RecentInteractionsWidget } from "@/components/RecentInteractionsWidget";
 
 const importanceBg: Record<string, string> = {
   vip: "bg-vip/15 text-vip border-vip/30",
@@ -156,8 +157,11 @@ export default function AppDashboard() {
         ))}
       </div>
 
-      {/* Upcoming Reminders Widget */}
-      <UpcomingRemindersWidget />
+      {/* Widgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <UpcomingRemindersWidget />
+        <RecentInteractionsWidget />
+      </div>
 
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">

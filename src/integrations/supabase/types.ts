@@ -192,6 +192,47 @@ export type Database = {
           },
         ]
       }
+      timeline_events: {
+        Row: {
+          contact_id: string
+          created_at: string
+          description: string | null
+          event_date: string
+          event_type: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timeline_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voice_notes: {
         Row: {
           audio_file_url: string
