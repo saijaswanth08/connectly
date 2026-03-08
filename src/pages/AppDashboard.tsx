@@ -158,15 +158,6 @@ export default function AppDashboard() {
         ))}
       </div>
 
-      {/* Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <UpcomingRemindersWidget />
-        <RecentInteractionsWidget />
-      </div>
-
-      {/* Networking Insights */}
-      <NetworkingInsightsWidget />
-
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -223,7 +214,6 @@ export default function AppDashboard() {
                 onClick={() => setSelectedContact(c)}
                 className="rounded-xl bg-card border border-border/50 p-5 space-y-3 cursor-pointer group shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200"
               >
-                {/* Card Header */}
                 <div className="flex items-start gap-3">
                   <Avatar className="h-11 w-11 shrink-0">
                     <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm">{initials}</AvatarFallback>
@@ -241,15 +231,11 @@ export default function AppDashboard() {
                     )}
                   </div>
                 </div>
-
-                {/* Contact Info */}
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                   {c.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{c.email}</span>}
                   {c.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</span>}
                   {c.meeting_location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{c.meeting_location}</span>}
                 </div>
-
-                {/* Tags */}
                 {c.tags && c.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {c.tags.map((t) => (
@@ -257,11 +243,7 @@ export default function AppDashboard() {
                     ))}
                   </div>
                 )}
-
-                {/* Notes preview */}
                 {c.notes && <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{c.notes}</p>}
-
-                {/* Delete (hover) */}
                 <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}>
                     <Trash2 className="h-3.5 w-3.5" />
@@ -272,6 +254,15 @@ export default function AppDashboard() {
           })}
         </div>
       )}
+
+      {/* Widgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <UpcomingRemindersWidget />
+        <RecentInteractionsWidget />
+      </div>
+
+      {/* Networking Insights */}
+      <NetworkingInsightsWidget />
 
       {/* Contact Detail Side Panel */}
       <ContactDetailPanel
