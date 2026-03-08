@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Plus, Search, Users, Calendar, Trash2, Building2, Mail, Phone, MapPin, Linkedin, Tag, Star, Bell, Filter } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ContactDetailPanel } from "@/components/ContactDetailPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DbContact } from "@/lib/api";
@@ -135,25 +136,39 @@ export default function AppDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { icon: Users, label: "Total Contacts", value: contacts.length, color: "text-primary" },
-          { icon: Star, label: "VIP Contacts", value: vipCount, color: "text-vip" },
-          { icon: Calendar, label: "Interactions", value: meetings.length, color: "text-chart-2" },
-          { icon: Bell, label: "Reminders", value: reminders.filter(r => !r.completed).length, color: "text-chart-3" },
-        ].map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="rounded-xl bg-card border border-border/50 p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-display font-bold text-foreground">{s.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
-              </div>
-              <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center">
-                <s.icon className={`h-5 w-5 ${s.color}`} />
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl bg-card border border-border/50 p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-7 w-12 rounded-lg" />
+                  <Skeleton className="h-3 w-20 rounded" />
+                </div>
+                <Skeleton className="h-10 w-10 rounded-xl" />
               </div>
             </div>
-          </motion.div>
-        ))}
+          ))
+        ) : (
+          [
+            { icon: Users, label: "Total Contacts", value: contacts.length, color: "text-primary" },
+            { icon: Star, label: "VIP Contacts", value: vipCount, color: "text-vip" },
+            { icon: Calendar, label: "Interactions", value: meetings.length, color: "text-chart-2" },
+            { icon: Bell, label: "Reminders", value: reminders.filter(r => !r.completed).length, color: "text-chart-3" },
+          ].map((s, i) => (
+            <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className="rounded-xl bg-card border border-border/50 p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-display font-bold text-foreground">{s.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+                </div>
+                <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center">
+                  <s.icon className={`h-5 w-5 ${s.color}`} />
+                </div>
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
 
       {/* Search & Filter Bar */}
@@ -179,8 +194,27 @@ export default function AppDashboard() {
 
       {/* Contact Grid */}
       {isLoading ? (
-        <div className="flex justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-xl bg-card border border-border/50 p-5 space-y-3 shadow-sm">
+              <div className="flex items-start gap-3">
+                <Skeleton className="h-11 w-11 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4 rounded" />
+                  <Skeleton className="h-3 w-1/2 rounded" />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Skeleton className="h-3 w-28 rounded" />
+                <Skeleton className="h-3 w-20 rounded" />
+              </div>
+              <div className="flex gap-1.5">
+                <Skeleton className="h-5 w-14 rounded-full" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+              <Skeleton className="h-3 w-full rounded" />
+            </div>
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 space-y-3">
