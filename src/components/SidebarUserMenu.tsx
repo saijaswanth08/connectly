@@ -19,7 +19,6 @@ import {
   Moon,
   LogOut,
   ChevronsUpDown,
-  ExternalLink,
   MessageSquare,
   AlertTriangle,
 } from "lucide-react";
