@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useContacts, useCreateContact, useDeleteContact } from "@/hooks/useContacts";
 import { useMeetings } from "@/hooks/useContacts";
+import { useReminders } from "@/hooks/useReminders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,7 @@ import { Plus, Search, Users, Calendar, Trash2, Building2, Mail, Phone, MapPin, 
 import { ContactDetailPanel } from "@/components/ContactDetailPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DbContact } from "@/lib/api";
+import { UpcomingRemindersWidget } from "@/components/UpcomingRemindersWidget";
 
 const importanceBg: Record<string, string> = {
   vip: "bg-vip/15 text-vip border-vip/30",
@@ -26,6 +28,7 @@ export default function AppDashboard() {
   const { user } = useAuth();
   const { data: contacts = [], isLoading } = useContacts();
   const { data: meetings = [] } = useMeetings();
+  const { data: reminders = [] } = useReminders();
   const createContact = useCreateContact();
   const deleteContactMut = useDeleteContact();
   const { toast } = useToast();
@@ -136,7 +139,7 @@ export default function AppDashboard() {
           { icon: Users, label: "Total Contacts", value: contacts.length, color: "text-primary" },
           { icon: Star, label: "VIP Contacts", value: vipCount, color: "text-vip" },
           { icon: Calendar, label: "Meetings", value: meetings.length, color: "text-chart-2" },
-          { icon: Bell, label: "Reminders", value: 0, color: "text-chart-3" },
+          { icon: Bell, label: "Reminders", value: reminders.filter(r => !r.completed).length, color: "text-chart-3" },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
             className="rounded-xl bg-card border border-border/50 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -152,6 +155,9 @@ export default function AppDashboard() {
           </motion.div>
         ))}
       </div>
+
+      {/* Upcoming Reminders Widget */}
+      <UpcomingRemindersWidget />
 
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn } from "lucide-react";
+import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useMeetings, useCreateMeeting, useContacts } from "@/hooks/useContacts";
+import { useCreateReminder } from "@/hooks/useReminders";
 import { JitsiMeetingRoom } from "@/components/JitsiMeetingRoom";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,9 @@ export default function VideoMeetingsPage() {
   const createMeeting = useCreateMeeting();
 
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
+  const [lastMeetingContactId, setLastMeetingContactId] = useState<string | null>(null);
+  const [showFollowUp, setShowFollowUp] = useState(false);
+  const createReminder = useCreateReminder();
   const [joinCode, setJoinCode] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -123,11 +127,40 @@ export default function VideoMeetingsPage() {
     if (roomId) setActiveRoom(roomId);
   };
 
+  const handleLeaveRoom = () => {
+    // Find if the last meeting had a contact
+    const lastMeeting = meetings.find((m) => m.meeting_link?.includes(activeRoom!));
+    if (lastMeeting?.contact_id) {
+      setLastMeetingContactId(lastMeeting.contact_id);
+      setShowFollowUp(true);
+    }
+    setActiveRoom(null);
+  };
+
+  const handleCreateFollowUp = async () => {
+    if (!user || !lastMeetingContactId) return;
+    const contact = contacts.find((c) => c.id === lastMeetingContactId);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(10, 0, 0, 0);
+    await createReminder.mutateAsync({
+      user_id: user.id,
+      title: `Follow up with ${contact?.name || "contact"}`,
+      message: "Follow up after video meeting",
+      contact_id: lastMeetingContactId,
+      reminder_date: tomorrow.toISOString(),
+      completed: false,
+    });
+    toast({ title: "Follow-up reminder created!" });
+    setShowFollowUp(false);
+    setLastMeetingContactId(null);
+  };
+
   // If a meeting room is active, show the embedded Jitsi view
   if (activeRoom) {
     return (
       <div className="p-6 max-w-6xl mx-auto">
-        <JitsiMeetingRoom roomId={activeRoom} onLeave={() => setActiveRoom(null)} title="Connectly Meeting" />
+        <JitsiMeetingRoom roomId={activeRoom} onLeave={handleLeaveRoom} title="Connectly Meeting" />
       </div>
     );
   }
@@ -135,8 +168,31 @@ export default function VideoMeetingsPage() {
   const upcoming = meetings.filter((m) => m.status === "scheduled" && m.meeting_time && new Date(m.meeting_time) >= new Date());
   const past = meetings.filter((m) => m.status !== "scheduled" || (m.meeting_time && new Date(m.meeting_time) < new Date()));
 
+  const followUpContact = lastMeetingContactId ? contacts.find((c) => c.id === lastMeetingContactId) : null;
+
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
+      {/* Follow-up suggestion after meeting */}
+      {showFollowUp && followUpContact && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-primary/30 bg-accent/50 p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Bell className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground text-sm">Suggested Follow-Up</p>
+              <p className="text-xs text-muted-foreground">You had a meeting with {followUpContact.name}. Would you like to schedule a follow-up?</p>
+            </div>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <Button size="sm" variant="outline" onClick={() => { setShowFollowUp(false); setLastMeetingContactId(null); }}>Skip</Button>
+            <Button size="sm" onClick={handleCreateFollowUp} disabled={createReminder.isPending} className="gap-1.5">
+              <Bell className="h-3.5 w-3.5" /> Create Reminder
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save, Trash2, Building2, Mail, Phone, MapPin, Linkedin } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ContactReminders } from "@/components/ContactReminders";
 
 export default function ContactDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -134,6 +135,11 @@ export default function ContactDetailView() {
           <p className="text-xs text-muted-foreground">Added {new Date(contact.created_at).toLocaleDateString()}</p>
         </div>
       )}
+
+      {/* Follow-Up Reminders */}
+      <div className="glass-card rounded-xl p-6">
+        <ContactReminders contactId={contact.id} contactName={contact.name} />
+      </div>
     </div>
   );
 }

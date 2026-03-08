@@ -1,8 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
-import { Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/NotificationBell";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
 
 export function AppLayout() {
@@ -16,9 +15,7 @@ export function AppLayout() {
               <SidebarTrigger className="mr-2" />
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
-                <Bell className="h-4 w-4 text-muted-foreground" />
-              </Button>
+              <NotificationBell />
               <ProfileDropdown />
             </div>
           </header>
