@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, CheckCircle2, ArrowLeft } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ArrowLeft, XCircle, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -14,21 +14,46 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function ReportIssuePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: user?.user_metadata?.full_name || "",
     email: user?.email || "",
-    issueType: "",
-    message: "",
+    title: "",
+    category: "",
+    description: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("send-issue-report", {
+        body: {
+          name: form.name,
+          email: form.email,
+          title: form.title,
+          category: form.category,
+          description: form.description,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setSubmitted(true);
+    } catch (err: any) {
+      toast.error(err.message || "Unable to send the report. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -38,11 +63,17 @@ export default function ReportIssuePage() {
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mx-auto">
             <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold text-foreground">Issue Reported</h2>
+          <h2 className="text-2xl font-bold text-foreground">Your issue has been submitted successfully.</h2>
           <p className="text-muted-foreground">
-            Your issue has been reported. Our team will contact you soon.
+            Our support team will review it shortly.
           </p>
-          <Button variant="outline" onClick={() => { setSubmitted(false); setForm({ name: "", email: user?.email || "", issueType: "", message: "" }); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setSubmitted(false);
+              setForm({ name: user?.user_metadata?.full_name || "", email: user?.email || "", title: "", category: "", description: "" });
+            }}
+          >
             Report Another Issue
           </Button>
         </div>
@@ -61,7 +92,6 @@ export default function ReportIssuePage() {
           Back
         </button>
 
-        {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-destructive/10 mx-auto">
             <AlertTriangle className="h-7 w-7 text-destructive" />
@@ -76,18 +106,47 @@ export default function ReportIssuePage() {
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="title">Issue Title</Label>
                 <Input
-                  id="name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Your full name"
+                  id="title"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="Enter issue title"
+                  maxLength={500}
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Describe the issue in detail..."
+                  rows={5}
+                  maxLength={5000}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Bug">Bug</SelectItem>
+                    <SelectItem value="Feature Request">Feature Request</SelectItem>
+                    <SelectItem value="Technical Issue">Technical Issue</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Your Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -99,34 +158,26 @@ export default function ReportIssuePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="issueType">Issue Type</Label>
-                <Select value={form.issueType} onValueChange={(v) => setForm({ ...form, issueType: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select issue type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bug">Bug</SelectItem>
-                    <SelectItem value="login">Login Problem</SelectItem>
-                    <SelectItem value="feature">Feature Request</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
-                <Textarea
-                  id="message"
-                  value={form.message}
-                  onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  placeholder="Describe the issue in detail..."
-                  rows={5}
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Your full name"
+                  maxLength={200}
                   required
                 />
               </div>
 
-              <Button type="submit" className="w-full">
-                Submit Issue
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Submit Report"
+                )}
               </Button>
             </form>
           </CardContent>
