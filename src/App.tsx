@@ -28,6 +28,7 @@ import ContactSupportPage from "@/pages/ContactSupportPage";
 import RemindersPage from "./pages/RemindersPage";
 import NetworkMapPage from "./pages/NetworkMapPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 import MyProfilePage from "./pages/MyProfilePage";
 import FollowUpsPage from "./pages/FollowUpsPage";
 import RecentInteractionsPage from "./pages/RecentInteractionsPage";
