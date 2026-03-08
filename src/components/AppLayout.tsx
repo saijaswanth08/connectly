@@ -3,7 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
-import { ThemeToggle } from "@/components/ThemeToggle";
+
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { FloatingQuickAdd } from "@/components/FloatingQuickAdd";
 import { usePresenceTracker } from "@/hooks/usePresence";
