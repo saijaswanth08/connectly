@@ -273,10 +273,26 @@ export default function MyProfilePage() {
                 <span className="text-xs text-muted-foreground">{form.phone}</span>
               )}
               <div className="flex gap-3 pt-1">
-                {form.email && <Mail className="h-4 w-4 text-muted-foreground" />}
-                {form.phone && <Phone className="h-4 w-4 text-muted-foreground" />}
-                {form.linkedin_url && <Linkedin className="h-4 w-4 text-muted-foreground" />}
-                {form.instagram && <Instagram className="h-4 w-4 text-muted-foreground" />}
+                {form.email && (
+                  <a href={`mailto:${form.email}`} className="text-muted-foreground hover:text-primary transition-colors hover:scale-110 transform duration-150">
+                    <Mail className="h-4 w-4" />
+                  </a>
+                )}
+                {form.phone && (
+                  <a href={`tel:${form.phone}`} className="text-muted-foreground hover:text-primary transition-colors hover:scale-110 transform duration-150">
+                    <Phone className="h-4 w-4" />
+                  </a>
+                )}
+                {form.linkedin_url && (
+                  <a href={form.linkedin_url.startsWith("http") ? form.linkedin_url : `https://${form.linkedin_url}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors hover:scale-110 transform duration-150">
+                    <Linkedin className="h-4 w-4" />
+                  </a>
+                )}
+                {form.instagram && (
+                  <a href={`https://instagram.com/${form.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors hover:scale-110 transform duration-150">
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                )}
               </div>
             </div>
           </div>
