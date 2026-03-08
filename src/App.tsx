@@ -57,8 +57,11 @@ const App = () => (
               <Route element={<ProtectedAppLayout />}>
                 <Route path="/dashboard" element={<AppDashboard />} />
                 <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
-                <Route path="/dashboard/meetings" element={<MeetingsPage />} />
-              </Route>
+              <Route path="/dashboard/meetings" element={<MeetingsPage />} />
+              <Route path="/help" element={<HelpCenterPage />} />
+              <Route path="/report-issue" element={<ReportIssuePage />} />
+              <Route path="/support" element={<ContactSupportPage />} />
+            </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
