@@ -28,7 +28,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 export function SidebarUserMenu() {
   const { user, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
+  
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
