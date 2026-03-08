@@ -4,8 +4,8 @@ import {
   Users, FileText, Bell, ArrowRight, Search, BarChart3, Clock, Network, Sparkles, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-network.png";
 import dashboardPreview from "@/assets/dashboard-preview.png";
+import HeroFloatingElements from "@/components/landing/HeroFloatingElements";
 import { useState } from "react";
 
 const fadeUp = {
