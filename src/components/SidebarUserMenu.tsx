@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,12 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 import {
   User,
   Settings,
   HelpCircle,
-  
   LogOut,
   ChevronsUpDown,
   MessageSquare,
@@ -28,7 +24,6 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 export function SidebarUserMenu() {
   const { user, signOut } = useAuth();
-  
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
@@ -58,6 +53,10 @@ export function SidebarUserMenu() {
   const avatarUrl = profile?.avatar_url || null;
 
   const handleLogout = async () => {
+    await signOut();
+    toast.success("Logged out successfully.");
+    navigate("/login");
+  };
 
   return (
     <DropdownMenu>
@@ -98,7 +97,6 @@ export function SidebarUserMenu() {
 
         <DropdownMenuSeparator />
 
-        {/* Help & Support */}
         <DropdownMenuItem onClick={() => navigate("/help")}>
           <HelpCircle className="mr-2 h-4 w-4" />
           Help Center
@@ -112,10 +110,8 @@ export function SidebarUserMenu() {
           Contact Support
         </DropdownMenuItem>
 
-
         <DropdownMenuSeparator />
 
-        {/* Sign Out */}
         <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out
