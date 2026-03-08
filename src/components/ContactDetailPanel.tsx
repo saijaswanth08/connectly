@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Mail, Phone, Building2, MapPin, Linkedin, Pencil, CalendarPlus, Trash2, Star, StickyNote, Clock } from "lucide-react";
+import { RelationshipStrength } from "@/components/RelationshipStrength";
 
 const importanceConfig: Record<string, { label: string; class: string }> = {
   vip: { label: "VIP", class: "bg-vip/20 text-vip border-vip/30" },
