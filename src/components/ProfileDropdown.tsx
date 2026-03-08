@@ -158,11 +158,11 @@ export function ProfileDropdown() {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[220px] rounded-xl shadow-lg">
-          <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
-            <UserCircle className="mr-2 h-4 w-4" /> My Profile
+          <DropdownMenuItem onClick={() => navigate("/dashboard/profile-settings")}>
+            <UserCircle className="mr-2 h-4 w-4" /> Profile Settings
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
-            <KeyRound className="mr-2 h-4 w-4" /> Reset Password
+            <KeyRound className="mr-2 h-4 w-4" /> Account Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => navigate("/help")}>
