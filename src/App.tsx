@@ -9,6 +9,8 @@ import { AppLayout } from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import AppDashboard from "@/pages/AppDashboard";
 import ContactDetailView from "@/pages/ContactDetailView";
 import MeetingsPage from "@/pages/MeetingsPage";
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route element={<ProtectedAppLayout />}>
               <Route path="/dashboard" element={<AppDashboard />} />
               <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
