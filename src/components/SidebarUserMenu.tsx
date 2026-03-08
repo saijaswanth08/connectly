@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,12 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
 import {
   User,
   Settings,
   HelpCircle,
-  Moon,
   LogOut,
   ChevronsUpDown,
   MessageSquare,
@@ -28,7 +24,6 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 export function SidebarUserMenu() {
   const { user, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
@@ -56,16 +51,11 @@ export function SidebarUserMenu() {
     .slice(0, 2)
     .toUpperCase();
   const avatarUrl = profile?.avatar_url || null;
-  const isDark = theme === "dark";
 
   const handleLogout = async () => {
     await signOut();
     toast.success("Logged out successfully.");
     navigate("/login");
-  };
-
-  const toggleDarkMode = () => {
-    setTheme(isDark ? "light" : "dark");
   };
 
   return (
@@ -107,7 +97,6 @@ export function SidebarUserMenu() {
 
         <DropdownMenuSeparator />
 
-        {/* Help & Support */}
         <DropdownMenuItem onClick={() => navigate("/help")}>
           <HelpCircle className="mr-2 h-4 w-4" />
           Help Center
@@ -123,21 +112,6 @@ export function SidebarUserMenu() {
 
         <DropdownMenuSeparator />
 
-        {/* Dark Mode Toggle */}
-        <div
-          className="flex items-center justify-between rounded-sm px-2 py-1.5 text-sm cursor-pointer hover:bg-accent"
-          onClick={toggleDarkMode}
-        >
-          <div className="flex items-center">
-            <Moon className="mr-2 h-4 w-4" />
-            Dark Mode
-          </div>
-          <Switch checked={isDark} onCheckedChange={() => toggleDarkMode()} className="scale-75" />
-        </div>
-
-        <DropdownMenuSeparator />
-
-        {/* Sign Out */}
         <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out
