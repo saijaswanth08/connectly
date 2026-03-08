@@ -63,13 +63,13 @@ const App = () => (
               <Route element={<ProtectedAppLayout />}>
                 <Route path="/dashboard" element={<AppDashboard />} />
                 <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
-              <Route path="/dashboard/meetings" element={<MeetingsPage />} />
+              <Route path="/dashboard/interactions" element={<InteractionsPage />} />
               <Route path="/dashboard/video-meetings" element={<VideoMeetingsPage />} />
               <Route path="/dashboard/reminders" element={<RemindersPage />} />
               <Route path="/dashboard/network" element={<NetworkMapPage />} />
               <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
               <Route path="/dashboard/follow-ups" element={<FollowUpsPage />} />
-              <Route path="/dashboard/interactions" element={<InteractionsPage />} />
+              <Route path="/dashboard/recent-interactions" element={<RecentInteractionsPage />} />
               <Route path="/help" element={<HelpCenterPage />} />
               <Route path="/report-issue" element={<ReportIssuePage />} />
               <Route path="/support" element={<ContactSupportPage />} />
