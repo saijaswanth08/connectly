@@ -16,6 +16,7 @@ import { ContactDetailPanel } from "@/components/ContactDetailPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DbContact } from "@/lib/api";
 import { UpcomingRemindersWidget } from "@/components/UpcomingRemindersWidget";
+import { RecentInteractionsWidget } from "@/components/RecentInteractionsWidget";
 
 const importanceBg: Record<string, string> = {
   vip: "bg-vip/15 text-vip border-vip/30",
