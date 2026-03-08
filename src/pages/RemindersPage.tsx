@@ -60,7 +60,7 @@ export default function RemindersPage() {
   function resetForm() {
     setTitle("");
     setMessage("");
-    setContactId("none");
+    setContactId(null);
     setDate(undefined);
     setTime("10:00");
     setEditingReminder(null);
