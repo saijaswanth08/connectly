@@ -56,17 +56,8 @@ export function SidebarUserMenu() {
     .slice(0, 2)
     .toUpperCase();
   const avatarUrl = profile?.avatar_url || null;
-  const isDark = theme === "dark";
 
   const handleLogout = async () => {
-    await signOut();
-    toast.success("Logged out successfully.");
-    navigate("/login");
-  };
-
-  const toggleDarkMode = () => {
-    setTheme(isDark ? "light" : "dark");
-  };
 
   return (
     <DropdownMenu>

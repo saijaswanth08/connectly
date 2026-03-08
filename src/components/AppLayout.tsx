@@ -24,7 +24,7 @@ export function AppLayout() {
               <GlobalSearch />
             </div>
             <div className="flex items-center gap-1">
-              <ThemeToggle />
+              <NotificationBell />
               <NotificationBell />
               <ProfileDropdown />
             </div>
