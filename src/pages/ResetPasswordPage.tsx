@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold text-foreground">
-            <Zap className="h-7 w-7 text-primary" />
+            <ConnectlyLogoIcon size={28} />
             Connect<span className="text-primary">ly</span>
           </Link>
           <h1 className="font-display text-xl font-semibold text-foreground mt-4">Set new password</h1>
