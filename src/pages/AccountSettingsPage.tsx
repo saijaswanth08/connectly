@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, ShieldCheck, Lock, Shield } from "lucide-react";
+import { Mail, ShieldCheck, Lock } from "lucide-react";
+import { TwoFactorSettings } from "@/components/TwoFactorSettings";
 import { z } from "zod";
 
 const passwordSchema = z
