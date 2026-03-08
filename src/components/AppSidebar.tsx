@@ -1,4 +1,4 @@
-import { Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare } from "lucide-react";
+import { Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ const mainItems = [
   { title: "Video Meetings", url: "/dashboard/video-meetings", icon: Video },
   { title: "Reminders", url: "/dashboard/reminders", icon: Bell },
   { title: "Network Map", url: "/dashboard/network", icon: Network },
+  { title: "My Profile", url: "/dashboard/profile", icon: UserCircle },
 ];
 
 const widgetItems = [

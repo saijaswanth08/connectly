@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
+import PublicProfilePage from "@/pages/PublicProfilePage";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
@@ -27,6 +28,7 @@ import ContactSupportPage from "@/pages/ContactSupportPage";
 import RemindersPage from "./pages/RemindersPage";
 import NetworkMapPage from "./pages/NetworkMapPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
+import MyProfilePage from "./pages/MyProfilePage";
 import FollowUpsPage from "./pages/FollowUpsPage";
 import RecentInteractionsPage from "./pages/RecentInteractionsPage";
 import NetworkingInsightsPage from "./pages/NetworkingInsightsPage";
@@ -61,7 +63,7 @@ const App = () => (
               <Route path="/about" element={<AboutPage />} />
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/contact" element={<ContactPage />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/profile/:username" element={<PublicProfilePage />} />
               <Route element={<ProtectedAppLayout />}>
                 <Route path="/dashboard" element={<AppDashboard />} />
                 <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
@@ -71,6 +73,7 @@ const App = () => (
               <Route path="/dashboard/reminders" element={<RemindersPage />} />
               <Route path="/dashboard/network" element={<NetworkMapPage />} />
               <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
+              <Route path="/dashboard/profile" element={<MyProfilePage />} />
               <Route path="/dashboard/follow-ups" element={<FollowUpsPage />} />
               <Route path="/dashboard/recent-interactions" element={<RecentInteractionsPage />} />
               <Route path="/dashboard/insights" element={<NetworkingInsightsPage />} />
