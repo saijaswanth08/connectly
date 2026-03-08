@@ -245,7 +245,7 @@ export default function LandingPage() {
             {/* Brand */}
             <div className="space-y-4">
               <span className="font-display text-lg font-bold text-foreground">
-                Network<span className="text-primary">Memory</span>
+                Connect<span className="text-primary">ly</span>
               </span>
               <p className="font-display text-sm font-medium text-foreground">
                 Build stronger professional relationships.
