@@ -16,7 +16,7 @@ import {
   User,
   Settings,
   HelpCircle,
-  Moon,
+  
   LogOut,
   ChevronsUpDown,
   MessageSquare,
