@@ -48,6 +48,7 @@ export default function MessagesPage() {
   const { data: messages = [] } = useMessages(selectedConversationId);
   const sendMessage = useSendMessage();
   const getOrCreateConv = useGetOrCreateConversation();
+  const { data: presenceRecords = [] } = useAllPresence();
 
   useRealtimeMessages(selectedConversationId);
   useRealtimeConversations();
