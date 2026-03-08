@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function ReportIssuePage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
     name: user?.user_metadata?.full_name || "",
