@@ -1,16 +1,11 @@
 import { UpcomingRemindersWidget } from "@/components/UpcomingRemindersWidget";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 
 export default function FollowUpsPage() {
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/dashboard"><ArrowLeft className="h-4 w-4" /></Link>
-        </Button>
-        <h1 className="font-display text-2xl font-bold">Upcoming Follow-Ups</h1>
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-display font-bold text-foreground">Upcoming Follow-Ups</h1>
+        <p className="text-sm text-muted-foreground">View and manage your upcoming reminders and follow-up tasks.</p>
       </div>
       <UpcomingRemindersWidget />
     </div>
