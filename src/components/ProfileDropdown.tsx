@@ -165,13 +165,6 @@ export function ProfileDropdown() {
             <KeyRound className="mr-2 h-4 w-4" /> Account Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate("/help")}>
-            <HelpCircle className="mr-2 h-4 w-4" /> Help & Support
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/report-issue")}>
-            <AlertTriangle className="mr-2 h-4 w-4" /> Report Issue
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
             <LogOut className="mr-2 h-4 w-4" /> Sign Out
           </DropdownMenuItem>
