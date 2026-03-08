@@ -63,7 +63,7 @@ const App = () => (
               <Route path="/about" element={<AboutPage />} />
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/contact" element={<ContactPage />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/profile/:username" element={<PublicProfilePage />} />
               <Route element={<ProtectedAppLayout />}>
                 <Route path="/dashboard" element={<AppDashboard />} />
                 <Route path="/dashboard/contacts/:id" element={<ContactDetailView />} />
