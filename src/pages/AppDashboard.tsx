@@ -88,7 +88,7 @@ export default function AppDashboard() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-2xl font-display font-bold text-foreground">Contacts</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Welcome back, {user?.user_metadata?.full_name || user?.email?.split("@")[0]}</p>
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>

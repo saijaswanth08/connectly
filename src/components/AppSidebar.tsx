@@ -8,7 +8,6 @@ import {
 import { SidebarUserMenu } from "@/components/SidebarUserMenu";
 
 const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Contacts", url: "/dashboard", icon: Users },
   { title: "Messages", url: "/dashboard/messages", icon: MessagesSquare },
   { title: "Interactions", url: "/dashboard/interactions", icon: Calendar },
