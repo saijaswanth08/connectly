@@ -1,12 +1,13 @@
-import { Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare } from "lucide-react";
+import { Calendar, Users, Bell, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink } from "@/components/NavLink";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
-  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 import { SidebarUserMenu } from "@/components/SidebarUserMenu";
+import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 
 const mainItems = [
   { title: "Contacts", url: "/dashboard", icon: Users },
