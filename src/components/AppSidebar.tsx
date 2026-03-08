@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Bell, Zap, Video, Network, Clock, MessageSquare, Lightbulb } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -19,6 +19,7 @@ const mainItems = [
 const widgetItems = [
   { title: "Upcoming Follow-Ups", url: "/dashboard/follow-ups", icon: Clock },
   { title: "Recent Interactions", url: "/dashboard/recent-interactions", icon: MessageSquare },
+  { title: "Networking Insights", url: "/dashboard/insights", icon: Lightbulb },
 ];
 
 export function AppSidebar() {

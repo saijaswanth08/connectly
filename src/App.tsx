@@ -29,6 +29,7 @@ import NetworkMapPage from "./pages/NetworkMapPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import FollowUpsPage from "./pages/FollowUpsPage";
 import RecentInteractionsPage from "./pages/RecentInteractionsPage";
+import NetworkingInsightsPage from "./pages/NetworkingInsightsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
               <Route path="/dashboard/follow-ups" element={<FollowUpsPage />} />
               <Route path="/dashboard/recent-interactions" element={<RecentInteractionsPage />} />
+              <Route path="/dashboard/insights" element={<NetworkingInsightsPage />} />
               <Route path="/help" element={<HelpCenterPage />} />
               <Route path="/report-issue" element={<ReportIssuePage />} />
               <Route path="/support" element={<ContactSupportPage />} />
