@@ -362,6 +362,17 @@ export default function VideoMeetingsPage() {
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                   {m.meeting_time && (<span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{format(new Date(m.meeting_time), "PPp")}</span>)}
                 </div>
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => handleGenerateAiNotes(m)} disabled={generatingAi === m.id}>
+                    {generatingAi === m.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    {generatingAi === m.id ? "Generating..." : "AI Summary"}
+                  </Button>
+                </div>
+                {aiSummaries[m.id] && (
+                  <div className="mt-2 rounded-lg bg-accent/50 border border-border/50 p-4 text-sm text-foreground whitespace-pre-wrap">
+                    {aiSummaries[m.id]}
+                  </div>
+                )}
               </motion.div>
             );
           })}
