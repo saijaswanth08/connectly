@@ -74,6 +74,7 @@ const App = () => (
               <Route path="/dashboard/reminders" element={<RemindersPage />} />
               <Route path="/dashboard/network" element={<NetworkMapPage />} />
               <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
+              <Route path="/dashboard/change-password" element={<ChangePasswordPage />} />
               <Route path="/dashboard/profile" element={<MyProfilePage />} />
               <Route path="/dashboard/follow-ups" element={<FollowUpsPage />} />
               <Route path="/dashboard/recent-interactions" element={<RecentInteractionsPage />} />
