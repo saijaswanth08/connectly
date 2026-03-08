@@ -77,6 +77,7 @@ const helpTopics = [
 ];
 
 export default function HelpCenterPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
   const filtered = helpTopics.filter(
