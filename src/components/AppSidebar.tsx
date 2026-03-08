@@ -47,12 +47,17 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup className="pt-4">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} end className="hover:bg-sidebar-accent/50 rounded-lg" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
-                      <item.icon className="h-4 w-4" />
+                    <NavLink
+                      to={item.url}
+                      end
+                      className="rounded-lg text-base font-medium py-2.5 px-3 transition-all duration-200 hover:bg-sidebar-accent/60 hover:scale-[1.02]"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                    >
+                      <item.icon className="h-5 w-5" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -61,8 +66,13 @@ export function AppSidebar() {
               {widgetItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} end className="hover:bg-sidebar-accent/50 rounded-lg" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
-                      <item.icon className="h-4 w-4" />
+                    <NavLink
+                      to={item.url}
+                      end
+                      className="rounded-lg text-base font-medium py-2.5 px-3 transition-all duration-200 hover:bg-sidebar-accent/60 hover:scale-[1.02]"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                    >
+                      <item.icon className="h-5 w-5" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
