@@ -264,7 +264,6 @@ export default function LandingPage() {
               <nav className="flex flex-col gap-2.5 text-sm text-muted-foreground">
                 {[
                   { label: "About", to: "/about" },
-                  { label: "Features", to: "/features" },
                   { label: "Privacy Policy", to: "/privacy-policy" },
                   { label: "Contact Us", to: "/contact" },
                 ].map((link) => (
