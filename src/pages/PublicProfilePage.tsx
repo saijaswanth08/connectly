@@ -1,18 +1,20 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Linkedin, Instagram, Mail, Phone, UserPlus, Zap } from "lucide-react";
+import { Linkedin, Instagram, Mail, Phone, UserPlus, Zap, LogIn } from "lucide-react";
 import { useState } from "react";
 
 export default function PublicProfilePage() {
   const { username } = useParams<{ username: string }>();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [adding, setAdding] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["public-profile", username],
@@ -28,10 +30,27 @@ export default function PublicProfilePage() {
     enabled: !!username,
   });
 
-  const handleAddContact = async () => {
+  const handleSaveContact = async () => {
     if (!user?.id || !profile) return;
-    setAdding(true);
+    setSaving(true);
     try {
+      // ── Duplicate check: does a contact with the same email already exist? ──
+      const { data: existing } = await supabase
+        .from("contacts")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("email", profile.email || "")
+        .maybeSingle();
+
+      if (existing) {
+        toast({
+          title: "Already in your contacts",
+          description: "This contact already exists in your dashboard.",
+        });
+        return;
+      }
+
+      // ── Insert new contact ──
       const { error } = await supabase.from("contacts").insert({
         user_id: user.id,
         name: profile.name || username || "",
@@ -42,13 +61,29 @@ export default function PublicProfilePage() {
         linkedin_url: profile.linkedin_url || "",
         notes: profile.bio || "",
       });
+
       if (error) throw error;
-      toast({ title: "Contact added!", description: `${profile.name} has been added to your contacts.` });
+
+      // Invalidate contacts cache so the dashboard list refreshes immediately
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+
+      toast({
+        title: "Contact saved!",
+        description: `${profile.name || username} has been added to your contacts.`,
+      });
+
+      // Redirect to dashboard so the user can see the new contact right away
+      navigate("/dashboard");
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
-      setAdding(false);
+      setSaving(false);
     }
+  };
+
+  const handleLoginRedirect = () => {
+    // Preserve the current path so we return here after login
+    navigate(`/login?redirect=/profile/${username}`);
   };
 
   if (isLoading) {
@@ -71,6 +106,7 @@ export default function PublicProfilePage() {
 
   const fullName = profile.name || username || "";
   const initials = fullName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const isOwnProfile = user?.id === profile.id;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
@@ -79,10 +115,13 @@ export default function PublicProfilePage() {
         <div className="h-24 bg-gradient-to-br from-primary/80 to-primary" />
 
         <div className="px-6 pb-6 -mt-12 space-y-4">
+          {/* Avatar + Identity */}
           <div className="flex flex-col items-center text-center space-y-3">
             <Avatar className="h-24 w-24 border-4 border-card shadow-md">
               {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt={fullName} />}
-              <AvatarFallback className="bg-primary/15 text-primary text-2xl font-bold">{initials}</AvatarFallback>
+              <AvatarFallback className="bg-primary/15 text-primary text-2xl font-bold">
+                {initials}
+              </AvatarFallback>
             </Avatar>
 
             <div>
@@ -102,44 +141,69 @@ export default function PublicProfilePage() {
           {/* Contact Details */}
           <div className="space-y-2 pt-2">
             {profile.email && (
-              <a href={`mailto:${profile.email}`} className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-sm">
+              <a
+                href={`mailto:${profile.email}`}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-sm"
+              >
                 <Mail className="h-4 w-4 text-primary shrink-0" />
                 <span className="truncate">{profile.email}</span>
               </a>
             )}
             {profile.phone && (
-              <a href={`tel:${profile.phone}`} className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-sm">
+              <a
+                href={`tel:${profile.phone}`}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-sm"
+              >
                 <Phone className="h-4 w-4 text-primary shrink-0" />
                 <span>{profile.phone}</span>
               </a>
             )}
             {profile.linkedin_url && (
-              <a href={profile.linkedin_url.startsWith("http") ? profile.linkedin_url : `https://${profile.linkedin_url}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-sm">
+              <a
+                href={profile.linkedin_url.startsWith("http") ? profile.linkedin_url : `https://${profile.linkedin_url}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-sm"
+              >
                 <Linkedin className="h-4 w-4 text-primary shrink-0" />
                 <span className="truncate">{profile.linkedin_url}</span>
               </a>
             )}
             {profile.instagram && (
-              <a href={`https://instagram.com/${profile.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-sm">
+              <a
+                href={`https://instagram.com/${profile.instagram.replace("@", "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-sm"
+              >
                 <Instagram className="h-4 w-4 text-primary shrink-0" />
                 <span>{profile.instagram}</span>
               </a>
             )}
           </div>
 
-          {/* Add Contact Button */}
-          {user && profile.id !== user.id && (
-            <Button onClick={handleAddContact} disabled={adding} className="w-full gap-2 mt-4">
-              <UserPlus className="h-4 w-4" /> {adding ? "Adding..." : "Add to My Contacts"}
+          {/* Save Contact — logged in, not own profile */}
+          {user && !isOwnProfile && (
+            <Button
+              onClick={handleSaveContact}
+              disabled={saving}
+              className="w-full gap-2 mt-2"
+            >
+              <UserPlus className="h-4 w-4" />
+              {saving ? "Saving..." : "Save Contact"}
             </Button>
           )}
 
+          {/* Auth prompt — not logged in */}
           {!user && (
-            <div className="text-center pt-2">
-              <p className="text-xs text-muted-foreground">
-                <a href="/signup" className="text-primary hover:underline">Sign up for Connectly</a> to add this contact.
-              </p>
-            </div>
+            <Button
+              variant="outline"
+              className="w-full gap-2 mt-2"
+              onClick={handleLoginRedirect}
+            >
+              <LogIn className="h-4 w-4" />
+              Log in to Save Contact
+            </Button>
           )}
 
           {/* Branding */}

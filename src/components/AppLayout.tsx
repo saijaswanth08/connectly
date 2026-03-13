@@ -18,7 +18,7 @@ export function AppLayout() {
       <div className="min-h-screen flex w-full bg-muted/30">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center justify-between border-b border-border/40 px-4 bg-card/80 backdrop-blur-sm sticky top-0 z-30">
+          <header className="h-16 flex items-center justify-between px-6 bg-white border-b shadow-sm sticky top-0 z-30">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="mr-2" />
               <GlobalSearch />

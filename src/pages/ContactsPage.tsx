@@ -20,21 +20,21 @@ export default function ContactsPage() {
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto">
       {/* Header: title | search | empty */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
-        <div>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="md:flex-1">
           <h1 className="text-2xl font-display font-bold">Contacts</h1>
           <p className="text-sm text-muted-foreground">{contacts.length} people in your network</p>
         </div>
-        <div className="relative w-full sm:max-w-[460px] sm:mx-auto">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative w-full md:w-[500px] lg:w-[650px] shrink-0">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/70" />
           <Input
-            placeholder="Search contacts..."
+            placeholder="Search contacts by name, email, or tag..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 rounded-full border-border/60 shadow-sm focus-visible:ring-primary/30"
+            className="pl-11 h-11 md:h-12 w-full text-base rounded-[1rem] border-border/80 shadow-sm transition-all focus-visible:border-[#6366F1] focus-visible:shadow-[0_0_0_2px_rgba(99,102,241,0.15)] focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
-        <div className="hidden sm:block" />
+        <div className="hidden md:block md:flex-1" />
       </div>
 
       <div className="flex flex-wrap gap-2">

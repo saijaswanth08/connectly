@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { User, ImagePlus, Trash2, LogOut, X, UserCircle, KeyRound } from "lucide-react";
+import { User, ImagePlus, Trash2, LogOut, X, KeyRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -158,11 +158,11 @@ export function ProfileDropdown() {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[220px] rounded-xl shadow-lg">
-          <DropdownMenuItem onClick={() => navigate("/dashboard/profile-settings")}>
-            <UserCircle className="mr-2 h-4 w-4" /> Profile Settings
+          <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
+            <User className="mr-2 h-4 w-4" /> Profile
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
-            <KeyRound className="mr-2 h-4 w-4" /> Account Settings
+            <KeyRound className="mr-2 h-4 w-4" /> Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">

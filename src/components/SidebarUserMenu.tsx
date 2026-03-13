@@ -13,8 +13,8 @@ import {
   HelpCircle,
   LogOut,
   ChevronsUpDown,
-  MessageSquare,
-  AlertTriangle,
+  BookOpen,
+  Bug,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -84,16 +84,16 @@ export function SidebarUserMenu() {
         sideOffset={8}
       >
         <DropdownMenuItem onClick={() => navigate("/help")}>
-          <HelpCircle className="mr-2 h-4 w-4" />
+          <BookOpen className="mr-2 h-4 w-4" />
           Help Center
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/report-issue")}>
-          <AlertTriangle className="mr-2 h-4 w-4" />
-          Report Issue
+          <Bug className="mr-2 h-4 w-4" />
+          Report a Bug
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/support")}>
-          <MessageSquare className="mr-2 h-4 w-4" />
-          Contact Support
+          <HelpCircle className="mr-2 h-4 w-4" />
+          Get Help
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

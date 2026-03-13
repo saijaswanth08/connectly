@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Save, ImagePlus, Trash2, Mail, Phone, Linkedin, Instagram, Building2, Briefcase } from "lucide-react";
+import {
+  Save, ImagePlus, Trash2, Mail, Phone,
+  Linkedin, Instagram, Building2, Briefcase, X
+} from "lucide-react";
 
 export default function ProfileSettingsPage() {
   const { user } = useAuth();
@@ -28,20 +31,23 @@ export default function ProfileSettingsPage() {
   const [form, setForm] = useState({
     name: "", phone: "", linkedin_url: "", instagram: "", company: "", job_title: "",
   });
+  const [originalForm, setOriginalForm] = useState({ ...form });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const initialized = useRef(false);
 
   useEffect(() => {
     if (profile && !initialized.current) {
-      setForm({
+      const values = {
         name: profile.name || "",
         phone: profile.phone || "",
         linkedin_url: profile.linkedin_url || "",
         instagram: profile.instagram || "",
         company: profile.company || "",
         job_title: profile.job_title || "",
-      });
+      };
+      setForm(values);
+      setOriginalForm(values);
       initialized.current = true;
     }
   }, [profile]);
@@ -53,6 +59,10 @@ export default function ProfileSettingsPage() {
 
   const update = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
 
+  const handleCancel = () => {
+    setForm(originalForm);
+  };
+
   const handleSave = async () => {
     if (!user?.id) return;
     setSaving(true);
@@ -62,6 +72,7 @@ export default function ProfileSettingsPage() {
         instagram: form.instagram, company: form.company, job_title: form.job_title,
       }).eq("id", user.id);
       if (error) throw error;
+      setOriginalForm(form);
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile updated!" });
     } catch (e: any) {
@@ -103,80 +114,204 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  if (isLoading) return <div className="p-6 text-muted-foreground">Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
+        Loading profile...
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
-      <div>
-        <p className="text-lg font-medium text-muted-foreground">Settings</p>
-        <h1 className="text-2xl font-display font-bold text-foreground">Profile Settings</h1>
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
+
+      {/* Page Title */}
+      <div className="space-y-0.5">
+        <p className="text-sm text-muted-foreground tracking-wide uppercase font-medium">Account</p>
+        <h1 className="text-2xl font-bold text-foreground">Profile Settings</h1>
+        <p className="text-sm text-muted-foreground">Manage how you appear on Connectly</p>
       </div>
 
-      {/* Profile Photo */}
-      <div className="rounded-xl bg-card border border-border/50 p-6 shadow-sm space-y-4">
-        <h2 className="font-display font-semibold">Profile Photo</h2>
-        <div className="flex items-center gap-4">
-          <Avatar className="h-20 w-20 border-2 border-border">
-            {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-            <AvatarFallback className="bg-primary/15 text-primary text-xl font-bold">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-              <ImagePlus className="h-4 w-4" /> {uploading ? "Uploading..." : "Upload"}
+      {/* Profile Header Card */}
+      <div className="rounded-2xl bg-card border border-border/60 shadow-sm overflow-hidden">
+        {/* Banner */}
+        <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
+
+        {/* Avatar + Identity */}
+        <div className="px-6 pb-6 -mt-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div className="flex items-end gap-4">
+            <div className="relative">
+              <Avatar className="h-20 w-20 border-4 border-card shadow-md ring-2 ring-primary/20">
+                {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
+                <AvatarFallback className="bg-primary/15 text-primary text-2xl font-bold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            <div className="mb-1">
+              <h2 className="text-lg font-semibold text-foreground leading-tight">
+                {fullName || "Your Name"}
+              </h2>
+              <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                {email || "—"}
+              </p>
+              {form.job_title && form.company && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {form.job_title} @ {form.company}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Photo Buttons */}
+          <div className="flex gap-2 sm:mb-1">
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={handleUploadPhoto} />
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              <ImagePlus className="h-3.5 w-3.5" />
+              {uploading ? "Uploading..." : "Upload Photo"}
             </Button>
-            <Button variant="outline" size="sm" className="gap-1.5 text-destructive" onClick={handleDeletePhoto} disabled={!avatarUrl}>
-              <Trash2 className="h-4 w-4" /> Remove
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs text-destructive hover:text-destructive"
+              onClick={handleDeletePhoto}
+              disabled={!avatarUrl}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Remove
             </Button>
           </div>
-          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={handleUploadPhoto} />
         </div>
       </div>
 
       {/* Personal Information */}
-      <div className="rounded-xl bg-card border border-border/50 p-6 shadow-sm space-y-4">
-        <h2 className="font-display font-semibold">Personal Information</h2>
+      <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5">
+        <div>
+          <h2 className="font-semibold text-foreground">Personal Information</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Your basic details visible across Connectly</p>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Full Name */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Full Name</Label>
-            <Input value={form.name} onChange={(e) => update("name", e.target.value)} className="rounded-lg" />
+            <Label className="text-xs font-medium text-muted-foreground">Full Name</Label>
+            <Input
+              value={form.name}
+              onChange={(e) => update("name", e.target.value)}
+              placeholder="Your full name"
+              className="rounded-lg h-9"
+            />
           </div>
+
+          {/* Email (read-only) */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium flex items-center gap-1"><Mail className="h-3 w-3" /> Email Address</Label>
-            <Input value={email} disabled className="rounded-lg bg-muted/50" />
+            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Mail className="h-3 w-3" /> Email Address
+            </Label>
+            <Input
+              value={email}
+              disabled
+              className="rounded-lg h-9 bg-muted/50 text-muted-foreground cursor-not-allowed"
+            />
           </div>
+
+          {/* Phone */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium flex items-center gap-1"><Phone className="h-3 w-3" /> Phone Number</Label>
-            <Input value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="+91 XXXXXXXXXX" className="rounded-lg" />
+            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Phone className="h-3 w-3" /> Phone Number
+            </Label>
+            <Input
+              value={form.phone}
+              onChange={(e) => update("phone", e.target.value)}
+              placeholder="+91 XXXXXXXXXX"
+              className="rounded-lg h-9"
+            />
           </div>
+
+          {/* LinkedIn */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium flex items-center gap-1"><Linkedin className="h-3 w-3" /> LinkedIn Profile</Label>
-            <Input value={form.linkedin_url} onChange={(e) => update("linkedin_url", e.target.value)} placeholder="linkedin.com/in/username" className="rounded-lg" />
+            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Linkedin className="h-3 w-3" /> LinkedIn Profile
+            </Label>
+            <Input
+              value={form.linkedin_url}
+              onChange={(e) => update("linkedin_url", e.target.value)}
+              placeholder="linkedin.com/in/username"
+              className="rounded-lg h-9"
+            />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium flex items-center gap-1"><Instagram className="h-3 w-3" /> Instagram</Label>
-            <Input value={form.instagram} onChange={(e) => update("instagram", e.target.value)} placeholder="@your_handle" className="rounded-lg" />
+
+          {/* Instagram */}
+          <div className="space-y-1.5 sm:col-span-2 sm:max-w-[calc(50%-8px)]">
+            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Instagram className="h-3 w-3" /> Instagram
+            </Label>
+            <Input
+              value={form.instagram}
+              onChange={(e) => update("instagram", e.target.value)}
+              placeholder="@your_handle"
+              className="rounded-lg h-9"
+            />
           </div>
         </div>
       </div>
 
-      {/* Company / Role */}
-      <div className="rounded-xl bg-card border border-border/50 p-6 shadow-sm space-y-4">
-        <h2 className="font-display font-semibold">Company & Role</h2>
+      {/* Company & Role */}
+      <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5">
+        <div>
+          <h2 className="font-semibold text-foreground">Company & Role</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Where you work and what you do</p>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium flex items-center gap-1"><Building2 className="h-3 w-3" /> Company</Label>
-            <Input value={form.company} onChange={(e) => update("company", e.target.value)} className="rounded-lg" />
+            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Building2 className="h-3 w-3" /> Company
+            </Label>
+            <Input
+              value={form.company}
+              onChange={(e) => update("company", e.target.value)}
+              placeholder="Company name"
+              className="rounded-lg h-9"
+            />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium flex items-center gap-1"><Briefcase className="h-3 w-3" /> Role / Position</Label>
-            <Input value={form.job_title} onChange={(e) => update("job_title", e.target.value)} className="rounded-lg" />
+            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Briefcase className="h-3 w-3" /> Role / Position
+            </Label>
+            <Input
+              value={form.job_title}
+              onChange={(e) => update("job_title", e.target.value)}
+              placeholder="Your job title"
+              className="rounded-lg h-9"
+            />
           </div>
         </div>
       </div>
 
-      <Button onClick={handleSave} disabled={saving} className="gap-2">
-        <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Changes"}
-      </Button>
+      {/* Action Buttons */}
+      <div className="flex items-center gap-3 pt-1">
+        <Button onClick={handleSave} disabled={saving} className="gap-2 min-w-[130px]">
+          <Save className="h-4 w-4" />
+          {saving ? "Saving..." : "Save Changes"}
+        </Button>
+        <Button
+          variant="outline"
+          className="gap-2"
+          onClick={handleCancel}
+          disabled={saving}
+        >
+          <X className="h-4 w-4" />
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 }

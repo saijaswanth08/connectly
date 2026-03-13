@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, Mail, CheckCircle2, ArrowLeft, Clock, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { MessageSquare, CheckCircle2, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export default function ContactSupportPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Custom Toast State
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error" | null>(null);
+
   const [form, setForm] = useState({
     name: user?.user_metadata?.full_name || "",
     email: user?.email || "",
@@ -22,8 +21,20 @@ export default function ContactSupportPage() {
     message: "",
   });
 
+  const showToast = (message: string, type: "success" | "error") => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+    setTimeout(() => setToastVisible(false), 3000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.name || !form.email || !form.subject || !form.message) {
+      showToast("Please complete all required fields before submitting.", "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -39,143 +50,107 @@ export default function ContactSupportPage() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      setSubmitted(true);
+      showToast("Your message has been sent. Our support team will contact you soon.", "success");
+      setForm({ name: user?.user_metadata?.full_name || "", email: user?.email || "", subject: "", message: "" });
     } catch (err: any) {
-      toast.error(err.message || "Unable to send message. Please try again later.");
+      showToast(err.message || "Unable to send message. Please try again later.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  if (submitted) {
-    return (
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-lg mx-auto px-4 py-20 text-center space-y-4">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mx-auto">
-            <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
-          </div>
-          <h2 className="text-2xl font-bold text-foreground">Your message has been sent successfully.</h2>
-          <p className="text-muted-foreground">
-            Our team will contact you shortly.
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setSubmitted(false);
-              setForm({ name: user?.user_metadata?.full_name || "", email: user?.email || "", subject: "", message: "" });
-            }}
-          >
-            Send Another Message
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="max-w-lg mx-auto px-4 py-10 space-y-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="group inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
+    <div className="flex-1 overflow-auto bg-gray-50 p-4 sm:p-6 lg:p-8 relative">
+      <div className="max-w-md mx-auto mt-12 bg-white border rounded-xl shadow-sm p-6">
+        
+        {/* Custom Toast Notification */}
+        <div 
+          className={`fixed top-6 right-6 z-50 transition-all duration-300 ease-in-out transform ${
+            toastVisible ? "translate-x-0 opacity-100" : "translate-x-12 opacity-0 pointer-events-none"
+          }`}
         >
-          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
-          Back
-        </button>
+          {toastType === "success" && (
+            <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg shadow-md flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <p className="text-sm font-medium">{toastMessage}</p>
+            </div>
+          )}
+          {toastType === "error" && (
+            <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg shadow-md flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              <p className="text-sm font-medium">{toastMessage}</p>
+            </div>
+          )}
+        </div>
 
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 mx-auto">
-            <MessageSquare className="h-7 w-7 text-primary" />
+        {/* Header Section */}
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">Get Help</h1>
+          <p className="text-sm text-gray-500 mt-1 mb-6">Need help with Connectly? Send us a message and our support team will respond soon.</p>
+        </div>
+
+        {/* Form Section */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
+            <input
+              id="name"
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+              className="w-full h-10 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Contact Support</h1>
-          <p className="text-muted-foreground">
-            Have a question or need help? We're here for you.
-          </p>
-        </div>
 
-        {/* Quick contact cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card className="border border-border/50 shadow-sm">
-            <CardContent className="flex items-center gap-3 py-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                <Mail className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">Email</p>
-                <a href="mailto:connect.support@gmail.com" className="text-sm text-primary hover:underline">
-                  connect.support@gmail.com
-                </a>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border border-border/50 shadow-sm">
-            <CardContent className="flex items-center gap-3 py-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                <Clock className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">Response time</p>
-                <p className="text-sm text-muted-foreground">Within 24 hours</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+          <div className="space-y-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
+            <input
+              id="email"
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+              className="w-full h-10 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow"
+            />
+          </div>
 
-        {/* Form */}
-        <Card className="border border-border/50 shadow-sm">
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Enter your name"
-                  maxLength={200}
-                  required
-                />
-              </div>
+          <div className="space-y-1">
+            <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
+            <select
+              id="subject"
+              value={form.subject}
+              onChange={(e) => setForm({ ...form, subject: e.target.value })}
+              required
+              className="w-full h-10 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white transition-shadow"
+            >
+              <option value="" disabled>Choose a support topic</option>
+              <option value="General Question">General Question</option>
+              <option value="Technical Issue">Technical Issue</option>
+              <option value="Account Help">Account Help</option>
+              <option value="Feature Request">Feature Request</option>
+            </select>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="Your email"
-                  required
-                />
-              </div>
+          <div className="space-y-1">
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700">Message</label>
+            <textarea
+              id="message"
+              value={form.message}
+              onChange={(e) => setForm({ ...form, message: e.target.value })}
+              placeholder="Describe your issue or question here..."
+              required
+              className="w-full min-h-[120px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow resize-y"
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="subject">Subject</Label>
-                <Input
-                  id="subject"
-                  value={form.subject}
-                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                  placeholder="Enter subject"
-                  maxLength={500}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
-                <Textarea
-                  id="message"
-                  value={form.message}
-                  onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  placeholder="How can we help you?"
-                  rows={5}
-                  maxLength={5000}
-                  required
-                />
-              </div>
-
-              <Button type="submit" className="w-full" disabled={loading}>
+          <div className="pt-2">
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition font-medium flex items-center justify-center min-w-[140px]"
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -184,10 +159,13 @@ export default function ContactSupportPage() {
                 ) : (
                   "Send Message"
                 )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-3 text-center sm:text-left">
+              Our support team usually responds within 24 hours.
+            </p>
+          </div>
+        </form>
       </div>
     </div>
   );

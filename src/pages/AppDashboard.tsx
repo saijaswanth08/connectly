@@ -35,7 +35,9 @@ export default function AppDashboard() {
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
-  const [filterImportance, setFilterImportance] = useState<string>("all");
+  const [filterCompany, setFilterCompany] = useState<string>("all");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [vipOnly, setVipOnly] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<DbContact | null>(null);
   const [form, setForm] = useState({
@@ -43,11 +45,18 @@ export default function AppDashboard() {
     linkedin_url: "", meeting_location: "", notes: "", importance: "medium", tags: "",
   });
 
+  const allCompanies = Array.from(new Set(contacts.map(c => c.company).filter(Boolean))).sort();
+  const allTags = Array.from(new Set(contacts.flatMap(c => c.tags || []))).sort();
+
   const filtered = contacts.filter((c) => {
     const matchesSearch = !search || [c.name, c.company, c.job_title, c.email, c.notes, ...(c.tags || [])]
       .some((f) => f?.toLowerCase().includes(search.toLowerCase()));
-    const matchesFilter = filterImportance === "all" || c.importance === filterImportance;
-    return matchesSearch && matchesFilter;
+    
+    const matchesCompany = filterCompany === "all" || c.company === filterCompany;
+    const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => c.tags?.includes(tag));
+    const matchesVip = !vipOnly || c.importance === "vip";
+    
+    return matchesSearch && matchesCompany && matchesTags && matchesVip;
   });
 
   const handleAdd = async () => {
@@ -85,12 +94,12 @@ export default function AppDashboard() {
   const tagCount = new Set(contacts.flatMap((c) => c.tags || [])).size;
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 space-y-6 max-w-7xl w-full mx-auto px-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-lg font-medium text-muted-foreground">Welcome back, {user?.user_metadata?.full_name || user?.email?.split("@")[0]}</p>
-          <h1 className="text-2xl font-display font-bold text-foreground tracking-tight mt-1">Contacts</h1>
+          <p className="text-sm text-gray-600">Welcome back, {user?.user_metadata?.full_name || user?.email?.split("@")[0]}</p>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight mt-1">Contacts</h1>
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>
@@ -138,7 +147,7 @@ export default function AppDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-xl bg-card border border-border/50 p-5 shadow-sm">
+            <div key={i} className="rounded-xl bg-white border border-border/50 p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
                   <Skeleton className="h-7 w-12 rounded-lg" />
@@ -156,11 +165,11 @@ export default function AppDashboard() {
             { icon: Bell, label: "Reminders", value: reminders.filter(r => !r.completed).length, color: "text-chart-3" },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              className="rounded-xl bg-card border border-border/50 p-5 shadow-sm hover:shadow-md transition-shadow">
+              className="rounded-xl bg-white border border-border/50 p-4 shadow-sm hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-display font-bold text-foreground">{s.value}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+                  <p className="text-sm font-medium text-foreground">{s.value}</p>
+                  <p className="text-sm text-gray-600 mt-1">{s.label}</p>
                 </div>
                 <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center">
                   <s.icon className={`h-5 w-5 ${s.color}`} />
@@ -172,31 +181,97 @@ export default function AppDashboard() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by name, company, tags, notes..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 rounded-xl bg-card border-border/50" />
+      <div className="space-y-4 mb-6 w-full">
+        {/* Top: Search and Primary Filters */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input 
+              placeholder="Search contacts by name, company, tags..." 
+              value={search} 
+              onChange={(e) => setSearch(e.target.value)} 
+              className="w-full h-11 pl-12 pr-4 rounded-xl border border-gray-300 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200" 
+            />
+          </div>
+          
+          <Select value={filterCompany} onValueChange={setFilterCompany}>
+            <SelectTrigger className="w-full sm:w-[200px] h-11 rounded-xl bg-white border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 transition-all">
+              <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Company" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Companies</SelectItem>
+              {allCompanies.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button 
+            variant="outline" 
+            onClick={() => setVipOnly(!vipOnly)}
+            className={`h-11 px-4 rounded-xl transition-all whitespace-nowrap ${vipOnly ? 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200' : 'bg-white border-gray-300 hover:bg-gray-50'}`}
+          >
+            <Star className={`h-4 w-4 mr-2 ${vipOnly ? 'text-yellow-600' : 'text-gray-400'}`} />
+            VIP Only
+          </Button>
         </div>
-        <Select value={filterImportance} onValueChange={setFilterImportance}>
-          <SelectTrigger className="w-full sm:w-40 rounded-xl bg-card border-border/50">
-            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Filter" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Contacts</SelectItem>
-            <SelectItem value="vip">VIP</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-          </SelectContent>
-        </Select>
+
+        {/* Bottom: Tags and Reset */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2 flex-1">
+            <Tag className="h-4 w-4 text-gray-400 shrink-0" />
+            {allTags.length === 0 ? (
+               <span className="text-sm text-gray-400 italic">No tags available</span>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {allTags.map(tag => {
+                  const isSelected = selectedTags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedTags(selectedTags.filter(t => t !== tag));
+                        } else {
+                          setSelectedTags([...selectedTags, tag]);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                        isSelected 
+                          ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' 
+                          : 'bg-gray-100 text-gray-600 border border-transparent hover:bg-gray-200'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          
+          {(search || filterCompany !== "all" || selectedTags.length > 0 || vipOnly) && (
+            <button
+              onClick={() => {
+                setSearch("");
+                setFilterCompany("all");
+                setSelectedTags([]);
+                setVipOnly(false);
+              }}
+              className="text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors whitespace-nowrap shrink-0"
+            >
+              Reset Filters
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Contact Grid */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-xl bg-card border border-border/50 p-5 space-y-3 shadow-sm">
+            <div key={i} className="rounded-2xl bg-white border border-border/50 p-5 space-y-3 shadow-sm">
               <div className="flex items-start gap-3">
                 <Skeleton className="h-11 w-11 rounded-full shrink-0" />
                 <div className="flex-1 space-y-2">
@@ -225,7 +300,7 @@ export default function AppDashboard() {
             {contacts.length === 0 ? "No contacts yet" : "No matches found"}
           </h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            {contacts.length === 0 ? "Start building your professional network by adding your first contact." : "Try a different search term or filter."}
+            {contacts.length === 0 ? "Start building your professional network by adding your first contact." : "No contacts match your search criteria."}
           </p>
           {contacts.length === 0 && (
             <Button className="rounded-xl gap-2 mt-2" onClick={() => setAddOpen(true)}>
@@ -244,26 +319,28 @@ export default function AppDashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.02 }}
                 onClick={() => setSelectedContact(c)}
-                className="rounded-xl bg-card border border-border/50 p-5 space-y-3 cursor-pointer group shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200"
+                className="rounded-2xl bg-white border border-border/50 p-5 space-y-3 cursor-pointer group shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200"
               >
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-11 w-11 shrink-0">
-                    <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm">{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-display font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{c.name}</h3>
-                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0 ${importanceBg[c.importance] || importanceBg.medium}`}>{c.importance}</span>
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 shrink-0 bg-indigo-100 flex items-center justify-center">
+                      <AvatarFallback className="bg-transparent text-indigo-700 font-semibold text-sm">{initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors truncate">{c.name}</h3>
                     </div>
-                    {c.company && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Building2 className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{c.job_title ? `${c.job_title} at ${c.company}` : c.company}</span>
-                      </p>
-                    )}
                   </div>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${c.importance === "vip" ? "bg-yellow-100 text-yellow-700" : importanceBg[c.importance] || importanceBg.medium}`}>{c.importance}</span>
                 </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <div className="flex-1 min-w-0">
+                  {c.company && (
+                    <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
+                      <Building2 className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{c.job_title ? `${c.job_title} at ${c.company}` : c.company}</span>
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-2">
                   {c.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{c.email}</span>}
                   {c.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</span>}
                   {c.meeting_location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{c.meeting_location}</span>}
@@ -275,7 +352,7 @@ export default function AppDashboard() {
                     ))}
                   </div>
                 )}
-                {c.notes && <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{c.notes}</p>}
+                {c.notes && <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed mt-2">{c.notes}</p>}
                 <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}>
                     <Trash2 className="h-3.5 w-3.5" />

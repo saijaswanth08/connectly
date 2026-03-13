@@ -1,4 +1,4 @@
-import { Calendar, Users, Bell, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare } from "lucide-react";
+import { Calendar, Users, Bell, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -16,6 +16,7 @@ const mainItems = [
   { title: "Video Meetings", url: "/dashboard/video-meetings", icon: Video },
   { title: "Reminders", url: "/dashboard/reminders", icon: Bell },
   { title: "Network Map", url: "/dashboard/network", icon: Network },
+  { title: "Account Security", url: "/dashboard/settings", icon: ShieldCheck },
 ];
 
 const widgetItems = [
@@ -56,12 +57,12 @@ export function AppSidebar() {
                         to={item.url}
                         end
                         className={cn(
-                          "rounded-lg transition-all duration-200 hover:bg-sidebar-accent/50",
-                          active ? "text-[15px] font-bold py-2.5" : "text-sm font-medium"
+                          "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800",
+                          active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium"
                         )}
-                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                        activeClassName="bg-indigo-600 text-white"
                       >
-                        <item.icon className={cn("shrink-0 transition-all duration-200", active ? "h-[18px] w-[18px]" : "h-4 w-4")} />
+                        <item.icon className={cn("shrink-0 transition-all duration-200", active ? "h-5 w-5" : "h-5 w-5")} />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -77,12 +78,12 @@ export function AppSidebar() {
                         to={item.url}
                         end
                         className={cn(
-                          "rounded-lg transition-all duration-200 hover:bg-sidebar-accent/50",
-                          active ? "text-[15px] font-bold py-2.5" : "text-sm font-medium"
+                          "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800",
+                          active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium"
                         )}
-                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                        activeClassName="bg-indigo-600 text-white"
                       >
-                        <item.icon className={cn("shrink-0 transition-all duration-200", active ? "h-[18px] w-[18px]" : "h-4 w-4")} />
+                        <item.icon className={cn("shrink-0 transition-all duration-200", active ? "h-5 w-5" : "h-5 w-5")} />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>

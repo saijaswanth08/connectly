@@ -69,8 +69,8 @@ const helpTopics = [
     title: "Getting Support",
     description: "How to reach out for help when you need it.",
     steps: [
-      "Visit the Contact Support page to send us a message.",
-      "Use the Report Issue page to log bugs or feature requests.",
+      "Visit the Get Help page to send us a message.",
+      "Use the Report a Bug page to log bugs or feature requests.",
       "Email us directly at support@connectly.com.",
     ],
   },

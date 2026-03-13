@@ -41,13 +41,14 @@ export function FloatingQuickAdd() {
       <button
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "h-12 w-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200",
-          "bg-primary text-primary-foreground hover:opacity-90",
+          "fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-all duration-200",
+          "bg-indigo-600 text-white hover:opacity-90",
           open && "rotate-45"
         )}
+        style={{ position: 'static' }}
         aria-label="Quick add"
       >
-        {open ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+        {open ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
       </button>
     </div>
   );
