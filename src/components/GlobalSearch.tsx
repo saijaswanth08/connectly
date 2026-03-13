@@ -116,12 +116,12 @@ export function GlobalSearch() {
     <>
       <Button
         variant="outline"
-        className="hidden sm:flex items-center gap-2 h-10 px-3 text-sm text-gray-400 rounded-full border border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors w-72 focus:ring-2 focus:ring-indigo-500 shadow-sm"
+        className="hidden sm:flex items-center gap-2 h-10 px-3 text-sm text-gray-400 dark:text-gray-400 rounded-full border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors w-72 focus:ring-2 focus:ring-indigo-500 shadow-sm"
         onClick={() => setOpen(true)}
       >
         <Search className="h-4 w-4" />
         <span className="flex-1 text-left">Search contacts, meetings...</span>
-        <kbd className="pointer-events-none text-[10px] font-medium text-muted-foreground bg-white px-1.5 py-0.5 rounded border border-gray-200">
+        <kbd className="pointer-events-none text-[10px] font-medium text-muted-foreground bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-gray-200 dark:border-slate-700">
           ⌘K
         </kbd>
       </Button>

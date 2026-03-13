@@ -162,7 +162,7 @@ export function ProfileDropdown() {
             <User className="mr-2 h-4 w-4" /> Profile
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
-            <KeyRound className="mr-2 h-4 w-4" /> Settings
+            <KeyRound className="mr-2 h-4 w-4" /> Account Security
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">

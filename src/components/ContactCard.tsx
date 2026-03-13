@@ -17,7 +17,7 @@ export function ContactCard({ contact, index = 0 }: { contact: Contact; index?: 
     >
       <Link
         to={`/contacts/${contact.id}`}
-        className="glass-card rounded-xl p-4 block hover:border-primary/30 transition-all duration-200 hover:shadow-md group"
+        className="glass-card rounded-xl p-4 block hover:border-primary/30 transition-all duration-200 hover:shadow-md group dark:bg-slate-800 dark:border-slate-700"
       >
         <div className="flex items-start gap-3">
           <Avatar className="h-11 w-11 shrink-0">

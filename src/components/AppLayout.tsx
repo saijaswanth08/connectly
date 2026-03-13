@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { FloatingQuickAdd } from "@/components/FloatingQuickAdd";
@@ -18,12 +19,13 @@ export function AppLayout() {
       <div className="min-h-screen flex w-full bg-muted/30">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 flex items-center justify-between px-6 bg-white border-b shadow-sm sticky top-0 z-30">
+          <header className="h-16 flex items-center justify-between px-6 bg-background dark:bg-slate-900 border-b dark:border-slate-800 shadow-sm sticky top-0 z-30">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="mr-2" />
               <GlobalSearch />
             </div>
             <div className="flex items-center gap-1">
+              <ThemeToggle />
               <NotificationBell />
               <ProfileDropdown />
             </div>

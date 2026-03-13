@@ -98,8 +98,8 @@ export default function AppDashboard() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-sm text-gray-600">Welcome back, {user?.user_metadata?.full_name || user?.email?.split("@")[0]}</p>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight mt-1">Contacts</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Welcome back, {user?.user_metadata?.full_name || user?.email?.split("@")[0]}</p>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight mt-1 dark:text-white">Contacts</h1>
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>
@@ -165,11 +165,11 @@ export default function AppDashboard() {
             { icon: Bell, label: "Reminders", value: reminders.filter(r => !r.completed).length, color: "text-chart-3" },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              className="rounded-xl bg-white border border-border/50 p-4 shadow-sm hover:shadow-md transition">
+              className="rounded-xl bg-white dark:bg-slate-800 border border-border/50 dark:border-slate-700 p-4 shadow-sm hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-foreground">{s.value}</p>
-                  <p className="text-sm text-gray-600 mt-1">{s.label}</p>
+                  <p className="text-sm font-medium text-foreground dark:text-gray-100">{s.value}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{s.label}</p>
                 </div>
                 <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center">
                   <s.icon className={`h-5 w-5 ${s.color}`} />
@@ -190,12 +190,12 @@ export default function AppDashboard() {
               placeholder="Search contacts by name, company, tags..." 
               value={search} 
               onChange={(e) => setSearch(e.target.value)} 
-              className="w-full h-11 pl-12 pr-4 rounded-xl border border-gray-300 shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200" 
+              className="w-full h-11 pl-12 pr-4 rounded-xl border border-gray-300 dark:border-slate-600 shadow-sm bg-white dark:bg-slate-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200" 
             />
           </div>
           
           <Select value={filterCompany} onValueChange={setFilterCompany}>
-            <SelectTrigger className="w-full sm:w-[200px] h-11 rounded-xl bg-white border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 transition-all">
+            <SelectTrigger className="w-full sm:w-[200px] h-11 rounded-xl bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 shadow-sm focus:ring-2 focus:ring-indigo-500 transition-all">
               <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
               <SelectValue placeholder="Company" />
             </SelectTrigger>
@@ -210,7 +210,7 @@ export default function AppDashboard() {
           <Button 
             variant="outline" 
             onClick={() => setVipOnly(!vipOnly)}
-            className={`h-11 px-4 rounded-xl transition-all whitespace-nowrap ${vipOnly ? 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200' : 'bg-white border-gray-300 hover:bg-gray-50'}`}
+            className={`h-11 px-4 rounded-xl transition-all whitespace-nowrap ${vipOnly ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700 hover:bg-yellow-200' : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
           >
             <Star className={`h-4 w-4 mr-2 ${vipOnly ? 'text-yellow-600' : 'text-gray-400'}`} />
             VIP Only
@@ -319,7 +319,7 @@ export default function AppDashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.02 }}
                 onClick={() => setSelectedContact(c)}
-                className="rounded-2xl bg-white border border-border/50 p-5 space-y-3 cursor-pointer group shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200"
+                className="rounded-2xl bg-white dark:bg-slate-800 border border-border/50 dark:border-slate-700 p-5 space-y-3 cursor-pointer group shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200"
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-3">
@@ -334,13 +334,13 @@ export default function AppDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   {c.company && (
-                    <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-0.5">
                       <Building2 className="h-3 w-3 shrink-0" />
                       <span className="truncate">{c.job_title ? `${c.job_title} at ${c.company}` : c.company}</span>
                     </p>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-2">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400 mt-2">
                   {c.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{c.email}</span>}
                   {c.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</span>}
                   {c.meeting_location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{c.meeting_location}</span>}
@@ -352,7 +352,7 @@ export default function AppDashboard() {
                     ))}
                   </div>
                 )}
-                {c.notes && <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed mt-2">{c.notes}</p>}
+                {c.notes && <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed mt-2">{c.notes}</p>}
                 <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}>
                     <Trash2 className="h-3.5 w-3.5" />

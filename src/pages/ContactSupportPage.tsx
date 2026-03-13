@@ -60,8 +60,19 @@ export default function ContactSupportPage() {
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-gray-50 p-4 sm:p-6 lg:p-8 relative">
-      <div className="max-w-md mx-auto mt-12 bg-white border rounded-xl shadow-sm p-6">
+    <div className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8 relative">
+      <div className="max-w-md mx-auto mt-12 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl shadow-sm p-6 space-y-6">
+        
+        {/* Back Button */}
+        <div className="flex items-center">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors text-sm font-medium"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
+        </div>
         
         {/* Custom Toast Notification */}
         <div 
@@ -85,44 +96,44 @@ export default function ContactSupportPage() {
 
         {/* Header Section */}
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Get Help</h1>
-          <p className="text-sm text-gray-500 mt-1 mb-6">Need help with Connectly? Send us a message and our support team will respond soon.</p>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Get Help</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-6">Need help with Connectly? Send us a message and our support team will respond soon.</p>
         </div>
 
         {/* Form Section */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
             <input
               id="name"
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
-              className="w-full h-10 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow"
+              className="w-full h-10 px-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-slate-700 dark:text-gray-100 focus:outline-none transition-shadow"
             />
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
             <input
               id="email"
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
-              className="w-full h-10 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow"
+              className="w-full h-10 px-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-slate-700 dark:text-gray-100 focus:outline-none transition-shadow"
             />
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
+            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Subject</label>
             <select
               id="subject"
               value={form.subject}
               onChange={(e) => setForm({ ...form, subject: e.target.value })}
               required
-              className="w-full h-10 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white transition-shadow"
+              className="w-full h-10 px-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-slate-700 dark:text-gray-100 transition-shadow"
             >
               <option value="" disabled>Choose a support topic</option>
               <option value="General Question">General Question</option>
@@ -133,14 +144,14 @@ export default function ContactSupportPage() {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700">Message</label>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
             <textarea
               id="message"
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
               placeholder="Describe your issue or question here..."
               required
-              className="w-full min-h-[120px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow resize-y"
+              className="w-full min-h-[120px] px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-slate-700 dark:text-gray-100 focus:outline-none transition-shadow resize-y"
             />
           </div>
 
@@ -161,7 +172,7 @@ export default function ContactSupportPage() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-3 text-center sm:text-left">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 text-center sm:text-left">
               Our support team usually responds within 24 hours.
             </p>
           </div>

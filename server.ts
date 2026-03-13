@@ -6,8 +6,9 @@ import cors from 'cors';
 
 // Dynamic import ensures dotenv has already loaded env vars
 // before nodemailer reads process.env.EMAIL_USER / EMAIL_PASS
-const { default: reportIssueRouter } = await import('./api/report-issue.js');
-const { default: sendOtpRouter } = await import('./api/send-otp.js');
+const { default: reportIssueRouter } = await import('./api/report-issue.ts');
+const { default: sendOtpRouter } = await import('./api/send-otp.ts');
+const { default: passwordUpdateRouter } = await import('./api/password-update.ts');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,6 +20,7 @@ app.use(express.json());
 // Routes
 app.use('/api', reportIssueRouter);
 app.use('/api', sendOtpRouter);
+app.use('/api/password-update', passwordUpdateRouter);
 
 // Start server
 app.listen(PORT, () => {

@@ -16,7 +16,6 @@ const mainItems = [
   { title: "Video Meetings", url: "/dashboard/video-meetings", icon: Video },
   { title: "Reminders", url: "/dashboard/reminders", icon: Bell },
   { title: "Network Map", url: "/dashboard/network", icon: Network },
-  { title: "Account Security", url: "/dashboard/settings", icon: ShieldCheck },
 ];
 
 const widgetItems = [
@@ -32,7 +31,7 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border/50">
+    <Sidebar collapsible="icon" className="border-r border-border/50 dark:bg-slate-900 dark:border-slate-800">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2 group cursor-pointer">
           <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
@@ -57,8 +56,8 @@ export function AppSidebar() {
                         to={item.url}
                         end
                         className={cn(
-                          "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800",
-                          active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium"
+                          "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800 dark:hover:bg-slate-800",
+                          active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium dark:text-gray-400"
                         )}
                         activeClassName="bg-indigo-600 text-white"
                       >
@@ -78,8 +77,8 @@ export function AppSidebar() {
                         to={item.url}
                         end
                         className={cn(
-                          "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800",
-                          active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium"
+                          "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800 dark:hover:bg-slate-800",
+                          active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium dark:text-gray-400"
                         )}
                         activeClassName="bg-indigo-600 text-white"
                       >

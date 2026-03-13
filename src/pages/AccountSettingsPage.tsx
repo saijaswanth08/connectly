@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Lock, Eye, EyeOff, KeyRound } from "lucide-react";
+import { ShieldCheck, Lock, Eye, EyeOff, KeyRound, Mail, ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
 const passwordSchema = z
@@ -13,6 +13,8 @@ const passwordSchema = z
   .min(8, "At least 8 characters")
   .regex(/[a-zA-Z]/, "Must contain a letter")
   .regex(/[0-9]/, "Must contain a number");
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
 export default function AccountSettingsPage() {
   const { user } = useAuth();
@@ -27,6 +29,8 @@ export default function AccountSettingsPage() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   const userEmail = user?.email ?? "";
 
@@ -58,36 +62,31 @@ export default function AccountSettingsPage() {
 
     setLoading(true);
     try {
-      // 2. Verify current password by re-authenticating
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: userEmail,
-        password: currentPw,
+      // 2. Call backend to request password update (verifies current PW and sends email)
+      const res = await fetch("http://localhost:3001/api/password-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          currentPassword: currentPw,
+          newPassword: newPw,
+        }),
       });
 
-      if (signInError) {
-        toast({ title: "Incorrect current password", variant: "destructive" });
-        return;
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Failed to request password update.");
       }
 
-      // 3. Current password is correct — update to new password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPw,
-      });
-
-      if (updateError) throw updateError;
-
-      // 4. Success — clear form
+      // 3. Success — show check email message
+      setSubmitted(true);
       toast({
-        title: "Password updated successfully",
-        description: "Your password has been changed.",
+        title: "Check your email to confirm the password change.",
       });
-      setCurrentPw("");
-      setNewPw("");
-      setConfirmPw("");
-      setPwErrors([]);
     } catch (err: any) {
       toast({
-        title: "Error updating password",
+        title: "Error requesting update",
         description: err.message ?? "Something went wrong. Please try again.",
         variant: "destructive",
       });
@@ -96,10 +95,47 @@ export default function AccountSettingsPage() {
     }
   };
 
+  if (submitted) {
+    return (
+      <div className="min-h-full flex items-start justify-center px-4 py-12">
+        <div className="w-full max-w-md space-y-6 text-center">
+          <div className="flex justify-center mb-6">
+            <div className="h-20 w-20 rounded-full bg-indigo-500/10 flex items-center justify-center">
+              <Mail className="h-10 w-10 text-indigo-500" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Check your email</h1>
+          <p className="text-muted-foreground leading-relaxed">
+            We've sent a verification link to <strong className="text-foreground">{userEmail}</strong>. 
+            Click the link in the email to securely update your password.
+          </p>
+          <div className="pt-4">
+            <Button variant="outline" onClick={() => setSubmitted(false)}>
+              Back to Settings
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-full flex items-start justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-6">
+
+        {/* Back button */}
+        <div className="flex justify-start">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
+            onClick={() => navigate("/dashboard")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
 
         {/* Page header */}
         <div className="text-center space-y-1">
@@ -217,7 +253,7 @@ export default function AccountSettingsPage() {
 
             {/* Password requirements hint */}
             <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 leading-relaxed">
-              Password must be at least <strong>8 characters</strong> and include a letter and a number.
+              Updating your password will require email verification.
             </p>
 
             {/* Submit */}
@@ -227,7 +263,7 @@ export default function AccountSettingsPage() {
               className="w-full gap-2 h-10 font-medium"
             >
               <ShieldCheck className="h-4 w-4" />
-              {loading ? "Updating…" : "Update Password"}
+              {loading ? "Sending link…" : "Update Password"}
             </Button>
 
           </form>

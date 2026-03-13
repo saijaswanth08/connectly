@@ -35,6 +35,7 @@ import FollowUpsPage from "./pages/FollowUpsPage";
 import RecentInteractionsPage from "./pages/RecentInteractionsPage";
 import NetworkingInsightsPage from "./pages/NetworkingInsightsPage";
 import MessagesPage from "./pages/MessagesPage";
+import VerifyPasswordUpdatePage from "./pages/VerifyPasswordUpdatePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -94,6 +95,7 @@ const App = () => (
                 <Route path="/report-issue" element={<ReportIssuePage />} />
                 <Route path="/support" element={<ContactSupportPage />} />
               </Route>
+              <Route path="/verify-password-update" element={<VerifyPasswordUpdatePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
