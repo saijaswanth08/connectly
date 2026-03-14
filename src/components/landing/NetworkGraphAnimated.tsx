@@ -69,23 +69,28 @@ export default function NetworkGraphAnimated() {
         </defs>
 
         {/* Connection lines with pulse animation */}
-        {connections.map(([a, b], i) => (
-          <motion.line
-            key={`conn-${i}`}
-            x1={`${nodes[a].x}`}
-            y1={`${nodes[a].y}`}
-            x2={`${nodes[b].x}`}
-            y2={`${nodes[b].y}`}
-            stroke="url(#lineGrad)"
-            strokeWidth="0.4"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: [0.2, 0.5, 0.2] }}
-            transition={{
-              pathLength: { delay: 0.5 + i * 0.1, duration: 1.5, ease: "easeOut" },
-              opacity: { delay: 2, duration: 3 + (i % 3), repeat: Infinity, ease: "easeInOut" },
-            }}
-          />
-        ))}
+        {connections.map(([a, b], i) => {
+          const nodeA = nodes[a];
+          const nodeB = nodes[b];
+          if (!nodeA || !nodeB) return null;
+          return (
+            <motion.line
+              key={`conn-${i}`}
+              x1={`${nodeA.x ?? 0}`}
+              y1={`${nodeA.y ?? 0}`}
+              x2={`${nodeB.x ?? 0}`}
+              y2={`${nodeB.y ?? 0}`}
+              stroke="url(#lineGrad)"
+              strokeWidth="0.4"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: [0.2, 0.5, 0.2] }}
+              transition={{
+                pathLength: { delay: 0.5 + i * 0.1, duration: 1.5, ease: "easeOut" },
+                opacity: { delay: 2, duration: 3 + (i % 3), repeat: Infinity, ease: "easeInOut" },
+              }}
+            />
+          );
+        })}
 
         {/* Nodes */}
         {nodes.map((node, i) => (
@@ -97,25 +102,25 @@ export default function NetworkGraphAnimated() {
           >
             {/* Glow circle */}
             <motion.circle
-              cx={node.x}
-              cy={node.y}
-              r={node.size * 0.8}
+              cx={node.x ?? 0}
+              cy={node.y ?? 0}
+              r={(node.size ?? 6) * 0.8}
               fill="url(#nodeGlow)"
               animate={{
-                r: [node.size * 0.7, node.size * 1.0, node.size * 0.7],
+                r: [(node.size ?? 6) * 0.7, (node.size ?? 6) * 1.0, (node.size ?? 6) * 0.7],
                 opacity: [0.3, 0.6, 0.3],
               }}
               transition={{ duration: 3 + i * 0.3, repeat: Infinity, ease: "easeInOut" }}
             />
             {/* Core dot */}
             <motion.circle
-              cx={node.x}
-              cy={node.y}
-              r={node.size * 0.25}
+              cx={node.x ?? 0}
+              cy={node.y ?? 0}
+              r={(node.size ?? 6) * 0.25}
               fill="hsl(var(--soft-blue))"
               className="text-primary"
               animate={{
-                r: [node.size * 0.22, node.size * 0.28, node.size * 0.22],
+                r: [(node.size ?? 6) * 0.22, (node.size ?? 6) * 0.28, (node.size ?? 6) * 0.22],
               }}
               transition={{ duration: 2 + i * 0.2, repeat: Infinity, ease: "easeInOut" }}
             />
@@ -125,7 +130,7 @@ export default function NetworkGraphAnimated() {
                 animate={{ y: [0, -0.5, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: node.delay }}
               >
-                <PersonIcon x={node.x} y={node.y - node.size * 0.6} size={node.size} />
+                <PersonIcon x={node.x ?? 0} y={(node.y ?? 0) - (node.size ?? 6) * 0.6} size={node.size ?? 6} />
               </motion.g>
             )}
           </motion.g>

@@ -66,6 +66,7 @@ export default function NetworkMapPage() {
   const animRef = useRef<number>(0);
   const nodesRef = useRef<Node[]>([]);
   const edgesRef = useRef<Edge[]>([]);
+  const energyRef = useRef<number>(100);
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -123,6 +124,8 @@ export default function NetworkMapPage() {
       target: conn.contact_id_b,
       type: conn.relationship_type,
     }));
+    
+    energyRef.current = 100; // Wake up simulation on change
   }, [filteredContacts, connections]);
 
   // Search highlight
@@ -157,50 +160,58 @@ export default function NetworkMapPage() {
       const h = canvas.height / window.devicePixelRatio;
 
       // Force simulation
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[j].x - nodes[i].x;
-          const dy = nodes[j].y - nodes[i].y;
+      let currentEnergy = 0;
+      if (energyRef.current > 0.01) {
+        for (let i = 0; i < nodes.length; i++) {
+          const nodeI = nodes[i];
+          for (let j = i + 1; j < nodes.length; j++) {
+            const nodeJ = nodes[j];
+            const dx = nodeJ.x - nodeI.x;
+            const dy = nodeJ.y - nodeI.y;
+            const distSq = dx * dx + dy * dy || 1;
+            const dist = Math.sqrt(distSq);
+            const repulsion = 3000 / distSq;
+            const fx = (dx / dist) * repulsion;
+            const fy = (dy / dist) * repulsion;
+            nodeI.vx -= fx;
+            nodeI.vy -= fy;
+            nodeJ.vx += fx;
+            nodeJ.vy += fy;
+          }
+        }
+
+        // Edge attraction
+        for (const edge of edges) {
+          const a = nodes.find((n) => n.id === edge.source);
+          const b = nodes.find((n) => n.id === edge.target);
+          if (!a || !b) continue;
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const repulsion = 3000 / (dist * dist);
-          const fx = (dx / dist) * repulsion;
-          const fy = (dy / dist) * repulsion;
-          nodes[i].vx -= fx;
-          nodes[i].vy -= fy;
-          nodes[j].vx += fx;
-          nodes[j].vy += fy;
+          const attraction = (dist - 150) * 0.005;
+          const fx = (dx / dist) * attraction;
+          const fy = (dy / dist) * attraction;
+          a.vx += fx;
+          a.vy += fy;
+          b.vx -= fx;
+          b.vy -= fy;
         }
-      }
 
-      // Edge attraction
-      for (const edge of edges) {
-        const a = nodes.find((n) => n.id === edge.source);
-        const b = nodes.find((n) => n.id === edge.target);
-        if (!a || !b) continue;
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const attraction = (dist - 150) * 0.005;
-        const fx = (dx / dist) * attraction;
-        const fy = (dy / dist) * attraction;
-        a.vx += fx;
-        a.vy += fy;
-        b.vx -= fx;
-        b.vy -= fy;
-      }
-
-      // Center gravity
-      for (const node of nodes) {
-        node.vx += (w / 2 - node.x) * 0.001;
-        node.vy += (h / 2 - node.y) * 0.001;
-        node.vx *= 0.9;
-        node.vy *= 0.9;
-        if (node.id !== dragging) {
-          node.x += node.vx;
-          node.y += node.vy;
+        // Center gravity and move
+        for (const node of nodes) {
+          node.vx += (w / 2 - node.x) * 0.001;
+          node.vy += (h / 2 - node.y) * 0.001;
+          node.vx *= 0.9;
+          node.vy *= 0.9;
+          if (node.id !== dragging) {
+            node.x += node.vx;
+            node.y += node.vy;
+            currentEnergy += node.vx * node.vx + node.vy * node.vy;
+          }
+          node.x = Math.max(30, Math.min(w - 30, node.x));
+          node.y = Math.max(30, Math.min(h - 30, node.y));
         }
-        node.x = Math.max(30, Math.min(w - 30, node.x));
-        node.y = Math.max(30, Math.min(h - 30, node.y));
+        energyRef.current = currentEnergy / nodes.length;
       }
 
       // Render
@@ -215,34 +226,36 @@ export default function NetworkMapPage() {
         const b = nodes.find((n) => n.id === edge.target);
         if (!a || !b) continue;
         ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
+        ctx.moveTo(a.x ?? 0, a.y ?? 0);
+        ctx.lineTo(b.x ?? 0, b.y ?? 0);
         ctx.strokeStyle = "rgba(148,163,184,0.35)";
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
         // Label
-        const mx = (a.x + b.x) / 2;
-        const my = (a.y + b.y) / 2;
+        const mx = ((a.x ?? 0) + (b.x ?? 0)) / 2;
+        const my = ((a.y ?? 0) + (b.y ?? 0)) / 2;
         ctx.font = "9px sans-serif";
         ctx.fillStyle = "rgba(148,163,184,0.7)";
         ctx.textAlign = "center";
-        ctx.fillText(edge.type, mx, my - 4);
+        ctx.fillText(edge.type || "", mx, my - 4);
       }
 
       // Nodes
       for (const node of nodes) {
         const isHighlighted = highlightedId === node.id;
         const radius = node.importance === "vip" ? 28 : 22;
+        const nx = node.x ?? 0;
+        const ny = node.y ?? 0;
 
         // Glow for highlighted
         if (isHighlighted) {
           ctx.beginPath();
-          ctx.arc(node.x, node.y, radius + 8, 0, Math.PI * 2);
+          ctx.arc(nx, ny, radius + 8, 0, Math.PI * 2);
           ctx.fillStyle = "rgba(59,130,246,0.2)";
           ctx.fill();
           ctx.beginPath();
-          ctx.arc(node.x, node.y, radius + 4, 0, Math.PI * 2);
+          ctx.arc(nx, ny, radius + 4, 0, Math.PI * 2);
           ctx.strokeStyle = "#3b82f6";
           ctx.lineWidth = 2.5;
           ctx.stroke();
@@ -250,8 +263,8 @@ export default function NetworkMapPage() {
 
         // Circle
         ctx.beginPath();
-        ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = node.color;
+        ctx.arc(nx, ny, radius, 0, Math.PI * 2);
+        ctx.fillStyle = node.color || DEFAULT_COLOR;
         ctx.fill();
         ctx.strokeStyle = "rgba(255,255,255,0.8)";
         ctx.lineWidth = 2;
@@ -262,12 +275,12 @@ export default function NetworkMapPage() {
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(node.initials, node.x, node.y);
+        ctx.fillText(node.initials || "", nx, ny);
 
         // Name below
         ctx.font = "11px sans-serif";
         ctx.fillStyle = "rgba(71,85,105,0.9)";
-        ctx.fillText(node.name, node.x, node.y + radius + 14);
+        ctx.fillText(node.name || "", nx, ny + radius + 14);
       }
 
       ctx.restore();
@@ -313,6 +326,7 @@ export default function NetworkMapPage() {
     } else if (panning) {
       setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
     }
+    if (dragging || panning) energyRef.current = 100; // Wake up
   }, [dragging, panning, panStart, getCanvasPos]);
 
   const handleMouseUp = useCallback(() => {

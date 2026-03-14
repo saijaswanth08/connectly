@@ -9,6 +9,7 @@ import HeroFloatingElements from "@/components/landing/HeroFloatingElements";
 import NetworkGraphAnimated from "@/components/landing/NetworkGraphAnimated";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 import { useState } from "react";
+import { ProductDemo } from "@/components/ProductDemo";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -32,6 +33,7 @@ const navLinks: { label: string; href: string }[] = [];
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
 
   return (
     <div className="min-h-screen bg-card font-body">
@@ -116,8 +118,14 @@ export default function LandingPage() {
                   Get Started <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full px-8 text-base" asChild>
-                <Link to="/features">Explore Features</Link>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="rounded-full px-8 text-base group/demo relative overflow-hidden" 
+                onClick={() => setShowDemo(true)}
+              >
+                <span className="relative z-10">Demo</span>
+                <div className="absolute inset-0 bg-primary/5 translate-y-full group-hover/demo:translate-y-0 transition-transform duration-300" />
               </Button>
             </motion.div>
           </motion.div>
@@ -344,6 +352,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {showDemo && <ProductDemo onClose={() => setShowDemo(false)} />}
     </div>
   );
 }

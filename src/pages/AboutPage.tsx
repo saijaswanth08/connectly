@@ -58,7 +58,6 @@ export default function AboutPage() {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="flex justify-center"
           >
-            <img src={illustrationNetworking} alt="Networking illustration" className="w-full max-w-sm" />
           </motion.div>
         </div>
       </section>

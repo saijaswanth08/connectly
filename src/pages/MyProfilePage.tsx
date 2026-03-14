@@ -12,6 +12,8 @@ import {
   ImagePlus, Trash2, Linkedin, Instagram, QrCode, Download,
 } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
+import { QRProfileCard } from "@/components/QRProfileCard";
+import { cn } from "@/lib/utils";
 
 export default function MyProfilePage() {
   const { user } = useAuth();
@@ -78,16 +80,160 @@ export default function MyProfilePage() {
     setShowQrModal(true);
   };
 
-  const handleDownloadQr = (ref: React.RefObject<HTMLDivElement>) => {
-    const canvas = ref.current?.querySelector("canvas");
-    if (!canvas) {
-      toast({ title: "Generate a QR code first", variant: "destructive" });
+  const handleDownloadQr = async (ref: React.RefObject<HTMLDivElement>) => {
+    const qrCanvas = ref.current?.querySelector("canvas");
+    if (!qrCanvas) {
+      toast({ title: "Error", description: "QR Code not found", variant: "destructive" });
       return;
     }
-    const link = document.createElement("a");
-    link.download = `${fullName.replace(/\s+/g, "_")}_QRCode.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+
+    try {
+      toast({ title: "Generating QR Card...", description: "Please wait while we prepare your high-quality card." });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 900;
+      canvas.height = 1100;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      // 1. Dark Gradient Background
+      const bgGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      bgGrad.addColorStop(0, "#1a1c2c");
+      bgGrad.addColorStop(0.5, "#4a192c");
+      bgGrad.addColorStop(1, "#0a0a0c");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Decorative blur spheres (emulated via gradients)
+      const drawSphere = (x: number, y: number, r: number, color: string) => {
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, color);
+        grad.addColorStop(1, "transparent");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      };
+      drawSphere(200, 200, 400, "rgba(147, 51, 234, 0.2)");
+      drawSphere(800, 900, 400, "rgba(37, 99, 235, 0.2)");
+
+      // 2. Glassmorphism Card Effect
+      const cardX = 100;
+      const cardY = 100;
+      const cardW = 700;
+      const cardH = 900;
+      const radius = 50;
+
+      // Card Shadow
+      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      ctx.shadowBlur = 64;
+      ctx.shadowOffsetY = 32;
+      
+      // Card Background (Semi-transparent)
+      ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, radius);
+      ctx.fill();
+      
+      // Card Border
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 3. Branding (Top)
+      const drawLogo = (lx: number, ly: number, size: number) => {
+          const s = (v: number) => (v * size) / 40;
+          const grad = ctx.createLinearGradient(lx, ly, lx + size, ly + size);
+          grad.addColorStop(0, "#5B7CFA");
+          grad.addColorStop(1, "#8B5CF6");
+          ctx.fillStyle = grad;
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = s(3);
+          ctx.lineCap = "round";
+
+          // Nodes
+          const nodes = [[8, 10, 5], [32, 10, 5], [20, 32, 5.5]];
+          nodes.forEach(([nx, ny, nr]) => {
+              ctx.beginPath();
+              ctx.arc(lx + s(nx), ly + s(ny), s(nr), 0, Math.PI * 2);
+              ctx.fill();
+          });
+          // Connections
+          ctx.beginPath();
+          ctx.moveTo(lx + s(8), ly + s(14));
+          ctx.lineTo(lx + s(20), ly + s(28));
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(lx + s(32), ly + s(14));
+          ctx.lineTo(lx + s(20), ly + s(28));
+          ctx.stroke();
+      };
+      drawLogo(canvas.width / 2 - 35, 140, 70);
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "white";
+      ctx.font = "bold 36px Inter, system-ui, sans-serif";
+      ctx.fillText("Connectly", canvas.width / 2, 250);
+      
+      // 4. Name Section
+      ctx.fillStyle = "white";
+      ctx.font = "bold 44px Inter";
+      ctx.fillText(fullName, canvas.width / 2, 380);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.font = "500 22px Inter";
+      ctx.fillText("Connect with me on Connectly", canvas.width / 2, 425);
+
+      // 5. QR Code Section
+      const qrSize = 320;
+      const qrPadding = 30;
+      const qrX = (canvas.width - qrSize) / 2;
+      const qrY = 540;
+
+      // QR Container
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.roundRect(qrX - qrPadding, qrY - qrPadding, qrSize + qrPadding * 2, qrSize + qrPadding * 2, 32);
+      ctx.fill();
+
+      // Border for QR Container
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw the QR Code canvas content
+      ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+
+      // 6. Footer
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.font = "500 24px Inter";
+      ctx.fillText("Scan to connect", canvas.width / 2, 970);
+
+      // Export
+      const username = (profile as any)?.username || fullName.replace(/\s+/g, "_");
+      const fileName = `${username}_ConnectlyQR.png`;
+      
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast({ title: "Export Failed", description: "Could not generate image blob.", variant: "destructive" });
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast({ title: "Success!", description: "Your QR card has been downloaded." });
+      }, "image/png");
+    } catch (err) {
+      console.error("QR Export failed:", err);
+      toast({ title: "Export Failed", description: "There was an error generating your image.", variant: "destructive" });
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -161,9 +307,7 @@ export default function MyProfilePage() {
 
       {/* Page Title */}
       <div className="space-y-0.5">
-        <p className="text-sm text-muted-foreground tracking-wide uppercase font-medium">Account</p>
         <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
-        <p className="text-sm text-muted-foreground">Manage your information and share your profile via QR code</p>
       </div>
 
       {/* Profile Header Card */}
@@ -400,10 +544,10 @@ export default function MyProfilePage() {
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Button
                 onClick={() => handleDownloadQr(modalQrRef)}
-                className="flex-1 gap-2"
+                className="flex-1 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white border-0"
               >
                 <Download className="h-4 w-4" />
-                Download QR
+                Download PNG
               </Button>
               <Button
                 variant="outline"
@@ -415,6 +559,15 @@ export default function MyProfilePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Hidden QR Card Template for Export */}
+      {qrValue && (
+        <QRProfileCard
+          id="qr-profile-card-export"
+          qrValue={qrValue}
+          fullName={fullName}
+        />
       )}
 
     </div>

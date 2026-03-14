@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useContacts, useCreateContact, useDeleteContact } from "@/hooks/useContacts";
 import { useMeetings } from "@/hooks/useContacts";
 import { useReminders } from "@/hooks/useReminders";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,10 +46,10 @@ export default function AppDashboard() {
     linkedin_url: "", meeting_location: "", notes: "", importance: "medium", tags: "",
   });
 
-  const allCompanies = Array.from(new Set(contacts.map(c => c.company).filter(Boolean))).sort();
-  const allTags = Array.from(new Set(contacts.flatMap(c => c.tags || []))).sort();
+  const allCompanies = useMemo(() => Array.from(new Set(contacts.map(c => c.company).filter(Boolean))).sort(), [contacts]);
+  const allTags = useMemo(() => Array.from(new Set(contacts.flatMap(c => c.tags || []))).sort(), [contacts]);
 
-  const filtered = contacts.filter((c) => {
+  const filtered = useMemo(() => contacts.filter((c) => {
     const matchesSearch = !search || [c.name, c.company, c.job_title, c.email, c.notes, ...(c.tags || [])]
       .some((f) => f?.toLowerCase().includes(search.toLowerCase()));
     
@@ -57,7 +58,7 @@ export default function AppDashboard() {
     const matchesVip = !vipOnly || c.importance === "vip";
     
     return matchesSearch && matchesCompany && matchesTags && matchesVip;
-  });
+  }), [contacts, search, filterCompany, selectedTags, vipOnly]);
 
   const handleAdd = async () => {
     if (!form.name.trim()) {
@@ -90,8 +91,8 @@ export default function AppDashboard() {
     }
   };
 
-  const vipCount = contacts.filter((c) => c.importance === "vip").length;
-  const tagCount = new Set(contacts.flatMap((c) => c.tags || [])).size;
+  const vipCount = useMemo(() => contacts.filter((c) => c.importance === "vip").length, [contacts]);
+  const tagCount = useMemo(() => new Set(contacts.flatMap((c) => c.tags || [])).size, [contacts]);
 
   return (
     <div className="p-6 space-y-6 max-w-7xl w-full mx-auto px-6">

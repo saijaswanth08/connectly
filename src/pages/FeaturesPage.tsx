@@ -83,7 +83,6 @@ export default function FeaturesPage() {
               transition={{ duration: 0.5 }}
               className="hidden lg:flex sticky top-24 justify-center"
             >
-              <img src={illustrationDashboard} alt="Dashboard illustration" className="w-full max-w-xs rounded-xl" />
             </motion.div>
           </div>
         </div>

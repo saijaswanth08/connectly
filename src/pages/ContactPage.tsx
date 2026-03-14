@@ -65,7 +65,6 @@ export default function ContactPage() {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="hidden md:flex justify-center"
           >
-            <img src={illustrationSupport} alt="Customer support illustration" className="w-full max-w-xs" />
           </motion.div>
         </div>
       </section>

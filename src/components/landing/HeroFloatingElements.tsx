@@ -4,11 +4,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const floatingCards = [
   {
-    name: "Revanth",
+    name: "Oliver",
     role: "Investor",
     tag: "VIP",
     tagColor: "bg-amber-100 text-amber-700",
-    initials: "RK",
+    initials: "O",
     avatarBg: "bg-primary/10 text-primary",
     className: "top-4 right-8 md:top-8 md:right-12",
     delay: 0,

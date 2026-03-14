@@ -45,13 +45,17 @@ export function NetworkOverviewWidget() {
               const angle1 = (2 * Math.PI * 0) / preview.length;
               const angle2 = (2 * Math.PI * (i + 1)) / preview.length;
               const cx = 100, cy = 60, r = 40;
+              const x1 = cx + Math.cos(angle1) * r;
+              const y1 = cy + Math.sin(angle1) * r;
+              const x2 = cx + Math.cos(angle2) * r;
+              const y2 = cy + Math.sin(angle2) * r;
               return (
                 <line
                   key={i}
-                  x1={cx + Math.cos(angle1) * r}
-                  y1={cy + Math.sin(angle1) * r}
-                  x2={cx + Math.cos(angle2) * r}
-                  y2={cy + Math.sin(angle2) * r}
+                  x1={x1 ?? 0}
+                  y1={y1 ?? 0}
+                  x2={x2 ?? 0}
+                  y2={y2 ?? 0}
                   stroke="hsl(var(--border))"
                   strokeWidth="1"
                   opacity="0.5"
@@ -63,11 +67,11 @@ export function NetworkOverviewWidget() {
               const cx = 100 + Math.cos(angle) * 40;
               const cy = 60 + Math.sin(angle) * 40;
               const color = getColor(c.tags || []);
-              const initials = c.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+              const initials = (c.name || "").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
               return (
                 <g key={c.id}>
-                  <circle cx={cx} cy={cy} r="16" fill={color} opacity="0.9" />
-                  <text x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="8" fontWeight="bold">{initials}</text>
+                  <circle cx={cx ?? 0} cy={cy ?? 60} r="16" fill={color} opacity="0.9" />
+                  <text x={cx ?? 0} y={(cy ?? 60) + 1} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="8" fontWeight="bold">{initials}</text>
                 </g>
               );
             })}
