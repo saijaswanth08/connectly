@@ -1,14 +1,45 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
+import { supabase } from "@/integrations/supabase/client";
+
+// Handle Email Verification & Session Redirects
+function AuthCallbackHandler() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // 1. On app load, check if a Supabase session exists
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && ["/", "/login", "/signup"].includes(location.pathname)) {
+        // 2. Redirect the user to "/" (home/dashboard) if session exists
+        navigate("/");
+      }
+    });
+
+    // 5. Works after email verification link is clicked.
+    // Supabase will automatically process the #access_token in the URL and trigger SIGNED_IN
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        if (["/", "/login", "/signup"].includes(location.pathname)) {
+          navigate("/");
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate, location.pathname]);
+
+  return null;
+}
 
 // Lazy load pages
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
@@ -74,6 +105,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <AuthCallbackHandler />
           <AuthProvider>
             <ScrollToTop />
             <Suspense fallback={<PageLoader />}>
