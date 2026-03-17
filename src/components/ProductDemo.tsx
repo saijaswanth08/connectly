@@ -157,7 +157,7 @@ export function ProductDemo({ onClose }: { onClose: () => void }) {
       }, 8000);
     }
     return () => clearTimeout(timer);
-  }, [currentScene, isAutoPlaying]);
+  }, [currentScene, isAutoPlaying, scenes.length]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-2xl p-4 sm:p-10 overflow-hidden font-body">

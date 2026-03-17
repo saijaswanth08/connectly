@@ -75,8 +75,9 @@ export default function ProfileSettingsPage() {
       setOriginalForm(form);
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile updated!" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Error updating profile";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -96,8 +97,9 @@ export default function ProfileSettingsPage() {
       await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Photo updated!" });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error uploading photo";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -109,8 +111,9 @@ export default function ProfileSettingsPage() {
       await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Photo removed" });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error removing photo";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     }
   };
 

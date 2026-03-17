@@ -70,7 +70,7 @@ export default function ReportIssuePage() {
       showToast("Bug report submitted successfully. Thank you for helping improve Connectly.", "success");
       setForm({ title: "", category: "", priority: "Medium", description: "", steps: "" });
       setScreenshot(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast("Unable to submit the report. Please try again later.", "error");
     } finally {
       setLoading(false);

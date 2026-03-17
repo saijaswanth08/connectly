@@ -133,7 +133,7 @@ export function ContactDetailModal({ contact, open, onOpenChange, onEdit, onDele
   );
 }
 
-function InfoRow({ icon: Icon, label, value, href, external }: { icon: any; label: string; value: string; href?: string; external?: boolean }) {
+function InfoRow({ icon: Icon, label, value, href, external }: { icon: React.ElementType; label: string; value: string; href?: string; external?: boolean }) {
   const content = (
     <div className="flex items-center gap-3 rounded-lg bg-muted/40 border border-border/40 px-3 py-2.5">
       <Icon className="h-4 w-4 text-primary shrink-0" />

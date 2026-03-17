@@ -77,8 +77,9 @@ export default function AppDashboard() {
       setAddOpen(false);
       setForm({ name: "", company: "", job_title: "", email: "", phone: "", linkedin_url: "", meeting_location: "", notes: "", importance: "medium", tags: "" });
       toast({ title: "Contact added!" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     }
   };
 
@@ -86,8 +87,9 @@ export default function AppDashboard() {
     try {
       await deleteContactMut.mutateAsync(id);
       toast({ title: "Contact deleted" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     }
   };
 

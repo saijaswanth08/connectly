@@ -8,7 +8,7 @@ const router = express.Router();
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req: any, file: any, cb: any) => {
+  fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg') {
       cb(null, true);
     } else {
@@ -34,7 +34,7 @@ const transporter = EMAIL_USER && EMAIL_PASS
   : null;
 
 if (transporter) {
-  transporter.verify((error: any) => {
+  transporter.verify((error: Error | null) => {
     if (error) {
       console.error("SMTP Authentication Error:", error);
     } else {
@@ -76,7 +76,7 @@ ${steps || "N/A"}
     `.trim();
 
     // Prepare email message options
-    const mailOptions: any = {
+    const mailOptions: nodemailer.SendMailOptions = {
       from: EMAIL_USER,
       to: EMAIL_USER, // sent to the support inbox
       subject: `New Bug Report – Connectly`,

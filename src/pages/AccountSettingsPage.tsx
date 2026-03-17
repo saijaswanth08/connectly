@@ -84,10 +84,11 @@ export default function AccountSettingsPage() {
       toast({
         title: "Check your email to confirm the password change.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Something went wrong. Please try again.";
       toast({
         title: "Error requesting update",
-        description: err.message ?? "Something went wrong. Please try again.",
+        description: msg,
         variant: "destructive",
       });
     } finally {

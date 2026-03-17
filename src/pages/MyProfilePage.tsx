@@ -45,14 +45,15 @@ export default function MyProfilePage() {
 
   useEffect(() => {
     if (profile && !initialized.current) {
+      const p = profile as Record<string, unknown>;
       setForm({
         name: profile.name || "",
         email: profile.email || user?.email || "",
-        company: (profile as any).company || "",
-        job_title: (profile as any).job_title || "",
-        phone: (profile as any).phone || "",
-        linkedin_url: (profile as any).linkedin_url || "",
-        instagram: (profile as any).instagram || "",
+        company: (p.company as string) || "",
+        job_title: (p.job_title as string) || "",
+        phone: (p.phone as string) || "",
+        linkedin_url: (p.linkedin_url as string) || "",
+        instagram: (p.instagram as string) || "",
       });
       initialized.current = true;
     }
@@ -60,11 +61,11 @@ export default function MyProfilePage() {
 
   const fullName = form.name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
   const initials = fullName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-  const avatarUrl = (profile as any)?.avatar_url || null;
+  const avatarUrl = profile ? (profile as Record<string, unknown>).avatar_url as string : null;
 
   // Build a shareable profile URL for the QR code
   const buildQrUrl = useCallback(() => {
-    const identifier = (profile as any)?.username || user?.id;
+    const identifier = profile ? (profile as Record<string, unknown>).username as string : user?.id;
     if (!identifier) return "";
     const base = `${window.location.protocol}//${window.location.host}`;
     return `${base}/profile/${identifier}`;
@@ -212,7 +213,8 @@ export default function MyProfilePage() {
       ctx.fillText("Scan to connect", canvas.width / 2, 970);
 
       // Export
-      const username = (profile as any)?.username || fullName.replace(/\s+/g, "_");
+      const p = profile as Record<string, unknown>;
+      const username = (p?.username as string) || fullName.replace(/\s+/g, "_");
       const fileName = `${username}_ConnectlyQR.png`;
       
       canvas.toBlob((blob) => {
@@ -248,12 +250,13 @@ export default function MyProfilePage() {
         phone: form.phone,
         linkedin_url: form.linkedin_url,
         instagram: form.instagram,
-      } as any).eq("id", user.id);
+      } as Record<string, unknown>).eq("id", user.id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile updated successfully!" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setSavingProfile(false);
     }
@@ -272,11 +275,12 @@ export default function MyProfilePage() {
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
       const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("id", user.id);
+      await supabase.from("profiles").update({ avatar_url: publicUrl } as Record<string, unknown>).eq("id", user.id);
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile photo updated!" });
-    } catch (err: any) {
-      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      toast({ title: "Upload failed", description: msg, variant: "destructive" });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -286,11 +290,12 @@ export default function MyProfilePage() {
   const handleRemovePhoto = async () => {
     if (!user?.id) return;
     try {
-      await supabase.from("profiles").update({ avatar_url: null } as any).eq("id", user.id);
+      await supabase.from("profiles").update({ avatar_url: null } as Record<string, unknown>).eq("id", user.id);
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile photo removed" });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     }
   };
 

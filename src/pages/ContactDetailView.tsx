@@ -53,8 +53,9 @@ export default function ContactDetailView() {
       });
       setEditing(false);
       toast({ title: "Contact updated!" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     }
   };
 
@@ -63,8 +64,9 @@ export default function ContactDetailView() {
       await deleteContact.mutateAsync(contact.id);
       toast({ title: "Contact deleted" });
       navigate("/dashboard");
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     }
   };
 

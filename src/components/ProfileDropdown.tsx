@@ -114,8 +114,9 @@ export function ProfileDropdown() {
       setUploadDialogOpen(false);
       setSelectedFile(null);
       setPreviewUrl(null);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to upload photo.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to upload photo.";
+      toast.error(msg);
     } finally {
       setUploading(false);
     }
@@ -134,8 +135,9 @@ export function ProfileDropdown() {
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast.success("Profile photo removed.");
       setDeleteDialogOpen(false);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete photo.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete photo.";
+      toast.error(msg);
     }
   };
 

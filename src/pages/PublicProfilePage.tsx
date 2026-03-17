@@ -19,7 +19,7 @@ export default function PublicProfilePage() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["public-profile", username],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("username", username!)
@@ -74,8 +74,9 @@ export default function PublicProfilePage() {
 
       // Redirect to dashboard so the user can see the new contact right away
       navigate("/dashboard");
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "An error occurred";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setSaving(false);
     }

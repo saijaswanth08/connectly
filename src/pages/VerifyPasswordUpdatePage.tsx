@@ -56,9 +56,10 @@ export default function VerifyPasswordUpdatePage() {
           title: "Password updated successfully",
           description: "Password updated successfully. You can now log in with your new password.",
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         setStatus("error");
-        setErrorMessage(err.message || "An unexpected error occurred.");
+        const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+        setErrorMessage(msg);
       }
     };
 

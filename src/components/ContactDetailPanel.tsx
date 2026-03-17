@@ -151,7 +151,7 @@ export function ContactDetailPanel({ contact, open, onOpenChange, onEdit, onDele
   );
 }
 
-function InfoRow({ icon: Icon, label, value, href, external }: { icon: any; label: string; value: string; href?: string; external?: boolean }) {
+function InfoRow({ icon: Icon, label, value, href, external }: { icon: React.ElementType; label: string; value: string; href?: string; external?: boolean }) {
   const content = (
     <div className="flex items-center gap-3 rounded-lg hover:bg-muted/50 px-3 py-2 -mx-3 transition-colors">
       <Icon className="h-4 w-4 text-muted-foreground shrink-0" />

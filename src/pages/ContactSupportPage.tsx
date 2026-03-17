@@ -52,8 +52,9 @@ export default function ContactSupportPage() {
 
       showToast("Your message has been sent. Our support team will contact you soon.", "success");
       setForm({ name: user?.user_metadata?.full_name || "", email: user?.email || "", subject: "", message: "" });
-    } catch (err: any) {
-      showToast(err.message || "Unable to send message. Please try again later.", "error");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unable to send message. Please try again later.";
+      showToast(msg, "error");
     } finally {
       setLoading(false);
     }

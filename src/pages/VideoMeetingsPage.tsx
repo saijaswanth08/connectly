@@ -150,8 +150,9 @@ export default function VideoMeetingsPage() {
       if (data?.error) throw new Error(data.error);
       setAiSummaries((prev) => ({ ...prev, [meeting.id]: data.summary }));
       toast({ title: "AI summary generated!" });
-    } catch (e: any) {
-      toast({ title: "Error generating summary", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast({ title: "Error generating summary", description: msg, variant: "destructive" });
     } finally {
       setGeneratingAi(null);
     }

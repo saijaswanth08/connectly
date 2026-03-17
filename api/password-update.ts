@@ -109,8 +109,9 @@ router.post('/', async (req: Request, res: Response) => {
     console.log('[password-update] ✅ Email sent to:', email);
     res.status(200).json({ success: true, message: 'Verification email sent.' });
 
-  } catch (err: any) {
-    console.error('[password-update] ❌ Request failed:', err.message);
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[password-update] ❌ Request failed:', errorMsg);
     res.status(500).json({ success: false, error: 'Internal server error.' });
   }
 });
