@@ -3,6 +3,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { ContactCard } from "@/components/ContactCard";
 import { useContactsStore } from "@/lib/contacts-store";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { monthlyContactsData, meetingTypesData } from "@/lib/mock-data";
 
@@ -69,7 +70,7 @@ export default function DashboardPage() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display font-semibold">Recent Contacts</h2>
-          <a href="/contacts" className="text-sm text-primary hover:underline">View all →</a>
+          <Link to="/dashboard" className="text-sm text-primary hover:underline">View all →</Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {recentContacts.map((c, i) => (

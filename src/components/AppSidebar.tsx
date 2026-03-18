@@ -1,7 +1,6 @@
 import { Calendar, Users, Bell, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
@@ -52,18 +51,16 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={active}>
-                      <NavLink
+                      <Link
                         to={item.url}
-                        end
                         className={cn(
                           "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800 dark:hover:bg-slate-800",
                           active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium dark:text-gray-400"
                         )}
-                        activeClassName="bg-indigo-600 text-white"
                       >
                         <item.icon className={cn("shrink-0 transition-all duration-200", active ? "h-5 w-5" : "h-5 w-5")} />
                         {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -73,18 +70,16 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={active}>
-                      <NavLink
+                      <Link
                         to={item.url}
-                        end
                         className={cn(
                           "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800 dark:hover:bg-slate-800",
                           active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium dark:text-gray-400"
                         )}
-                        activeClassName="bg-indigo-600 text-white"
                       >
                         <item.icon className={cn("shrink-0 transition-all duration-200", active ? "h-5 w-5" : "h-5 w-5")} />
                         {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
