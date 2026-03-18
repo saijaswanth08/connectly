@@ -9,6 +9,7 @@ import HeroFloatingElements from "@/components/landing/HeroFloatingElements";
 import NetworkGraphAnimated from "@/components/landing/NetworkGraphAnimated";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 import { useState } from "react";
+import Particles from "@/components/Particles";
 import { ProductDemo } from "@/components/ProductDemo";
 
 const fadeUp = {
@@ -100,37 +101,55 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_-10%,hsl(var(--soft-blue)/0.08),transparent)]" />
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2 md:py-32">
-          <motion.div initial="hidden" animate="visible" className="space-y-8">
-            <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem]">
-              Remember Every{" "}
-              <span className="text-gradient">Connection</span>{" "}
-              You Make
-            </motion.h1>
-            <motion.p custom={1} variants={fadeUp} className="max-w-lg text-lg text-muted-foreground leading-relaxed">
-              Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
-            </motion.p>
-            <motion.div custom={2} variants={fadeUp} className="flex flex-wrap gap-3 pt-2">
-              <Button size="lg" className="rounded-full gap-2 px-8 text-base shadow-md hover:shadow-lg transition-shadow" asChild>
-                <Link to="/signup">
-                  Get Started <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="rounded-full px-8 text-base group/demo relative overflow-hidden" 
-                onClick={() => setShowDemo(true)}
-              >
-                <span className="relative z-10">Demo</span>
-                <div className="absolute inset-0 bg-primary/5 translate-y-full group-hover/demo:translate-y-0 transition-transform duration-300" />
-              </Button>
-            </motion.div>
-          </motion.div>
+      <section style={{ position: "relative", minHeight: "100vh", overflow: "hidden", background: "radial-gradient(circle at 30% 30%, #1e1b4b, #020617)" }}>
+        {/* Galaxy particle background */}
+        <div style={{ position: "absolute", inset: 0 }}>
+          <Particles
+            particleColors={["#8b5cf6", "#6366f1", "#a78bfa", "#c4b5fd"]}
+            particleCount={600}
+            particleSpread={40}
+            speed={0.05}
+            particleBaseSize={100}
+            moveParticlesOnHover={true}
+            alphaParticles={true}
+            disableRotation={false}
+            pixelRatio={window.devicePixelRatio}
+          />
+        </div>
 
-          <HeroFloatingElements />
+        {/* Existing hero content — unchanged */}
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_-10%,hsl(var(--soft-blue)/0.08),transparent)]" />
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2 md:py-32">
+            <motion.div initial="hidden" animate="visible" className="space-y-8">
+              <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem]">
+                Remember Every{" "}
+                <span className="text-gradient">Connection</span>{" "}
+                You Make
+              </motion.h1>
+              <motion.p custom={1} variants={fadeUp} className="max-w-lg text-lg text-muted-foreground leading-relaxed">
+                Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
+              </motion.p>
+              <motion.div custom={2} variants={fadeUp} className="flex flex-wrap gap-3 pt-2">
+                <Button size="lg" className="rounded-full gap-2 px-8 text-base shadow-md hover:shadow-lg transition-shadow" asChild>
+                  <Link to="/signup">
+                    Get Started <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full px-8 text-base group/demo relative overflow-hidden"
+                  onClick={() => setShowDemo(true)}
+                >
+                  <span className="relative z-10">Demo</span>
+                  <div className="absolute inset-0 bg-primary/5 translate-y-full group-hover/demo:translate-y-0 transition-transform duration-300" />
+                </Button>
+              </motion.div>
+            </motion.div>
+
+            <HeroFloatingElements />
+          </div>
         </div>
       </section>
 

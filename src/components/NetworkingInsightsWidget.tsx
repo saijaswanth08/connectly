@@ -28,10 +28,19 @@ export function NetworkingInsightsWidget() {
 
   const suggestions = useMemo<Suggestion[]>(() => {
     const now = new Date();
+    
+    // Group events by contact_id for O(1) lookup
+    const eventsByContact = new Map<string, typeof events>();
+    events.forEach(event => {
+      const list = eventsByContact.get(event.contact_id) || [];
+      list.push(event);
+      eventsByContact.set(event.contact_id, list);
+    });
+
     return contacts
       .map((c) => {
-        const contactEvents = events.filter((e) => e.contact_id === c.id);
-        const lastEvent = contactEvents.sort(
+        const contactEvents = eventsByContact.get(c.id) || [];
+        const lastEvent = [...contactEvents].sort(
           (a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime()
         )[0];
         const lastDate = lastEvent ? new Date(lastEvent.event_date) : new Date(c.created_at);

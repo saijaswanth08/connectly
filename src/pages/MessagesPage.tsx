@@ -54,22 +54,28 @@ export default function MessagesPage() {
   useRealtimeConversations();
 
   // Build a map of contact_id -> conversation
-  const convByContact = new Map(conversations.map((c) => [c.contact_id, c]));
+  const convByContact = useMemo(() => 
+    new Map(conversations.map((c) => [c.contact_id, c])),
+    [conversations]
+  );
 
   // Filter contacts by search
-  const filteredContacts = contacts.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
+  const filteredContacts = useMemo(() => 
+    contacts.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())),
+    [contacts, search]
   );
 
   // Sort: contacts with conversations first (by last_message_at), then others
-  const sortedContacts = [...filteredContacts].sort((a, b) => {
-    const convA = convByContact.get(a.id);
-    const convB = convByContact.get(b.id);
-    if (convA && convB) return new Date(convB.last_message_at).getTime() - new Date(convA.last_message_at).getTime();
-    if (convA) return -1;
-    if (convB) return 1;
-    return a.name.localeCompare(b.name);
-  });
+  const sortedContacts = useMemo(() => {
+    return [...filteredContacts].sort((a, b) => {
+      const convA = convByContact.get(a.id);
+      const convB = convByContact.get(b.id);
+      if (convA && convB) return new Date(convB.last_message_at).getTime() - new Date(convA.last_message_at).getTime();
+      if (convA) return -1;
+      if (convB) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [filteredContacts, convByContact]);
 
   const selectedContact = contacts.find((c) => c.id === selectedContactId);
 
@@ -262,7 +268,7 @@ export default function MessagesPage() {
                                 : "bg-muted text-foreground rounded-bl-md"
                             )}
                           >
-                            <p className="text-4xl font-bold leading-tight whitespace-pre-wrap">{msg.content}</p>
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                             <p
                               className={cn(
                                 "text-[10px] mt-1",
