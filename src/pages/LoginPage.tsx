@@ -25,12 +25,12 @@ export default function LoginPage() {
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
-    } else {
-      navigate(redirectTo);
     }
+    // If successful, onAuthStateChange in useAuth will update global auth state,
+    // and PublicRoute will automatically navigate the user to the correct dashboard path.
   };
 
 

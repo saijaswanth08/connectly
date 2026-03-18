@@ -36,13 +36,14 @@ export default function SignupPage() {
         emailRedirectTo: window.location.origin,
       },
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast({ title: "Signup failed", description: error.message, variant: "destructive" });
     } else if (data.session) {
       toast({ title: "Account created!", description: "Welcome to Connectly." });
-      navigate("/");
+      // PublicRoute will automatically intercept and redirect to dashboard based on session
     } else {
+      setLoading(false);
       setSuccess(true);
     }
   };
