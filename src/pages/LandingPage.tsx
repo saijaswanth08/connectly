@@ -10,6 +10,7 @@ import NetworkGraphAnimated from "@/components/landing/NetworkGraphAnimated";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 import { useState, useEffect } from "react";
 import { ProductDemo } from "@/components/ProductDemo";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -54,6 +55,7 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
 
+  useAuthRedirect();
   useReveal();
 
   return (

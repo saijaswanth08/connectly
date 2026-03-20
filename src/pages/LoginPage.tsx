@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,6 +16,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+
+  useAuthRedirect();
 
   // Read optional ?redirect= param set by PublicProfilePage when unauthenticated
   const redirectTo = new URLSearchParams(location.search).get("redirect") || "/dashboard";

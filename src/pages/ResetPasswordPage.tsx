@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 import { z } from "zod";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 const passwordSchema = z
   .string()
@@ -23,6 +24,8 @@ export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
+  useAuthRedirect();
 
   useEffect(() => {
     // Listen for the PASSWORD_RECOVERY event which fires after Supabase

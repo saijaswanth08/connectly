@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Zap, Mail } from "lucide-react";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const { toast } = useToast();
+
+  useAuthRedirect();
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();

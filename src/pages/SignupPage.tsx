@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Zap } from "lucide-react";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -16,6 +17,8 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useAuthRedirect();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
