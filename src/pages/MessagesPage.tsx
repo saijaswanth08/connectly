@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useContacts } from "@/hooks/useContacts";
 import {
   useConversations,
@@ -36,6 +36,7 @@ function formatMessageTime(dateStr: string) {
 }
 
 export default function MessagesPage() {
+  console.log("MessagesPage loaded");
   const isMobile = useIsMobile();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);

@@ -1,34 +1,70 @@
-import { useContactsStore } from "@/lib/contacts-store";
+import { useState, useMemo } from "react";
+import { useContacts, useSearchContacts } from "@/hooks/useContacts";
 import { ContactCard } from "@/components/ContactCard";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Search } from "lucide-react";
-import { ContactTag } from "@/lib/types";
 import { motion } from "framer-motion";
+import { DbContact } from "@/lib/api";
 
-const allTags: ContactTag[] = ["investor", "client", "mentor", "partner", "recruiter", "friend"];
+const ALL_TAGS = ["investor", "client", "mentor", "partner", "recruiter", "friend"];
+
+// Adapter: map DbContact → legacy ContactCard shape
+function toCardContact(c: DbContact) {
+  return {
+    id: c.id,
+    name: c.name,
+    email: c.email ?? "",
+    phone: c.phone ?? "",
+    company: c.company ?? "",
+    jobTitle: c.job_title ?? "",
+    linkedinUrl: c.linkedin_url ?? "",
+    notes: c.notes ?? "",
+    tags: c.tags ?? [],
+    importance: c.importance ?? "medium",
+    createdAt: c.created_at,
+  };
+}
 
 export default function ContactsPage() {
-  const { searchQuery, setSearchQuery, selectedTags, setSelectedTags, filteredContacts } = useContactsStore();
-  const contacts = filteredContacts();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(
-      selectedTags.includes(tag) ? selectedTags.filter((t) => t !== tag) : [...selectedTags, tag]
+  const { data: allContacts = [], isLoading } = useContacts();
+  const { data: searchResults = [] } = useSearchContacts(searchQuery);
+
+  // Use search results when query is active, otherwise all contacts
+  const baseContacts = searchQuery.trim() ? searchResults : allContacts;
+
+  // Client-side tag filtering on top of Supabase results
+  const contacts = useMemo(() =>
+    selectedTags.length === 0
+      ? baseContacts
+      : baseContacts.filter((c) =>
+          selectedTags.some((tag) => (c.tags ?? []).includes(tag))
+        ),
+    [baseContacts, selectedTags]
+  );
+
+  const toggleTag = (tag: string) =>
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
-  };
 
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto">
-      {/* Header: title | search | empty */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="md:flex-1">
           <h1 className="text-2xl font-display font-bold">Contacts</h1>
-          <p className="text-sm text-muted-foreground">{contacts.length} people in your network</p>
+          <p className="text-sm text-muted-foreground">
+            {isLoading ? "Loading..." : `${contacts.length} people in your network`}
+          </p>
         </div>
         <div className="relative w-full md:w-[500px] lg:w-[650px] shrink-0">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/70" />
           <Input
-            placeholder="Search contacts by name, email, or tag..."
+            placeholder="Search contacts by name, company, email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-11 h-11 md:h-12 w-full text-base rounded-[1rem] border-border/80 shadow-sm transition-all focus-visible:border-[#6366F1] focus-visible:shadow-[0_0_0_2px_rgba(99,102,241,0.15)] focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -37,8 +73,9 @@ export default function ContactsPage() {
         <div className="hidden md:block md:flex-1" />
       </div>
 
+      {/* Tag filters */}
       <div className="flex flex-wrap gap-2">
-        {allTags.map((tag) => (
+        {ALL_TAGS.map((tag) => (
           <button
             key={tag}
             onClick={() => toggleTag(tag)}
@@ -52,23 +89,53 @@ export default function ContactsPage() {
           </button>
         ))}
         {selectedTags.length > 0 && (
-          <button onClick={() => setSelectedTags([])} className="text-xs text-muted-foreground hover:text-foreground">
+          <button
+            onClick={() => setSelectedTags([])}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
             Clear filters
           </button>
         )}
       </div>
 
-      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {contacts.map((c, i) => (
-          <ContactCard key={c.id} contact={c} index={i} />
-        ))}
-      </motion.div>
-
-      {contacts.length === 0 && (
-        <div className="text-center py-16 text-muted-foreground">
-          <p className="text-lg font-display">No contacts found</p>
-          <p className="text-sm">Try adjusting your search or filters</p>
+      {/* Loading skeletons */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border border-border/50 p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-3/4 rounded" />
+                  <Skeleton className="h-3 w-1/2 rounded" />
+                </div>
+              </div>
+              <Skeleton className="h-3 w-full rounded" />
+            </div>
+          ))}
         </div>
+      ) : (
+        <>
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {contacts.map((c, i) => (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              <ContactCard key={c.id} contact={toCardContact(c) as any} index={i} />
+            ))}
+          </motion.div>
+
+          {contacts.length === 0 && (
+            <div className="text-center py-16 text-muted-foreground">
+              <p className="text-lg font-display">
+                {allContacts.length === 0 ? "No contacts yet" : "No contacts found"}
+              </p>
+              <p className="text-sm">
+                {allContacts.length === 0
+                  ? "Add contacts from the dashboard to see them here."
+                  : "Try adjusting your search or filters."}
+              </p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

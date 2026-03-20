@@ -37,9 +37,6 @@ function PersonIcon({ x, y, size }: { x: number; y: number; size: number }) {
 export default function NetworkGraphAnimated() {
   return (
     <div className="relative w-full aspect-square max-w-[320px] mx-auto">
-      {/* Dark glowing background */}
-      <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_50%_50%,hsl(var(--soft-blue)/0.12),hsl(var(--soft-purple)/0.06)_50%,transparent_70%)]" />
-      
       {/* Outer ring glow */}
       <motion.div
         className="absolute inset-4 rounded-full border border-primary/10"
@@ -55,7 +52,6 @@ export default function NetworkGraphAnimated() {
       <svg
         viewBox="0 0 100 100"
         className="relative w-full h-full text-primary"
-        style={{ filter: "drop-shadow(0 0 8px hsl(var(--soft-blue) / 0.2))" }}
       >
         <defs>
           <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
@@ -136,28 +132,7 @@ export default function NetworkGraphAnimated() {
           </motion.g>
         ))}
 
-        {/* Floating particles */}
-        {Array.from({ length: 12 }).map((_, i) => (
-          <motion.circle
-            key={`particle-${i}`}
-            cx={10 + Math.random() * 80}
-            cy={10 + Math.random() * 80}
-            r="0.5"
-            fill="hsl(var(--soft-blue))"
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: [0, 0.6, 0],
-              cy: [10 + Math.random() * 80, 10 + Math.random() * 80],
-              cx: [10 + Math.random() * 80, 10 + Math.random() * 80],
-            }}
-            transition={{
-              duration: 5 + Math.random() * 4,
-              repeat: Infinity,
-              delay: Math.random() * 3,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
+
       </svg>
     </div>
   );

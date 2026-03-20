@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useContacts, useCreateContact, useDeleteContact } from "@/hooks/useContacts";
 import { useMeetings } from "@/hooks/useContacts";
 import { useReminders } from "@/hooks/useReminders";
-import { useMemo } from "react";
+import { useRealtimeContacts } from "@/hooks/useRealtimeContacts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { Plus, Search, Users, Calendar, Trash2, Building2, Mail, Phone, MapPin, Linkedin, Tag, Star, Bell, Filter } from "lucide-react";
+import { Plus, Search, Users, Calendar, Trash2, Building2, Mail, Phone, MapPin, Tag, Star, Bell } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContactDetailPanel } from "@/components/ContactDetailPanel";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DbContact } from "@/lib/api";
 import { NetworkingInsightsWidget } from "@/components/NetworkingInsightsWidget";
 
@@ -34,6 +34,9 @@ export default function AppDashboard() {
   const createContact = useCreateContact();
   const deleteContactMut = useDeleteContact();
   const { toast } = useToast();
+
+  // Real-time subscription: invalidates contacts cache on any remote change
+  useRealtimeContacts(user?.id);
 
   const [search, setSearch] = useState("");
   const [filterCompany, setFilterCompany] = useState<string>("all");
@@ -100,9 +103,20 @@ export default function AppDashboard() {
     <div className="p-6 space-y-6 max-w-7xl w-full mx-auto px-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Welcome back, {user?.user_metadata?.full_name || user?.email?.split("@")[0]}</p>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight mt-1 dark:text-white">Contacts</h1>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9 shrink-0 ring-2 ring-primary/20">
+            <AvatarImage
+              src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture || ""}
+              alt={user?.user_metadata?.full_name || "User avatar"}
+            />
+            <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold text-sm">
+              {(user?.user_metadata?.full_name || user?.email || "U").charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Welcome back, {user?.user_metadata?.full_name || user?.email?.split("@")[0]}</p>
+            <h1 className="text-2xl font-semibold text-foreground tracking-tight mt-0.5 dark:text-white">Contacts</h1>
+          </div>
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>

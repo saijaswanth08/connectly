@@ -8,8 +8,7 @@ import dashboardPreview from "@/assets/dashboard-preview.png";
 import HeroFloatingElements from "@/components/landing/HeroFloatingElements";
 import NetworkGraphAnimated from "@/components/landing/NetworkGraphAnimated";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
-import { useState } from "react";
-import Particles from "@/components/Particles";
+import { useState, useEffect } from "react";
 import { ProductDemo } from "@/components/ProductDemo";
 
 const fadeUp = {
@@ -32,20 +31,41 @@ const features = [
 
 const navLinks: { label: string; href: string }[] = [];
 
+const useReveal = () => {
+  useEffect(() => {
+    const elements = document.querySelectorAll(".reveal");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("active");
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+};
+
+
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
 
+  useReveal();
+
   return (
-    <div className="min-h-screen bg-card font-body">
+    <div className="min-h-screen bg-white font-body">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-lg">
+      <nav className="sticky top-0 z-50 border-b border-[#e5e7eb] bg-white/95 backdrop-blur-lg">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2 group">
             <div className="transition-transform duration-200 group-hover:scale-105">
               <ConnectlyLogoIcon size={34} />
             </div>
-            <span className="hidden sm:inline text-[22px] font-extrabold tracking-tight bg-gradient-to-r from-[#5B7CFA] to-[#8B5CF6] bg-clip-text text-transparent transition-opacity duration-200 group-hover:opacity-80">
+            <span className="hidden sm:inline text-[22px] font-extrabold tracking-tight text-[#111827] transition-opacity duration-200 group-hover:opacity-80">
               Connectly
             </span>
           </Link>
@@ -101,37 +121,21 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section style={{ position: "relative", minHeight: "100vh", overflow: "hidden", background: "radial-gradient(circle at 30% 30%, #1e1b4b, #020617)" }}>
-        {/* Galaxy particle background */}
-        <div style={{ position: "absolute", inset: 0 }}>
-          <Particles
-            particleColors={["#8b5cf6", "#6366f1", "#a78bfa", "#c4b5fd"]}
-            particleCount={600}
-            particleSpread={40}
-            speed={0.05}
-            particleBaseSize={100}
-            moveParticlesOnHover={true}
-            alphaParticles={true}
-            disableRotation={false}
-            pixelRatio={window.devicePixelRatio}
-          />
-        </div>
-
+      <section style={{ position: "relative", minHeight: "100vh", overflow: "hidden", background: "#ffffff" }}>
         {/* Existing hero content — unchanged */}
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_-10%,hsl(var(--soft-blue)/0.08),transparent)]" />
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2 md:py-32">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2 md:py-32 reveal">
             <motion.div initial="hidden" animate="visible" className="space-y-8">
-              <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem]">
+              <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-[#111827] sm:text-5xl lg:text-[3.5rem]">
                 Remember Every{" "}
-                <span className="text-gradient">Connection</span>{" "}
+                <span className="text-[#6366f1]">Connection</span>{" "}
                 You Make
               </motion.h1>
-              <motion.p custom={1} variants={fadeUp} className="max-w-lg text-lg text-muted-foreground leading-relaxed">
+              <motion.p custom={1} variants={fadeUp} className="max-w-lg text-lg text-[#4b5563] leading-relaxed">
                 Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
               </motion.p>
               <motion.div custom={2} variants={fadeUp} className="flex flex-wrap gap-3 pt-2">
-                <Button size="lg" className="rounded-full gap-2 px-8 text-base shadow-md hover:shadow-lg transition-shadow" asChild>
+                <Button size="lg" className="rounded-full gap-2 px-8 text-base bg-[#6366f1] text-white hover:bg-[#4f46e5] shadow-none" asChild>
                   <Link to="/signup">
                     Get Started <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -154,8 +158,8 @@ export default function LandingPage() {
       </section>
 
       {/* Product Explanation */}
-      <section className="bg-muted/40 py-24">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="bg-white py-24">
+        <div className="mx-auto max-w-6xl px-6 reveal">
           <div className="grid items-center gap-14 md:grid-cols-2">
             <motion.div
               initial={{ opacity: 0, x: -24 }}
@@ -167,13 +171,13 @@ export default function LandingPage() {
               <NetworkGraphAnimated />
             </motion.div>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="space-y-5">
-              <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
+              <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-[#111827] sm:text-4xl">
                 Your Personal Networking CRM
               </motion.h2>
-              <motion.p custom={1} variants={fadeUp} className="text-muted-foreground leading-relaxed">
+              <motion.p custom={1} variants={fadeUp} className="text-[#4b5563] leading-relaxed">
                 Professionals meet many people at conferences, meetings, and events. Remembering every conversation becomes difficult.
               </motion.p>
-              <motion.p custom={2} variants={fadeUp} className="text-muted-foreground leading-relaxed">
+              <motion.p custom={2} variants={fadeUp} className="text-[#4b5563] leading-relaxed">
                 Connectly helps you store contacts, notes, and relationship history in one place so you never forget an important connection.
               </motion.p>
             </motion.div>
@@ -183,12 +187,12 @@ export default function LandingPage() {
 
       {/* Features */}
       <section className="py-24">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-6 reveal">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="mx-auto max-w-2xl text-center space-y-4 mb-16">
-            <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
+            <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-[#111827] sm:text-4xl">
               Everything You Need to Manage Your Professional Network
             </motion.h2>
-            <motion.p custom={1} variants={fadeUp} className="text-muted-foreground text-lg">
+            <motion.p custom={1} variants={fadeUp} className="text-[#4b5563] text-lg">
               Powerful tools designed for professionals who value their relationships.
             </motion.p>
           </motion.div>
@@ -207,8 +211,8 @@ export default function LandingPage() {
                 <div className="mb-4 inline-flex rounded-xl bg-accent p-3">
                   <feature.icon className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+                <h3 className="font-display text-lg font-semibold text-[#111827] mb-2">{feature.title}</h3>
+                <p className="text-[#4b5563] text-sm leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -216,13 +220,13 @@ export default function LandingPage() {
       </section>
 
       {/* Dashboard Preview */}
-      <section className="bg-muted/40 py-24">
+      <section className="bg-white py-24">
         <div className="mx-auto max-w-6xl px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="mx-auto max-w-2xl text-center space-y-4 mb-14">
-            <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
+            <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-[#111827] sm:text-4xl">
               A smarter way to manage relationships
             </motion.h2>
-            <motion.p custom={1} variants={fadeUp} className="text-muted-foreground text-lg">
+            <motion.p custom={1} variants={fadeUp} className="text-[#4b5563] text-lg">
               See all your contacts, meetings, and notes in one powerful dashboard.
             </motion.p>
           </motion.div>
@@ -246,21 +250,21 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="py-24">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-6 reveal">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="rounded-3xl gradient-primary px-8 py-16 text-center space-y-6"
+            className="rounded-3xl bg-[#f8fafc] px-8 py-16 text-center space-y-6"
           >
             <motion.div custom={0} variants={fadeUp} className="inline-flex rounded-full bg-primary/10 p-3 mb-2">
               <Sparkles className="h-6 w-6 text-primary" />
             </motion.div>
-            <motion.h2 custom={1} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
+            <motion.h2 custom={1} variants={fadeUp} className="font-display text-3xl font-bold text-[#111827] sm:text-4xl">
               Start building stronger professional relationships today
             </motion.h2>
             <motion.div custom={2} variants={fadeUp}>
-              <Button size="lg" className="rounded-full gap-2 px-10 text-base shadow-md hover:shadow-lg transition-shadow" asChild>
+              <Button size="lg" className="rounded-full gap-2 px-10 text-base bg-[#6366f1] text-white hover:bg-[#4f46e5] shadow-none" asChild>
                 <Link to="/signup">
                   Create Free Account <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -271,25 +275,25 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted/60 py-14">
-        <div className="mx-auto max-w-6xl px-6">
+      <footer className="bg-white py-14 border-t border-[#e5e7eb]">
+        <div className="mx-auto max-w-6xl px-6 reveal">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
             {/* Brand */}
             <div className="space-y-4">
-              <span className="font-display text-lg font-bold text-foreground">
-                Connect<span className="text-primary">ly</span>
+              <span className="font-display text-lg font-bold text-[#111827]">
+                Connect<span className="text-[#6366f1]">ly</span>
               </span>
-              <p className="font-display text-sm font-medium text-foreground">
+              <p className="font-display text-sm font-medium text-[#111827]">
                 Build stronger professional relationships.
               </p>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+              <p className="text-sm text-[#4b5563] leading-relaxed max-w-xs">
                 Connectly helps professionals organize contacts, meeting notes, and relationships in one simple workspace.
               </p>
             </div>
 
             {/* Platform */}
             <div className="space-y-4">
-              <h4 className="font-display font-semibold text-foreground text-sm">Company</h4>
+              <h4 className="font-display font-semibold text-[#111827] text-sm">Company</h4>
               <nav className="flex flex-col gap-2.5 text-sm text-muted-foreground">
                 {[
                   { label: "About", to: "/about" },
@@ -309,7 +313,7 @@ export default function LandingPage() {
 
             {/* Connect */}
             <div className="space-y-4">
-              <h4 className="font-display font-semibold text-foreground text-sm">Connect</h4>
+              <h4 className="font-display font-semibold text-[#111827] text-sm">Connect</h4>
               <div className="flex gap-4">
                 {[
                   {
@@ -364,8 +368,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-10 border-t border-border pt-6 text-center">
-            <p className="text-xs text-muted-foreground">
+          <div className="mt-10 border-t border-[#e5e7eb] pt-6 text-center">
+            <p className="text-xs text-[#4b5563]">
               © {new Date().getFullYear()} Connectly. All rights reserved.
             </p>
           </div>

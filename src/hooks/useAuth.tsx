@@ -38,13 +38,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // 2. Listen for auth changes (login, logout, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (mounted) {
+        const user = session?.user ?? null;
         setSession(session);
-        setUser(session?.user ?? null);
+        setUser(user);
         // Do not set loading to false on INITIAL_SESSION to prevent race conditions
         if (_event !== 'INITIAL_SESSION') {
           setLoading(false);
+        }
+
+        // Upsert profile whenever a user is present (handles Google OAuth metadata)
+        if (user) {
+          await supabase.from("profiles").upsert(
+            {
+              id: user.id,
+              name: user.user_metadata?.full_name || user.user_metadata?.name || "",
+              email: user.email ?? "",
+              avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+            },
+            { onConflict: "id" }
+          );
         }
       }
     });

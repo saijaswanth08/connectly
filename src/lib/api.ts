@@ -37,17 +37,29 @@ export async function fetchContacts(): Promise<DbContact[]> {
     .from("contacts")
     .select("*")
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) {
+    console.error("[fetchContacts] Supabase error:", error.message);
+    throw error;
+  }
   return (data ?? []) as DbContact[];
 }
 
 export async function createContact(contact: Omit<DbContact, "id" | "created_at" | "updated_at">): Promise<DbContact> {
+  // Guard: ensure user_id is present before attempting insert
+  if (!contact.user_id) {
+    const err = new Error("Cannot create contact: user is not logged in.");
+    console.error("[createContact]", err.message);
+    throw err;
+  }
   const { data, error } = await supabase
     .from("contacts")
     .insert(contact)
     .select()
     .single();
-  if (error) throw error;
+  if (error) {
+    console.error("[createContact] Supabase error:", error.message);
+    throw error;
+  }
   return data as DbContact;
 }
 

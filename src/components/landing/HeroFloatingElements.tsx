@@ -115,9 +115,6 @@ function ConnectionLines() {
 export default function HeroFloatingElements() {
   return (
     <div className="relative w-full h-[340px] sm:h-[400px] md:h-[440px]">
-      {/* Soft glow backdrop */}
-      <div className="absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_60%_50%_at_50%_40%,hsl(var(--soft-blue)/0.07),transparent)]" />
-
       <ConnectionLines />
 
       {/* Floating contact cards */}
