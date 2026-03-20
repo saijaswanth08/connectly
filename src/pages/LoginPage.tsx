@@ -17,7 +17,31 @@ export default function LoginPage() {
   const location = useLocation();
   const { toast } = useToast();
 
-  useAuthRedirect();
+  useEffect(() => {
+    // Check session on load
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log("[LoginPage] Session found, forced redirect to /dashboard");
+        window.location.href = "/dashboard";
+      }
+    };
+    checkSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        console.log("[LoginPage] Auth change detected, forced redirect to /dashboard");
+        window.location.href = "/dashboard";
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // useAuthRedirect(); // Replaced by explicit logic above as requested
 
   // Read optional ?redirect= param set by PublicProfilePage when unauthenticated
   const redirectTo = new URLSearchParams(location.search).get("redirect") || "/dashboard";

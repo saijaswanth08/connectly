@@ -13,8 +13,8 @@ export function useAuthRedirect() {
   useEffect(() => {
     // If auth is finished and we have a user, head to the dashboard
     if (!loading && user) {
-      console.log("[useAuthRedirect] User detected, navigating to /dashboard");
-      navigate("/dashboard", { replace: true });
+      console.log("[useAuthRedirect] User detected, forced redirect to /dashboard");
+      window.location.href = "/dashboard";
     }
   }, [user, loading, navigate]);
 }
