@@ -13,8 +13,8 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(
-  SUPABASE_URL || "http://placeholder.supabase.co", 
-  SUPABASE_ANON_KEY || "placeholder-key", 
+  SUPABASE_URL!, 
+  SUPABASE_ANON_KEY!, 
   {
     auth: {
       storage: localStorage,

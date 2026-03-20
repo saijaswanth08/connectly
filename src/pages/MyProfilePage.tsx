@@ -12,6 +12,7 @@ import {
   ImagePlus, Trash2, Linkedin, Instagram, QrCode, Download, LogOut,
 } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { QRProfileCard } from "@/components/QRProfileCard";
 import { cn } from "@/lib/utils";
 
@@ -316,7 +317,7 @@ export default function MyProfilePage() {
     const handleOAuth = (provider: "google" | "github") =>
       supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: window.location.href },
+        options: { redirectTo: window.location.origin },
       });
 
     return (
@@ -363,10 +364,39 @@ export default function MyProfilePage() {
   // ── State 3: Profile data still loading from DB ──────────────────────────
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
-          <span>Loading profile…</span>
+      <div className="max-w-3xl mx-auto px-6 py-8 space-y-6 animate-in fade-in duration-500">
+        <div className="space-y-0.5">
+          <Skeleton className="h-8 w-48" />
+        </div>
+        <div className="rounded-2xl border border-border/60 shadow-sm p-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div className="flex items-end gap-4">
+            <Skeleton className="h-20 w-20 rounded-full shrink-0" />
+            <div className="space-y-2 mb-1 flex-1">
+              <Skeleton className="h-6 w-48 max-w-full" />
+              <Skeleton className="h-4 w-32 max-w-full" />
+              <Skeleton className="h-3 w-40 max-w-full mt-2" />
+            </div>
+          </div>
+          <div className="flex gap-2 sm:mb-1">
+            <Skeleton className="h-9 w-28 rounded-md" />
+            <Skeleton className="h-9 w-24 rounded-md" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="space-y-2"><Skeleton className="h-4 w-20" /><Skeleton className="h-10 w-full rounded-md" /></div>
+            <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-10 w-full rounded-md" /></div>
+            <div className="space-y-2"><Skeleton className="h-4 w-16" /><Skeleton className="h-10 w-full rounded-md" /></div>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-10 w-full rounded-md" /></div>
+            <div className="space-y-2"><Skeleton className="h-4 w-28" /><Skeleton className="h-10 w-full rounded-md" /></div>
+            <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-10 w-full rounded-md" /></div>
+          </div>
+        </div>
+        <div className="space-y-2 pt-4">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-24 w-full rounded-md" />
         </div>
       </div>
     );

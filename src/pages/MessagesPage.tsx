@@ -13,6 +13,7 @@ import { DbContact } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Send, ArrowLeft, MessageSquare } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
@@ -44,9 +45,9 @@ export default function MessagesPage() {
   const [messageText, setMessageText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { data: contacts = [] } = useContacts();
+  const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
   const { data: conversations = [] } = useConversations();
-  const { data: messages = [] } = useMessages(selectedConversationId);
+  const { data: messages = [], isLoading: isLoadingMessages } = useMessages(selectedConversationId);
   const sendMessage = useSendMessage();
   const getOrCreateConv = useGetOrCreateConversation();
   const { data: presenceRecords = [] } = useAllPresence();
@@ -144,7 +145,19 @@ export default function MessagesPage() {
           </div>
 
           <ScrollArea className="flex-1">
-            {sortedContacts.length === 0 ? (
+            {isLoadingContacts ? (
+              <div className="p-4 space-y-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-3/4 rounded" />
+                      <Skeleton className="h-3 w-1/2 rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : sortedContacts.length === 0 ? (
               <div className="p-6 text-center text-muted-foreground">
                 <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-40" />
                 <p className="text-sm">No contacts found</p>
@@ -246,11 +259,21 @@ export default function MessagesPage() {
 
               {/* Messages Area */}
               <ScrollArea className="flex-1 p-4">
-                {messages.length === 0 ? (
+                {isLoadingMessages ? (
+                  <div className="space-y-4 py-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className={`flex ${i % 2 === 0 ? "justify-start" : "justify-end"}`}>
+                        <Skeleton className="h-10 w-2/3 rounded-2xl" />
+                      </div>
+                    ))}
+                  </div>
+                ) : messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-20">
-                    <MessageSquare className="h-12 w-12 mb-3 opacity-30" />
-                    <p className="text-sm">No messages yet</p>
-                    <p className="text-xs mt-1">Send a message to start the conversation</p>
+                    <div className="h-16 w-16 mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                      <MessageSquare className="h-8 w-8 text-primary/60" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground">Start a conversation</p>
+                    <p className="text-xs mt-1 text-muted-foreground">Select a contact to view or send messages.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">

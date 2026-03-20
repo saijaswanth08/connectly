@@ -47,7 +47,7 @@ const emptyForm = {
 export default function InteractionsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: interactions = [], isLoading } = useMeetings();
+  const { data: interactions = [], isLoading, isError } = useMeetings();
   const { data: contacts = [] } = useContacts();
   const createInteraction = useCreateMeeting();
   const updateInteraction = useUpdateMeeting();
@@ -297,11 +297,11 @@ export default function InteractionsPage() {
       </div>
 
       {/* List */}
-      {isLoading ? (
+      {(isLoading && !isError) ? (
         <div className="flex justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
-      ) : filtered.length === 0 ? (
+      ) : (filtered.length === 0 || isError) ? (
         <div className="text-center py-20">
           <div className="mx-auto h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
             <Calendar className="h-8 w-8 text-muted-foreground/40" />

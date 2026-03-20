@@ -57,10 +57,12 @@ interface Edge {
 export default function NetworkMapPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { data: contacts = [], isLoading: loadingContacts } = useContacts();
-  const { data: connections = [], isLoading: loadingConns } = useContactConnections();
+  const { data: contacts = [], isLoading: loadingContacts, isError: errorContacts } = useContacts();
+  const { data: connections = [], isLoading: loadingConns, isError: errorConns } = useContactConnections();
   const createConnection = useCreateContactConnection();
   const deleteConnection = useDeleteContactConnection();
+
+  const isError = errorContacts || errorConns;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -81,6 +83,16 @@ export default function NetworkMapPage() {
   const [connContactB, setConnContactB] = useState("");
   const [connType, setConnType] = useState("colleague");
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  // Sync refs for animation loop
+  const zoomRef = useRef(1);
+  const panRef = useRef({ x: 0, y: 0 });
+  const draggingRef = useRef<string | null>(null);
+  const highlightedIdRef = useRef<string | null>(null);
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
+  useEffect(() => { panRef.current = pan; }, [pan]);
+  useEffect(() => { draggingRef.current = dragging; }, [dragging]);
+  useEffect(() => { highlightedIdRef.current = highlightedId; }, [highlightedId]);
 
   const isLoading = loadingContacts || loadingConns;
 
@@ -203,7 +215,7 @@ export default function NetworkMapPage() {
           node.vy += (h / 2 - node.y) * 0.001;
           node.vx *= 0.9;
           node.vy *= 0.9;
-          if (node.id !== dragging) {
+          if (node.id !== draggingRef.current) {
             node.x += node.vx;
             node.y += node.vy;
             currentEnergy += node.vx * node.vx + node.vy * node.vy;
@@ -217,8 +229,8 @@ export default function NetworkMapPage() {
       // Render
       ctx.save();
       ctx.clearRect(0, 0, w, h);
-      ctx.translate(pan.x, pan.y);
-      ctx.scale(zoom, zoom);
+      ctx.translate(panRef.current.x, panRef.current.y);
+      ctx.scale(zoomRef.current, zoomRef.current);
 
       // Edges
       for (const edge of edges) {
@@ -243,7 +255,7 @@ export default function NetworkMapPage() {
 
       // Nodes
       for (const node of nodes) {
-        const isHighlighted = highlightedId === node.id;
+        const isHighlighted = highlightedIdRef.current === node.id;
         const radius = node.importance === "vip" ? 28 : 22;
         const nx = node.x ?? 0;
         const ny = node.y ?? 0;
@@ -292,7 +304,7 @@ export default function NetworkMapPage() {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("resize", resize);
     };
-  }, [zoom, pan, dragging, highlightedId, filteredContacts.length, connections.length]);
+  }, [filteredContacts.length, connections.length]);
 
   // Mouse handlers
   const getCanvasPos = useCallback((e: React.MouseEvent) => {
@@ -363,7 +375,7 @@ export default function NetworkMapPage() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading && !isError) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -422,14 +434,18 @@ export default function NetworkMapPage() {
       </div>
 
       {/* Graph Canvas */}
-      {contacts.length === 0 ? (
+      {(contacts.length === 0 || isError) ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <div className="h-16 w-16 rounded-2xl bg-accent flex items-center justify-center mb-4">
             <Network className="h-8 w-8 text-accent-foreground" />
           </div>
-          <h2 className="text-lg font-semibold text-foreground mb-1">No connections yet.</h2>
-          <p className="text-muted-foreground mb-4 text-sm">Start by adding contacts to build your network.</p>
-          <Button asChild><Link to="/dashboard">Add your first contact</Link></Button>
+          <h2 className="text-lg font-semibold text-foreground mb-1">
+            {isError ? "Could not load network map" : "No connections yet."}
+          </h2>
+          <p className="text-muted-foreground mb-4 text-sm">
+            {isError ? "Please check your connection and try again." : "Start by adding contacts to build your network."}
+          </p>
+          {!isError && <Button asChild><Link to="/dashboard">Add your first contact</Link></Button>}
         </div>
       ) : (
         <div className="flex-1 rounded-xl border border-border/50 bg-card shadow-sm overflow-hidden relative">

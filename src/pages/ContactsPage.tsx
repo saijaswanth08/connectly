@@ -3,7 +3,7 @@ import { useContacts, useSearchContacts } from "@/hooks/useContacts";
 import { ContactCard } from "@/components/ContactCard";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { DbContact } from "@/lib/api";
 
@@ -124,14 +124,21 @@ export default function ContactsPage() {
           </motion.div>
 
           {contacts.length === 0 && (
-            <div className="text-center py-16 text-muted-foreground">
-              <p className="text-lg font-display">
-                {allContacts.length === 0 ? "No contacts yet" : "No contacts found"}
+            <div className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-col items-center justify-center text-center py-20 text-muted-foreground bg-card rounded-xl border border-border/50 shadow-sm mt-2">
+              <div className="h-16 w-16 mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                {allContacts.length === 0 ? (
+                  <Users className="h-8 w-8 text-primary/60" />
+                ) : (
+                  <Search className="h-8 w-8 text-primary/60" />
+                )}
+              </div>
+              <p className="text-lg font-display font-semibold text-foreground">
+                {allContacts.length === 0 ? "No contacts yet. Add your first contact" : "No contacts found"}
               </p>
-              <p className="text-sm">
+              <p className="text-sm mt-1 max-w-sm px-4">
                 {allContacts.length === 0
-                  ? "Add contacts from the dashboard to see them here."
-                  : "Try adjusting your search or filters."}
+                  ? "Start building your network from the dashboard to see connections here."
+                  : "Try adjusting your search or filters to find who you're looking for."}
               </p>
             </div>
           )}

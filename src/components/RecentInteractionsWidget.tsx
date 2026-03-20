@@ -16,7 +16,7 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export function RecentInteractionsWidget() {
-  const { data: events = [] } = useTimelineEvents();
+  const { data: events = [], isError } = useTimelineEvents();
   const { data: contacts = [] } = useContacts();
 
   const recent = events.slice(0, 5);
@@ -28,7 +28,7 @@ export function RecentInteractionsWidget() {
         <h2 className="font-display font-semibold text-foreground">Recent Interactions</h2>
       </div>
 
-      {recent.length === 0 ? (
+      {(recent.length === 0 || isError) ? (
         <p className="text-sm text-muted-foreground text-center py-4">No interactions yet</p>
       ) : (
         <div className="space-y-2.5">

@@ -63,7 +63,7 @@ export default function AccountSettingsPage() {
     setLoading(true);
     try {
       // 2. Call backend to request password update (verifies current PW and sends email)
-      const res = await fetch("http://localhost:3001/api/password-update", {
+      const res = await fetch(`${BACKEND_URL}/api/password-update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -13,6 +14,7 @@ import { useKeyboardShortcuts } from "@/components/KeyboardShortcuts";
 export function AppLayout() {
   usePresenceTracker();
   useKeyboardShortcuts();
+  const location = useLocation();
 
   return (
     <SidebarProvider>
@@ -30,8 +32,19 @@ export function AppLayout() {
               <ProfileDropdown />
             </div>
           </header>
-          <main className="flex-1 overflow-auto">
-            <Outlet />
+          <main className="flex-1 overflow-hidden relative">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 overflow-auto"
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </main>
         </div>
         <FloatingQuickAdd />
