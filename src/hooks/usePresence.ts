@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const HEARTBEAT_INTERVAL = 15_000; // 15 seconds

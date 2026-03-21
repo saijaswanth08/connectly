@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageSquare, CheckCircle2, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 export default function ContactSupportPage() {
   const { user } = useAuth();

@@ -10,7 +10,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicRoute } from "@/components/PublicRoute";
 import { AppLayout } from "@/components/AppLayout";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 // Normalize important imports for performance & faster initial load
 import LandingPage from "@/pages/LandingPage";

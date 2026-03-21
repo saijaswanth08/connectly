@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
@@ -25,31 +25,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // 1. Fetch initial session explicitly to ensure we have the correct state
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (mounted) {
-        if (error) {
-          console.error("Error checking auth session:", error.message);
+    // 1. Initial session check
+    const initSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("INITIAL SESSION:", session);
+        if (mounted) {
+          if (error) throw error;
+          setSession(session);
+          setUser(session?.user ?? null);
         }
+      } catch (error: any) {
+        console.error("Error checking auth session:", error.message);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    initSession();
+
+    // 2. Listen for auth changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("AUTH EVENT:", event, session?.user?.id);
+      
+      if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-      }
-    });
 
-    // 2. Listen for auth changes (login, logout, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (mounted) {
-        const user = session?.user ?? null;
-        setSession(session);
-        setUser(user);
-        // Do not set loading to false on INITIAL_SESSION to prevent race conditions
-        if (_event !== 'INITIAL_SESSION') {
-          setLoading(false);
-        }
-
-        // Upsert profile whenever a user is present (handles Google OAuth metadata)
-        if (user) {
+        // Upsert profile whenever a user is present (Google OAuth metadata handling)
+        if (session?.user) {
+          const { user } = session;
           await supabase.from("profiles").upsert(
             {
               id: user.id,

@@ -18,7 +18,7 @@ import { useMeetings, useCreateMeeting, useContacts } from "@/hooks/useContacts"
 import { useCreateReminder } from "@/hooks/useReminders";
 import { JitsiMeetingRoom } from "@/components/JitsiMeetingRoom";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 function generateRoomId() {
   const id = Math.random().toString(36).substring(2, 8);

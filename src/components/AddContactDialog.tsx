@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react";
 import { ContactTag, ImportanceLevel } from "@/lib/types";
 import { useCreateContact } from "@/hooks/useContacts";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
 const allTags: ContactTag[] = ["investor", "client", "mentor", "partner", "recruiter", "friend"];

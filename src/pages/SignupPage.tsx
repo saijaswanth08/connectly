@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,23 +30,43 @@ export default function SignupPage() {
       toast({ title: "Passwords don't match", description: "Please make sure your passwords match", variant: "destructive" });
       return;
     }
-    setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+
+      if (error) {
+        setLoading(false);
+        toast({ 
+          title: "Signup failed", 
+          description: error.message === "Failed to fetch" 
+            ? "Network error: Could not reach Supabase. Check your connection." 
+            : error.message, 
+          variant: "destructive" 
+        });
+      } else if (data.session) {
+        toast({ title: "Account created!", description: "Welcome to Connectly." });
+        // Redirection handled by AuthProvider
+      } else {
+        setLoading(false);
+        setSuccess(true);
+      }
+    } catch (err: any) {
       setLoading(false);
-      toast({ title: "Signup failed", description: error.message, variant: "destructive" });
-    } else if (data.session) {
-      toast({ title: "Account created!", description: "Welcome to Connectly." });
-    } else {
-      setLoading(false);
-      setSuccess(true);
+      const errorMessage = err?.message || "An unexpected network error occurred.";
+      toast({ 
+        title: "Signup failed", 
+        description: errorMessage === "Failed to fetch" 
+          ? "Connection refused: Ensure your Supabase settings are correct." 
+          : errorMessage, 
+        variant: "destructive" 
+      });
+      console.error("Signup exception:", err);
     }
   };
 

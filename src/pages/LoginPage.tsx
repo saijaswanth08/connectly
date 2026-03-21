@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,13 +48,50 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({ title: "Error", description: "Please enter both email and password.", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
+    try {
+      // Ensure environment variables are correctly accessed
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error("Supabase credentials are missing. Please check your .env file or Vite configuration.");
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) {
+        setLoading(false);
+        toast({ 
+          title: "Login failed", 
+          description: error.message === "Failed to fetch" 
+            ? "Network error: Could not reach Supabase. Check your connection or project URL." 
+            : error.message, 
+          variant: "destructive" 
+        });
+      }
+      // If success, redirection happens via the AuthProvider's onAuthStateChange listener
+    } catch (err: any) {
       setLoading(false);
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      const errorMessage = err?.message || "An unexpected network error occurred.";
+      toast({ 
+        title: "Login failed", 
+        description: errorMessage === "Failed to fetch" 
+          ? "Connection refused: Ensure your Supabase URL and project settings are correct." 
+          : errorMessage, 
+        variant: "destructive" 
+      });
+      console.error("Login exception:", err);
     }
   };
 

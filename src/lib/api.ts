@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 export interface DbContact {
   id: string;
@@ -33,10 +33,19 @@ export interface DbMeeting {
 }
 
 export async function fetchContacts(): Promise<DbContact[]> {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !user) {
+    console.error("[fetchContacts] Auth error:", userError?.message);
+    throw new Error("User strictly not authenticated");
+  }
+
   const { data, error } = await supabase
     .from("contacts")
     .select("*")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
+
   if (error) {
     console.error("[fetchContacts] Supabase error:", error.message);
     throw error;
@@ -45,17 +54,27 @@ export async function fetchContacts(): Promise<DbContact[]> {
 }
 
 export async function createContact(contact: Omit<DbContact, "id" | "created_at" | "updated_at">): Promise<DbContact> {
-  // Guard: ensure user_id is present before attempting insert
-  if (!contact.user_id) {
+  // 1. Get authenticated user explicitly to ensure user_id is correct
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !user) {
     const err = new Error("Cannot create contact: user is not logged in.");
     console.error("[createContact]", err.message);
     throw err;
   }
+
+  // 2. Force the correct user_id
+  const contactData = {
+    ...contact,
+    user_id: user.id
+  };
+
   const { data, error } = await supabase
     .from("contacts")
-    .insert(contact)
+    .insert(contactData)
     .select()
     .single();
+
   if (error) {
     console.error("[createContact] Supabase error:", error.message);
     throw error;
