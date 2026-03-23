@@ -18,7 +18,8 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true, // Crucial for Google OAuth redirects
+      detectSessionInUrl: true,
+      flowType: "pkce", // Ensure PKCE for better compatibility
       storage: localStorage,
     }
   }

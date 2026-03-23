@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import { DbContact } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Users, Search } from "lucide-react";
 
 export default function AppDashboard() {
-  const { session, user: authUser } = useAuth(); // Using session from context
+  const { user, loading: authLoading } = useAuth();
   const [contacts, setContacts] = useState<DbContact[]>([]);
   const [isLoading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -16,23 +16,16 @@ export default function AppDashboard() {
     let isMounted = true;
 
     async function fetchDashboardData() {
+      if (!user) {
+        if (isMounted && !authLoading) setLoading(false);
+        return;
+      }
+
       try {
-        console.log("SESSION:", session);
         setLoading(true);
         
-        // 1. Get authenticated user explicitly for the query
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        console.log("USER:", user);
-        
-        if (authError || !user) {
-          console.warn("User not authenticated or missing.");
-          if (isMounted) setLoading(false);
-          return;
-        }
-
         console.log("FETCHING CONTACTS FOR:", user.id);
 
-        // 2. Fetch contacts for this user
         const { data, error: fetchError } = await supabase
           .from("contacts")
           .select("*")
@@ -50,7 +43,7 @@ export default function AppDashboard() {
           setContacts(data || []);
         }
       } catch (err: any) {
-        console.error("DASHBOARD FATAL ERROR:", err);
+        console.error("Dashboard error:", err);
         toast({
           title: "Error fetching data",
           description: err.message,
@@ -64,7 +57,9 @@ export default function AppDashboard() {
       }
     }
 
-    fetchDashboardData();
+    if (!authLoading) {
+      fetchDashboardData();
+    }
 
     // 3. Realtime subscription (Optional Improvement)
     const channel = supabase
@@ -73,7 +68,7 @@ export default function AppDashboard() {
         event: '*', 
         schema: 'public', 
         table: 'contacts',
-        filter: `user_id=eq.${authUser?.id}` 
+        filter: `user_id=eq.${user?.id}` 
       }, () => {
         fetchDashboardData();
       })
@@ -83,9 +78,9 @@ export default function AppDashboard() {
       isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, [session, authUser, toast]);
+  }, [user, authLoading, toast]);
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="p-8 space-y-4">
         <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -94,7 +89,7 @@ export default function AppDashboard() {
             <Skeleton key={i} className="h-32 w-full rounded-xl" />
           ))}
         </div>
-        <p className="text-center text-muted-foreground animate-pulse">Loading contacts...</p>
+        <p className="text-center text-muted-foreground animate-pulse mt-4">Loading contacts...</p>
       </div>
     );
   }
@@ -113,7 +108,7 @@ export default function AppDashboard() {
           <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <h2 className="text-xl font-semibold">No contacts found</h2>
           <p className="text-muted-foreground max-w-sm text-center px-4 mt-2">
-            Start building your network by adding your first contact from the sidebar or dashboard.
+            Start building your network by adding your first contact.
           </p>
         </div>
       ) : (
@@ -129,13 +124,6 @@ export default function AppDashboard() {
               <p className="text-sm text-muted-foreground mt-1">
                 {contact.job_title} {contact.company ? `@ ${contact.company}` : ""}
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {contact.tags?.map((tag) => (
-                  <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                    {tag}
-                  </span>
-                ))}
-              </div>
             </div>
           ))}
         </div>
