@@ -8,11 +8,9 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { FloatingQuickAdd } from "@/components/FloatingQuickAdd";
-import { usePresenceTracker } from "@/hooks/usePresence";
 import { useKeyboardShortcuts } from "@/components/KeyboardShortcuts";
 
 export function AppLayout() {
-  usePresenceTracker();
   useKeyboardShortcuts();
   const location = useLocation();
 

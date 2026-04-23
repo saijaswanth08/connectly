@@ -1,19 +1,21 @@
 export type ImportanceLevel = "vip" | "high" | "medium" | "low";
-export type MeetingType = "conference" | "call" | "lunch" | "networking" | "other";
 export type ContactTag = "investor" | "client" | "mentor" | "partner" | "recruiter" | "friend";
-
+export type MeetingType = "conference" | "call" | "lunch" | "networking" | "other";
 export interface Contact {
   id: string;
   name: string;
   email: string;
   phone: string;
   company: string;
-  jobTitle: string;
+  job_title: string;
   photoUrl?: string;
-  tags: ContactTag[];
-  importance: ImportanceLevel;
-  dateAdded: string;
+  priority: ImportanceLevel;
+  created_at: string;
   notes: string;
+  user_id?: string;
+  linkedin?: string;
+  instagram?: string;
+  tags?: string[];
 }
 
 export interface Meeting {

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-export function UpcomingRemindersWidget() {
+export function UpcomingRemindersWidget({ onCreateClick }: { onCreateClick?: () => void } = {}) {
   const { data: reminders = [] } = useReminders();
   const { data: contacts = [] } = useContacts();
 
@@ -37,9 +37,15 @@ export function UpcomingRemindersWidget() {
       {upcoming.length === 0 ? (
         <div className="text-center py-6">
           <p className="text-sm text-muted-foreground">No upcoming reminders</p>
-          <Button variant="link" size="sm" asChild className="mt-1">
-            <Link to="/dashboard/reminders">Create one</Link>
-          </Button>
+          {onCreateClick ? (
+            <Button variant="link" size="sm" className="mt-1" onClick={onCreateClick}>
+              Create one
+            </Button>
+          ) : (
+            <Button variant="link" size="sm" asChild className="mt-1">
+              <Link to="/dashboard/reminders">Create one</Link>
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-2.5">

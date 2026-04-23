@@ -1,55 +1,35 @@
-import { useState, useMemo } from "react";
-import { useContacts, useSearchContacts } from "@/hooks/useContacts";
+import { useState, useMemo, useEffect } from "react";
+import { useContactsStore } from "@/lib/contacts-store";
+import { useAuth } from "@/hooks/useAuth";
 import { ContactCard } from "@/components/ContactCard";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Users } from "lucide-react";
 import { motion } from "framer-motion";
-import { DbContact } from "@/lib/api";
-
-const ALL_TAGS = ["investor", "client", "mentor", "partner", "recruiter", "friend"];
-
-// Adapter: map DbContact → legacy ContactCard shape
-function toCardContact(c: DbContact) {
-  return {
-    id: c.id,
-    name: c.name,
-    email: c.email ?? "",
-    phone: c.phone ?? "",
-    company: c.company ?? "",
-    jobTitle: c.job_title ?? "",
-    linkedinUrl: c.linkedin_url ?? "",
-    notes: c.notes ?? "",
-    tags: c.tags ?? [],
-    importance: c.importance ?? "medium",
-    createdAt: c.created_at,
-  };
-}
 
 export default function ContactsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { user } = useAuth();
+  const { contacts: allContacts, fetchContacts } = useContactsStore();
 
-  const { data: allContacts = [], isLoading } = useContacts();
-  const { data: searchResults = [] } = useSearchContacts(searchQuery);
+  useEffect(() => {
+    if (user?.id) {
+      fetchContacts(user.id);
+    }
+  }, [user?.id, fetchContacts]);
 
-  // Use search results when query is active, otherwise all contacts
-  const baseContacts = searchQuery.trim() ? searchResults : allContacts;
+  const isLoading = allContacts.length === 0 && searchQuery === "";
 
-  // Client-side tag filtering on top of Supabase results
-  const contacts = useMemo(() =>
-    selectedTags.length === 0
-      ? baseContacts
-      : baseContacts.filter((c) =>
-          selectedTags.some((tag) => (c.tags ?? []).includes(tag))
-        ),
-    [baseContacts, selectedTags]
-  );
-
-  const toggleTag = (tag: string) =>
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+  // Filter contacts locally based on search query
+  const contacts = useMemo(() => {
+    if (!searchQuery.trim()) return allContacts;
+    const q = searchQuery.toLowerCase();
+    return allContacts.filter(c => 
+      c.name.toLowerCase().includes(q) ||
+      c.company.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q)
     );
+  }, [allContacts, searchQuery]);
 
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto">
@@ -73,30 +53,6 @@ export default function ContactsPage() {
         <div className="hidden md:block md:flex-1" />
       </div>
 
-      {/* Tag filters */}
-      <div className="flex flex-wrap gap-2">
-        {ALL_TAGS.map((tag) => (
-          <button
-            key={tag}
-            onClick={() => toggleTag(tag)}
-            className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${
-              selectedTags.includes(tag)
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-secondary text-secondary-foreground border-border hover:bg-accent"
-            }`}
-          >
-            {tag}
-          </button>
-        ))}
-        {selectedTags.length > 0 && (
-          <button
-            onClick={() => setSelectedTags([])}
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            Clear filters
-          </button>
-        )}
-      </div>
 
       {/* Loading skeletons */}
       {isLoading ? (
@@ -118,8 +74,7 @@ export default function ContactsPage() {
         <>
           <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {contacts.map((c, i) => (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              <ContactCard key={c.id} contact={toCardContact(c) as any} index={i} />
+              <ContactCard key={c.id} contact={c} index={i} />
             ))}
           </motion.div>
 

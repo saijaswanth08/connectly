@@ -1,30 +1,63 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
-import { ContactTag, ImportanceLevel } from "@/lib/types";
 import { useCreateContact } from "@/hooks/useContacts";
-import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
-const allTags: ContactTag[] = ["investor", "client", "mentor", "partner", "recruiter", "friend"];
+
 
 const emptyForm = {
-  name: "", email: "", phone: "", company: "", jobTitle: "",
-  importance: "medium" as ImportanceLevel, tags: [] as ContactTag[], notes: "",
+  name: "",
+  email: "",
+  phone: "",
+  company: "",
+  job_title: "",
+  linkedin: "",
+  instagram: "",
+  priority: "medium",
+
+  notes: "",
 };
 
-export function AddContactDialog() {
-  const [open, setOpen] = useState(false);
+interface AddContactDialogProps {
+  /** Controlled mode: pass open + onClose to drive the dialog from outside */
+  open?: boolean;
+  onClose?: () => void;
+}
+
+export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDialogProps = {}) {
+  const isControlled = controlledOpen !== undefined;
+
+  const [internalOpen, setInternalOpen] = useState(false);
+  const dialogOpen = isControlled ? controlledOpen : internalOpen;
+
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<{ name?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   const createContact = useCreateContact();
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!dialogOpen) {
+      setForm(emptyForm);
+      setErrors({});
+    }
+  }, [dialogOpen]);
+
+  function handleOpenChange(val: boolean) {
+    if (isControlled) {
+      if (!val) onClose?.();
+    } else {
+      setInternalOpen(val);
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,42 +67,33 @@ export function AddContactDialog() {
       return;
     }
 
+    if (!user) {
+      toast({ title: "Error", description: "You must be logged in to add contacts.", variant: "destructive" });
+      return;
+    }
+
     setSubmitting(true);
     try {
-      // Always fetch the freshest session — avoids stale cached user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        toast({
-          title: "Not signed in",
-          description: "You must be logged in to add a contact.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       await createContact.mutateAsync({
         user_id: user.id,
         name: form.name.trim(),
         email: form.email.trim(),
         phone: form.phone.trim(),
         company: form.company.trim(),
-        job_title: form.jobTitle.trim(),
-        linkedin_url: "",
-        meeting_location: "",
-        meeting_date: null,
+        job_title: form.job_title.trim(),
+        priority: form.priority,
+
+        linkedin: form.linkedin.trim(),
+        instagram: form.instagram.trim(),
         notes: form.notes.trim(),
-        tags: form.tags,
-        importance: form.importance,
       });
 
-      toast({ 
-        title: "Contact added successfully", 
+      toast({
+        title: "Contact added successfully",
         description: `${form.name} has been saved.`,
-        className: "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800" 
+        className: "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800",
       });
-      setForm(emptyForm);
-      setOpen(false);
+      handleOpenChange(false);
     } catch (err: unknown) {
       const message =
         err instanceof Error
@@ -82,60 +106,83 @@ export function AddContactDialog() {
     }
   };
 
-  const toggleTag = (tag: ContactTag) => {
-    setForm((f) => ({
-      ...f,
-      tags: f.tags.includes(tag) ? f.tags.filter((t) => t !== tag) : [...f.tags, tag],
-    }));
-  };
+
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" /> Add Contact
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display">Add New Contact</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+          {/* Two-column grid */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="name" className={errors.name ? "text-destructive" : ""}>Name *</Label>
-              <Input 
-                id="name" 
-                value={form.name} 
-                onChange={(e) => {
-                  setForm((f) => ({ ...f, name: e.target.value }));
-                  if (errors.name) setErrors({});
-                }} 
-                placeholder="Full name" 
+              <Label htmlFor="ac-name" className={errors.name ? "text-destructive" : ""}>
+                Full Name *
+              </Label>
+              <Input
+                id="ac-name"
+                value={form.name}
+                onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); if (errors.name) setErrors({}); }}
+                placeholder="Your full name"
                 className={errors.name ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"}
               />
-              {errors.name && <p className="text-[11px] font-medium text-destructive mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-[11px] font-medium text-destructive">{errors.name}</p>}
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="email@company.com" className="focus-visible:ring-primary" />
+              <Label htmlFor="ac-email">Email Address</Label>
+              <Input
+                id="ac-email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                placeholder="you@example.com"
+                className="focus-visible:ring-primary"
+              />
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder="+1 555-0100" className="focus-visible:ring-primary" />
+              <Label htmlFor="ac-company">Company</Label>
+              <Input
+                id="ac-company"
+                value={form.company}
+                onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
+                placeholder="Company name"
+                className="focus-visible:ring-primary"
+              />
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="company">Company</Label>
-              <Input id="company" value={form.company} onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))} placeholder="Company name" className="focus-visible:ring-primary" />
+              <Label htmlFor="ac-jobTitle">Job Title</Label>
+              <Input
+                id="ac-jobTitle"
+                value={form.job_title}
+                onChange={(e) => setForm((f) => ({ ...f, job_title: e.target.value }))}
+                placeholder="Your role"
+                className="focus-visible:ring-primary"
+              />
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="jobTitle">Job Title</Label>
-              <Input id="jobTitle" value={form.jobTitle} onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))} placeholder="CEO, Founder..." className="focus-visible:ring-primary" />
+              <Label htmlFor="ac-phone">Phone Number</Label>
+              <Input
+                id="ac-phone"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                placeholder="+91 XXXXXXXXXX"
+                className="focus-visible:ring-primary"
+              />
             </div>
+
             <div className="space-y-1.5">
               <Label>Priority</Label>
-              <Select value={form.importance} onValueChange={(v) => setForm((f) => ({ ...f, importance: v as ImportanceLevel }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={form.priority} onValueChange={(v) => setForm((f) => ({ ...f, priority: v }))}>
+                <SelectTrigger className="focus-visible:ring-primary">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="vip">VIP</SelectItem>
                   <SelectItem value="high">High</SelectItem>
@@ -144,32 +191,52 @@ export function AddContactDialog() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Tags</Label>
-            <div className="flex flex-wrap gap-2">
-              {allTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => toggleTag(tag)}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${
-                    form.tags.includes(tag) ? "bg-primary text-primary-foreground border-primary" : "bg-secondary text-secondary-foreground border-border hover:bg-accent"
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="ac-linkedin">LinkedIn URL</Label>
+              <Input
+                id="ac-linkedin"
+                value={form.linkedin}
+                onChange={(e) => setForm((f) => ({ ...f, linkedin: e.target.value }))}
+                placeholder="linkedin.com/in/username"
+                className="focus-visible:ring-primary"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="ac-instagram">Instagram</Label>
+              <Input
+                id="ac-instagram"
+                value={form.instagram}
+                onChange={(e) => setForm((f) => ({ ...f, instagram: e.target.value }))}
+                placeholder="@your_handle"
+                className="focus-visible:ring-primary"
+              />
             </div>
           </div>
+
+
+
+          {/* Notes — full width */}
           <div className="space-y-1.5">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="How did you meet? Key discussion points..." rows={3} className="focus-visible:ring-primary" />
+            <Label htmlFor="ac-notes">Notes</Label>
+            <Textarea
+              id="ac-notes"
+              value={form.notes}
+              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              placeholder="How did you meet? Key discussion points..."
+              rows={3}
+              className="focus-visible:ring-primary"
+            />
           </div>
+
+          {/* Footer */}
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={submitting}>Cancel</Button>
-            <Button type="submit" isLoading={submitting}>
-              Add Contact
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Saving…" : "Save Contact"}
             </Button>
           </div>
         </form>

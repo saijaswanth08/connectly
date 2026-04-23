@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Mail, Phone, Building2, MapPin, Linkedin, Pencil, CalendarPlus, Trash2, Star, StickyNote } from "lucide-react";
 import { motion } from "framer-motion";
 
-const importanceConfig: Record<string, { label: string; class: string }> = {
+const priorityConfig: Record<string, { label: string; class: string }> = {
   vip: { label: "VIP", class: "bg-vip/20 text-vip border-vip/30" },
   high: { label: "High", class: "bg-high/20 text-high border-high/30" },
   medium: { label: "Medium", class: "bg-medium/20 text-medium border-medium/30" },
@@ -26,7 +26,7 @@ export function ContactDetailModal({ contact, open, onOpenChange, onEdit, onDele
   if (!contact) return null;
 
   const initials = contact.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
-  const imp = importanceConfig[contact.importance] || importanceConfig.medium;
+  const imp = priorityConfig[contact.priority || "medium"] || priorityConfig.medium;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -74,34 +74,19 @@ export function ContactDetailModal({ contact, open, onOpenChange, onEdit, onDele
               {contact.company && (
                 <InfoRow icon={Building2} label="Company" value={contact.company} />
               )}
-              {contact.meeting_location && (
-                <InfoRow icon={MapPin} label="Met at" value={contact.meeting_location} />
-              )}
-              {contact.linkedin_url && (
+              {contact.linkedin && (
                 <InfoRow
                   icon={Linkedin}
                   label="LinkedIn"
                   value="View Profile"
-                  href={contact.linkedin_url.startsWith("http") ? contact.linkedin_url : `https://${contact.linkedin_url}`}
+                  href={contact.linkedin.startsWith("http") ? contact.linkedin : `https://${contact.linkedin}`}
                   external
                 />
               )}
             </div>
           </section>
 
-          {/* Tags */}
-          {contact.tags && contact.tags.length > 0 && (
-            <section className="space-y-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tags</h4>
-              <div className="flex flex-wrap gap-2">
-                {contact.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium bg-accent text-accent-foreground border-0">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </section>
-          )}
+
 
           {/* Notes */}
           {contact.notes && (

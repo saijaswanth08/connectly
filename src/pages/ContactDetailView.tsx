@@ -33,9 +33,9 @@ export default function ContactDetailView() {
   const startEdit = () => {
     setForm({
       name: contact.name, company: contact.company, job_title: contact.job_title,
-      email: contact.email, phone: contact.phone, linkedin_url: contact.linkedin_url,
-      meeting_location: contact.meeting_location, notes: contact.notes,
-      importance: contact.importance, tags: contact.tags.join(", "),
+      email: contact.email, phone: contact.phone, linkedin: contact.linkedin,
+      instagram: contact.instagram, notes: contact.notes,
+      priority: contact.priority || "medium",
     });
     setEditing(true);
   };
@@ -46,9 +46,9 @@ export default function ContactDetailView() {
         id: contact.id,
         updates: {
           name: form.name, company: form.company, job_title: form.job_title,
-          email: form.email, phone: form.phone, linkedin_url: form.linkedin_url,
-          meeting_location: form.meeting_location, notes: form.notes,
-          importance: form.importance, tags: form.tags ? form.tags.split(",").map((t) => t.trim()) : [],
+          email: form.email, phone: form.phone, linkedin: form.linkedin,
+          instagram: form.instagram, notes: form.notes,
+          priority: form.priority,
         },
       });
       setEditing(false);
@@ -91,13 +91,13 @@ export default function ContactDetailView() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-            <div className="space-y-1.5"><Label>LinkedIn</Label><Input value={form.linkedin_url} onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>LinkedIn</Label><Input value={form.linkedin} onChange={(e) => setForm({ ...form, linkedin: e.target.value })} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>Meeting Location</Label><Input value={form.meeting_location} onChange={(e) => setForm({ ...form, meeting_location: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>Instagram</Label><Input value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} /></div>
             <div className="space-y-1.5">
-              <Label>Importance</Label>
-              <Select value={form.importance} onValueChange={(v) => setForm({ ...form, importance: v })}>
+              <Label>Priority</Label>
+              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="vip">VIP</SelectItem>
@@ -108,7 +108,6 @@ export default function ContactDetailView() {
               </Select>
             </div>
           </div>
-          <div className="space-y-1.5"><Label>Tags</Label><Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={4} /></div>
           <div className="flex gap-2">
             <Button onClick={handleSave} className="rounded-full gap-2" disabled={updateContact.isPending}><Save className="h-4 w-4" />{updateContact.isPending ? "Saving..." : "Save"}</Button>
@@ -121,14 +120,8 @@ export default function ContactDetailView() {
             {contact.company && <span className="flex items-center gap-1.5"><Building2 className="h-4 w-4" />{contact.job_title ? `${contact.job_title} at ${contact.company}` : contact.company}</span>}
             {contact.email && <span className="flex items-center gap-1.5"><Mail className="h-4 w-4" />{contact.email}</span>}
             {contact.phone && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4" />{contact.phone}</span>}
-            {contact.meeting_location && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" />{contact.meeting_location}</span>}
-            {contact.linkedin_url && <a href={contact.linkedin_url.startsWith("http") ? contact.linkedin_url : `https://${contact.linkedin_url}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary hover:underline"><Linkedin className="h-4 w-4" />LinkedIn</a>}
+            {contact.linkedin && <a href={contact.linkedin.startsWith("http") ? contact.linkedin : `https://${contact.linkedin}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary hover:underline"><Linkedin className="h-4 w-4" />LinkedIn</a>}
           </div>
-          {contact.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {contact.tags.map((t) => <span key={t} className="rounded-full bg-accent text-accent-foreground px-2.5 py-0.5 text-xs font-medium">{t}</span>)}
-            </div>
-          )}
           {contact.notes && (
             <div>
               <h3 className="font-display text-sm font-semibold mb-1">Notes</h3>

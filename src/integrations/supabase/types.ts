@@ -62,16 +62,13 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
-          importance: string
           job_title: string | null
-          linkedin_url: string | null
-          meeting_date: string | null
-          meeting_location: string | null
+          linkedin: string | null
+          instagram: string | null
           name: string
           notes: string | null
           phone: string | null
-          tags: string[] | null
-          updated_at: string
+          priority: string | null
           user_id: string
         }
         Insert: {
@@ -79,16 +76,13 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
-          importance?: string
           job_title?: string | null
-          linkedin_url?: string | null
-          meeting_date?: string | null
-          meeting_location?: string | null
+          linkedin?: string | null
+          instagram?: string | null
           name: string
           notes?: string | null
           phone?: string | null
-          tags?: string[] | null
-          updated_at?: string
+          priority?: string | null
           user_id: string
         }
         Update: {
@@ -96,16 +90,13 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
-          importance?: string
           job_title?: string | null
-          linkedin_url?: string | null
-          meeting_date?: string | null
-          meeting_location?: string | null
+          linkedin?: string | null
+          instagram?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
-          tags?: string[] | null
-          updated_at?: string
+          priority?: string | null
           user_id?: string
         }
         Relationships: []

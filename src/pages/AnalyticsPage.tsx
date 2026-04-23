@@ -7,11 +7,11 @@ export default function AnalyticsPage() {
   const contacts = useContactsStore((s) => s.contacts);
   const meetings = useContactsStore((s) => s.meetings);
 
-  const importanceData = [
-    { name: "VIP", value: contacts.filter((c) => c.importance === "vip").length, fill: "hsl(var(--vip))" },
-    { name: "High", value: contacts.filter((c) => c.importance === "high").length, fill: "hsl(var(--high))" },
-    { name: "Medium", value: contacts.filter((c) => c.importance === "medium").length, fill: "hsl(var(--medium))" },
-    { name: "Low", value: contacts.filter((c) => c.importance === "low").length, fill: "hsl(var(--low))" },
+  const priorityData = [
+    { name: "VIP", value: contacts.filter((c) => c.priority === "vip").length, fill: "hsl(var(--vip))" },
+    { name: "High", value: contacts.filter((c) => c.priority === "high").length, fill: "hsl(var(--high))" },
+    { name: "Medium", value: contacts.filter((c) => c.priority === "medium").length, fill: "hsl(var(--medium))" },
+    { name: "Low", value: contacts.filter((c) => c.priority === "low").length, fill: "hsl(var(--low))" },
   ];
 
   return (
@@ -59,8 +59,8 @@ export default function AnalyticsPage() {
           <h2 className="font-display font-semibold mb-4">Contact Priority Breakdown</h2>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
-              <Pie data={importanceData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
-                {importanceData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+              <Pie data={priorityData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                {priorityData.map((e, i) => <Cell key={i} fill={e.fill} />)}
               </Pie>
               <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
             </PieChart>

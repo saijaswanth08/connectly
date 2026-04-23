@@ -50,10 +50,8 @@ export function SidebarUserMenu() {
     .toUpperCase();
   const avatarUrl = profile?.avatar_url || null;
 
-  const handleLogout = async () => {
-    await signOut();
-    toast.success("Logged out successfully.");
-    navigate("/login");
+  const handleLogout = () => {
+    signOut();
   };
 
   return (

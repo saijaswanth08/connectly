@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Send, ArrowLeft, MessageSquare } from "lucide-react";
+import { Search, Send, ArrowLeft, MessageSquare, Plus, X } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -37,12 +37,16 @@ function formatMessageTime(dateStr: string) {
 }
 
 export default function MessagesPage() {
-  console.log("MessagesPage loaded");
+  useEffect(() => {
+    console.log("MessagesPage loaded");
+  }, []);
   const isMobile = useIsMobile();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [messageText, setMessageText] = useState("");
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
@@ -87,11 +91,12 @@ export default function MessagesPage() {
 
   async function handleSelectContact(contact: DbContact) {
     setSelectedContactId(contact.id);
+    setShowPicker(false);
+    setPickerSearch("");
     const conv = convByContact.get(contact.id);
     if (conv) {
       setSelectedConversationId(conv.id);
     } else {
-      // Create conversation on first message, not on select
       setSelectedConversationId(null);
     }
   }
@@ -210,6 +215,60 @@ export default function MessagesPage() {
               })
             )}
           </ScrollArea>
+
+          {/* New Message button + inline picker */}
+          <div className="p-3 border-t border-border/50 relative">
+            {showPicker && (
+              <div className="absolute bottom-14 left-2 right-2 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-10">
+                <div className="flex items-center gap-2 p-3 border-b border-border/40">
+                  <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <input
+                    autoFocus
+                    placeholder="Search contacts..."
+                    value={pickerSearch}
+                    onChange={(e) => setPickerSearch(e.target.value)}
+                    className="flex-1 text-sm bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
+                  />
+                  <button onClick={() => { setShowPicker(false); setPickerSearch(""); }} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="max-h-56 overflow-y-auto">
+                  {contacts
+                    .filter((c) => c.name.toLowerCase().includes(pickerSearch.toLowerCase()))
+                    .map((contact) => (
+                      <button
+                        key={contact.id}
+                        onClick={() => handleSelectContact(contact)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent/50 transition-colors text-left"
+                      >
+                        <Avatar className="h-8 w-8 shrink-0">
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                            {getInitials(contact.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{contact.name}</p>
+                          {contact.company && <p className="text-xs text-muted-foreground truncate">{contact.company}</p>}
+                        </div>
+                      </button>
+                    ))}
+                  {contacts.filter((c) => c.name.toLowerCase().includes(pickerSearch.toLowerCase())).length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">No contacts found</p>
+                  )}
+                </div>
+              </div>
+            )}
+            <Button
+              onClick={() => setShowPicker((p) => !p)}
+              variant="outline"
+              className="w-full gap-2 text-sm"
+              size="sm"
+            >
+              <Plus className="h-4 w-4" />
+              New Message
+            </Button>
+          </div>
         </div>
       )}
 

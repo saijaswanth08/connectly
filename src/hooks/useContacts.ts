@@ -1,17 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "./useAuth";
 import { fetchContacts, createContact, updateContact, deleteContact, searchContacts, fetchMeetings, createMeeting, updateMeeting, deleteMeeting, DbContact, DbMeeting } from "@/lib/api";
 
 export function useContacts() {
+  const { user } = useAuth();
   return useQuery<DbContact[]>({
-    queryKey: ["contacts"],
+    queryKey: ["contacts", user?.id],
     queryFn: fetchContacts,
+    enabled: !!user?.id,
+    refetchOnMount: true,
   });
 }
 
 export function useSearchContacts(query: string) {
+  const { user } = useAuth();
   return useQuery<DbContact[]>({
-    queryKey: ["contacts", "search", query],
+    queryKey: ["contacts", "search", query, user?.id],
     queryFn: () => (query ? searchContacts(query) : fetchContacts()),
+    enabled: !!user?.id,
   });
 }
 

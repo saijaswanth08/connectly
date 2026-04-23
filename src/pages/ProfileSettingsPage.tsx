@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
+import { updateProfile } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,18 +13,68 @@ import {
   Linkedin, Instagram, Building2, Briefcase, X
 } from "lucide-react";
 
+type Profile = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  job_title: string | null;
+  linkedin: string | null;   // frontend field name only
+  instagram: string | null;
+  avatar_url: string | null;
+  created_at: string;
+};
+
+// Shape of the raw row Supabase returns (mirrors actual DB columns)
+type ProfileRow = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  job_title: string | null;
+  linkedin_url: string | null; // actual DB column
+  instagram: string | null;
+  avatar_url: string | null;
+  created_at: string;
+};
+
 export default function ProfileSettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading } = useQuery<Profile | null>({
     queryKey: ["profile", user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Profile | null> => {
       if (!user?.id) return null;
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      return data;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+
+      // Cast raw Supabase response to known DB shape
+      const row = data as ProfileRow;
+
+      // Map DB columns → frontend Profile type (linkedin_url → linkedin)
+      return {
+        id: row.id,
+        name: row.name ?? null,
+        email: row.email ?? null,
+        phone: row.phone ?? null,
+        company: row.company ?? null,
+        job_title: row.job_title ?? null,
+        linkedin: row.linkedin_url ?? null,
+        instagram: row.instagram ?? null,
+        avatar_url: row.avatar_url ?? null,
+        created_at: row.created_at,
+      } satisfies Profile;
     },
     enabled: !!user?.id,
   });
@@ -41,7 +92,7 @@ export default function ProfileSettingsPage() {
       const values = {
         name: profile.name || "",
         phone: profile.phone || "",
-        linkedin_url: profile.linkedin_url || "",
+        linkedin_url: profile.linkedin || "",
         instagram: profile.instagram || "",
         company: profile.company || "",
         job_title: profile.job_title || "",
@@ -63,21 +114,38 @@ export default function ProfileSettingsPage() {
     setForm(originalForm);
   };
 
-  const handleSave = async () => {
-    if (!user?.id) return;
+  const handleSave = async (): Promise<void> => {
+    if (!user?.id) {
+      console.warn("[ProfileSettings] handleSave aborted: user ID is missing");
+      return;
+    }
+
     setSaving(true);
+
     try {
-      const { error } = await supabase.from("profiles").update({
-        name: form.name, phone: form.phone, linkedin_url: form.linkedin_url,
-        instagram: form.instagram, company: form.company, job_title: form.job_title,
-      }).eq("id", user.id);
-      if (error) throw error;
+      await updateProfile({
+        name: form.name || undefined,
+        phone: form.phone || undefined,
+        linkedin: form.linkedin_url || undefined,
+        instagram: form.instagram || undefined,
+        company: form.company || undefined,
+        job_title: form.job_title || undefined,
+      });
+
       setOriginalForm(form);
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
-      toast({ title: "Profile updated!" });
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Error updating profile";
-      toast({ title: "Error", description: msg, variant: "destructive" });
+      toast({ title: "Profile updated successfully" });
+    } catch (err: any) {
+      console.error("PROFILE SAVE ERROR:", err);
+      toast({
+        title: "Error",
+        description:
+          err?.message ||
+          err?.details ||
+          err?.hint ||
+          JSON.stringify(err),
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }

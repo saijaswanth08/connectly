@@ -1,5 +1,10 @@
-import { useState, useMemo, useEffect } from "react";
-import { useAuth } from "@/context/AuthProvider";
+// ⛔ DISABLED — Route /dashboard now points to DashboardPage.tsx
+// This component called supabase.from('contacts').select() causing infinite "Loading contacts..."
+// DO NOT re-enable or import this component. It is kept for reference only.
+// ---------------------------------
+
+import { useState, useEffect } from 'react';
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { DbContact } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +28,7 @@ export default function AppDashboard() {
 
       try {
         setLoading(true);
-        
+
         console.log("FETCHING CONTACTS FOR:", user.id);
 
         const { data, error: fetchError } = await supabase
@@ -40,7 +45,12 @@ export default function AppDashboard() {
         }
 
         if (isMounted) {
-          setContacts(data || []);
+          setContacts(
+            (data || []).map((item) => ({
+              ...item,
+              tags: (item as any).tags ?? [],
+            }))
+          );
         }
       } catch (err: any) {
         console.error("Dashboard error:", err);
@@ -64,11 +74,11 @@ export default function AppDashboard() {
     // 3. Realtime subscription (Optional Improvement)
     const channel = supabase
       .channel('schema-db-changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
         table: 'contacts',
-        filter: `user_id=eq.${user?.id}` 
+        filter: `user_id=eq.${user?.id}`
       }, () => {
         fetchDashboardData();
       })
@@ -114,8 +124,8 @@ export default function AppDashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {contacts.map((contact) => (
-            <div 
-              key={contact.id} 
+            <div
+              key={contact.id}
               className="p-5 rounded-2xl border bg-card hover:shadow-md transition-shadow group"
             >
               <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">

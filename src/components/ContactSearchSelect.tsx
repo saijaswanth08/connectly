@@ -25,7 +25,7 @@ export function ContactSearchSelect({ value, onChange }: ContactSearchSelectProp
       (c) =>
         c.name.toLowerCase().includes(q) ||
         (c.company && c.company.toLowerCase().includes(q)) ||
-        (c.tags && c.tags.some((t) => t.toLowerCase().includes(q)))
+        (c.priority && c.priority.toLowerCase().includes(q))
     ).slice(0, 8);
   }, [contacts, query]);
 
@@ -63,8 +63,8 @@ export function ContactSearchSelect({ value, onChange }: ContactSearchSelectProp
           <User className="h-3.5 w-3.5 text-primary" />
         </div>
         <span className="text-sm font-medium text-foreground truncate">{selectedContact.name}</span>
-        {selectedContact.tags && selectedContact.tags.length > 0 && (
-          <span className="text-xs text-muted-foreground">({selectedContact.tags[0]})</span>
+        {selectedContact.priority && (
+          <span className="text-xs text-muted-foreground capitalize">({selectedContact.priority})</span>
         )}
         <button
           type="button"
@@ -82,7 +82,7 @@ export function ContactSearchSelect({ value, onChange }: ContactSearchSelectProp
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search contacts by name or tag..."
+          placeholder="Search contacts by name, company or priority..."
           className="pl-9 rounded-lg border-border/60 shadow-sm"
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => setOpen(true)}
@@ -107,7 +107,7 @@ export function ContactSearchSelect({ value, onChange }: ContactSearchSelectProp
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{c.name}</p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {[c.tags?.[0], c.company].filter(Boolean).join(" · ") || "No tags"}
+                        {[c.priority, c.company].filter(Boolean).join(" · ")}
                       </p>
                     </div>
                   </button>

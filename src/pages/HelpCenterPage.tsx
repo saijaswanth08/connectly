@@ -13,7 +13,7 @@ const helpTopics = [
       "Navigate to the Dashboard page.",
       "Click the 'Add Contact' button at the top.",
       "Fill in the contact's details like name, company, email, and phone.",
-      "Assign tags and importance level for easy filtering.",
+      "Assign tags and priority level for easy filtering.",
       "Click 'Save' to add the contact to your network.",
     ],
   },
@@ -47,7 +47,7 @@ const helpTopics = [
     description: "Tips for organizing and growing your professional network effectively.",
     steps: [
       "Use tags to categorize contacts by industry or relationship.",
-      "Set importance levels (VIP, High, Medium, Low) to prioritize.",
+      "Set priority levels (VIP, High, Medium, Low) to prioritize.",
       "Add meeting notes to keep context for each relationship.",
       "Review your dashboard analytics to track engagement.",
       "Regularly update contact information to keep your network current.",

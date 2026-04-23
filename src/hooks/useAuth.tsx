@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   user: User | null;
@@ -25,47 +24,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // 1. Initial session check
+    // 1. Initial session check from localStorage — fast, no network needed.
     const initSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        console.log("INITIAL SESSION:", session);
         if (mounted) {
-          if (error) throw error;
-          setSession(session);
-          setUser(session?.user ?? null);
+          if (error) {
+            console.error("[useAuth] getSession error:", error.message);
+          } else if (session) {
+            setSession(session);
+            setUser(session.user);
+          }
         }
       } catch (error: any) {
-        console.error("Error checking auth session:", error.message);
-      } finally {
-        if (mounted) setLoading(false);
+        console.error("[useAuth] getSession exception:", error.message);
       }
     };
 
     initSession();
 
-    // 2. Listen for auth changes (login, logout, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("AUTH EVENT:", event, session?.user?.id);
-      
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    // 2. onAuthStateChange is the source of truth for all auth events.
+    //    Keep it SYNCHRONOUS — do not await anything inside this callback.
+    //    Profile upsert is fire-and-forget to avoid blocking auth state updates.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
 
-        // Upsert profile whenever a user is present (Google OAuth metadata handling)
-        if (session?.user) {
-          const { user } = session;
-          await supabase.from("profiles").upsert(
-            {
-              id: user.id,
-              name: user.user_metadata?.full_name || user.user_metadata?.name || "",
-              email: user.email ?? "",
-              avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-            },
-            { onConflict: "id" }
-          );
-        }
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+
+      // Fire-and-forget profile upsert on sign-in (do NOT await here)
+      if (session?.user) {
+        const u = session.user;
+        supabase.from("profiles").upsert(
+          {
+            id: u.id,
+            name: u.user_metadata?.full_name || u.user_metadata?.name || "",
+            email: u.email ?? "",
+            avatar_url: u.user_metadata?.avatar_url || u.user_metadata?.picture || null,
+          },
+          { onConflict: "id" }
+        ).then(({ error }) => {
+          if (error) console.error("[useAuth] profile upsert error:", error.message);
+        });
       }
     });
 
@@ -76,14 +77,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error("Sign out error:", error);
-    } finally {
-      setUser(null);
-      setSession(null);
-    }
+    // Step 1: Immediately clear all Supabase tokens from storage.
+    // This is the most important step — do it first so the redirect
+    // to /login won't bounce back to /dashboard even if the API call fails.
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("sb-"))
+      .forEach((k) => localStorage.removeItem(k));
+    Object.keys(sessionStorage)
+      .filter((k) => k.startsWith("sb-"))
+      .forEach((k) => sessionStorage.removeItem(k));
+
+    // Step 2: Clear React state immediately
+    setUser(null);
+    setSession(null);
+
+    // Step 3: Tell Supabase to sign out locally (scope:'local' = no network needed).
+    // Fire-and-forget — we don't wait for this so the redirect is instant.
+    supabase.auth.signOut({ scope: "local" }).catch((err) => {
+      console.error("[signOut] Supabase signOut error (non-blocking):", err);
+    });
+
+    // Step 4: Hard redirect to login. Using href to force a full page reload
+    // so all React state, query cache, and Supabase client memory is cleared.
+    window.location.href = "/login";
   };
 
   return (

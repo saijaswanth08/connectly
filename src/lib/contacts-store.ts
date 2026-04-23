@@ -1,54 +1,85 @@
 import { create } from "zustand";
-import { Contact, Reminder, TimelineEntry, Meeting } from "./types";
-import { mockContacts, mockMeetings, mockReminders, mockTimeline } from "./mock-data";
+import {
+  DbContact,
+  fetchContacts as fetchContactsFromApi,
+  createContact,
+  updateContact as updateContactInApi,
+  deleteContact as deleteContactFromApi,
+} from "./api";
+import { Meeting } from "./types";
 
 interface ContactsStore {
-  contacts: Contact[];
+  contacts: DbContact[];
   meetings: Meeting[];
-  reminders: Reminder[];
-  timeline: TimelineEntry[];
   searchQuery: string;
-  selectedTags: string[];
+  fetchContacts: (userId: string) => Promise<void>;
+  addContact: (contact: Omit<DbContact, "id" | "created_at">) => Promise<void>;
+  updateContact: (id: string, updates: Partial<DbContact>) => Promise<void>;
+  deleteContact: (id: string) => Promise<void>;
   setSearchQuery: (q: string) => void;
-  setSelectedTags: (tags: string[]) => void;
-  addContact: (contact: Contact) => void;
-  updateContact: (id: string, updates: Partial<Contact>) => void;
-  deleteContact: (id: string) => void;
-  addReminder: (reminder: Reminder) => void;
-  toggleReminder: (id: string) => void;
-  addTimelineEntry: (entry: TimelineEntry) => void;
-  filteredContacts: () => Contact[];
+  filteredContacts: () => DbContact[];
 }
 
 export const useContactsStore = create<ContactsStore>((set, get) => ({
-  contacts: mockContacts,
-  meetings: mockMeetings,
-  reminders: mockReminders,
-  timeline: mockTimeline,
+  contacts: [],
+  meetings: [],
   searchQuery: "",
-  selectedTags: [],
+
   setSearchQuery: (q) => set({ searchQuery: q }),
-  setSelectedTags: (tags) => set({ selectedTags: tags }),
-  addContact: (contact) => set((s) => ({ contacts: [contact, ...s.contacts] })),
-  updateContact: (id, updates) => set((s) => ({
-    contacts: s.contacts.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-  })),
-  deleteContact: (id) => set((s) => ({ contacts: s.contacts.filter((c) => c.id !== id) })),
-  addReminder: (reminder) => set((s) => ({ reminders: [reminder, ...s.reminders] })),
-  toggleReminder: (id) => set((s) => ({
-    reminders: s.reminders.map((r) => (r.id === id ? { ...r, completed: !r.completed } : r)),
-  })),
-  addTimelineEntry: (entry) => set((s) => ({ timeline: [entry, ...s.timeline] })),
+
+  fetchContacts: async (userId: string) => {
+    try {
+      if (!userId) throw new Error("User ID missing");
+      const data = await fetchContactsFromApi();
+      set({ contacts: data });
+    } catch (e) {
+      console.error("[store] fetchContacts error:", e);
+      throw e;
+    }
+  },
+
+  addContact: async (contact) => {
+    try {
+      if (!contact.user_id) throw new Error("user_id missing");
+      const data = await createContact(contact);
+      set((s) => ({ contacts: [data, ...s.contacts] }));
+    } catch (e) {
+      console.error("[store] addContact error:", e);
+      throw e;
+    }
+  },
+
+  updateContact: async (id, updates) => {
+    try {
+      const data = await updateContactInApi(id, updates);
+      set((s) => ({
+        contacts: s.contacts.map((c) => (c.id === id ? data : c)),
+      }));
+    } catch (e) {
+      console.error("[store] updateContact error:", e);
+      throw e;
+    }
+  },
+
+  deleteContact: async (id) => {
+    try {
+      await deleteContactFromApi(id);
+      set((s) => ({ contacts: s.contacts.filter((c) => c.id !== id) }));
+    } catch (e) {
+      console.error("[store] deleteContact error:", e);
+      throw e;
+    }
+  },
+
   filteredContacts: () => {
-    const { contacts, searchQuery, selectedTags } = get();
-    return contacts.filter((c) => {
-      const matchesSearch = !searchQuery || 
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.email.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesTags = selectedTags.length === 0 || 
-        c.tags.some((t) => selectedTags.includes(t));
-      return matchesSearch && matchesTags;
-    });
+    const { contacts, searchQuery } = get();
+    if (!searchQuery.trim()) return contacts;
+    const q = searchQuery.toLowerCase();
+    return contacts.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.company.toLowerCase().includes(q) ||
+        c.email.toLowerCase().includes(q)
+    );
   },
 }));

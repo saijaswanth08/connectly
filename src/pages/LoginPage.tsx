@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
-import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,38 +16,12 @@ export default function LoginPage() {
   const location = useLocation();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Check session on load
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log("[LoginPage] Session found, forced redirect to /dashboard");
-        window.location.href = "/dashboard";
-      }
-    };
-    checkSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        console.log("[LoginPage] Auth change detected, forced redirect to /dashboard");
-        window.location.href = "/dashboard";
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // useAuthRedirect(); // Replaced by explicit logic above as requested
-
-  // Read optional ?redirect= param set by PublicProfilePage when unauthenticated
+  // Redirect destination — respects ?redirect= param set by other pages
   const redirectTo = new URLSearchParams(location.search).get("redirect") || "/dashboard";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast({ title: "Error", description: "Please enter both email and password.", variant: "destructive" });
       return;
@@ -57,50 +30,52 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Ensure environment variables are correctly accessed
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error("Supabase credentials are missing. Please check your .env file or Vite configuration.");
-      }
-
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
-        password: password,
+        password,
       });
 
       if (error) {
-        setLoading(false);
-        toast({ 
-          title: "Login failed", 
-          description: error.message === "Failed to fetch" 
-            ? "Network error: Could not reach Supabase. Check your connection or project URL." 
-            : error.message, 
-          variant: "destructive" 
+        console.error("[Login] Supabase error:", error);
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
         });
+      } else {
+        // Wait for onAuthStateChange to fire and update the context
+        // before navigating, so ProtectedRoute sees the user immediately.
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === "SIGNED_IN" && session) {
+            subscription.unsubscribe();
+            navigate(redirectTo, { replace: true });
+          }
+        });
+        // Safety fallback: navigate after 1.5s even if event is delayed
+        setTimeout(() => {
+          subscription.unsubscribe();
+          navigate(redirectTo, { replace: true });
+        }, 1500);
       }
-      // If success, redirection happens via the AuthProvider's onAuthStateChange listener
     } catch (err: any) {
-      setLoading(false);
-      const errorMessage = err?.message || "An unexpected network error occurred.";
-      toast({ 
-        title: "Login failed", 
-        description: errorMessage === "Failed to fetch" 
-          ? "Connection refused: Ensure your Supabase URL and project settings are correct." 
-          : errorMessage, 
-        variant: "destructive" 
+      console.error("[Login] Unexpected exception:", err);
+      toast({
+        title: "Login failed",
+        description: err?.message || "An unexpected error occurred.",
+        variant: "destructive",
       });
-      console.error("Login exception:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        // After Google auth, Supabase redirects here and detectSessionInUrl exchanges the code
+        redirectTo: window.location.origin + "/dashboard",
       },
     });
 
@@ -109,9 +84,8 @@ export default function LoginPage() {
       console.error("Google Auth error:", error);
       toast({ title: "Google login failed", description: error.message, variant: "destructive" });
     }
+    // If no error: browser is redirecting to Google — no further action needed
   };
-
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4 relative">
@@ -134,11 +108,11 @@ export default function LoginPage() {
         </div>
 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/70 backdrop-blur-md p-8 shadow-lg dark:shadow-black/40 space-y-5">
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="w-full rounded-full gap-2" 
-            onClick={handleGoogleLogin} 
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full rounded-full gap-2"
+            onClick={handleGoogleLogin}
             disabled={loading}
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -164,14 +138,30 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="rounded-lg focus:ring-2 focus:ring-indigo-500" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
                 <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link>
               </div>
-              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="rounded-lg focus:ring-2 focus:ring-indigo-500" />
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
             <Button type="submit" className="w-full rounded-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In with Email"}

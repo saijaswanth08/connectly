@@ -141,9 +141,8 @@ export function ProfileDropdown() {
     }
   };
 
-  const handleLogout = async () => {
-    await signOut();
-    toast.success("Logged out successfully.");
+  const handleLogout = () => {
+    signOut();
   };
 
   return (

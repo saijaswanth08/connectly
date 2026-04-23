@@ -4,13 +4,12 @@ import { Network, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-const TAG_COLORS: Record<string, string> = {
-  investor: "#8b5cf6", client: "#22c55e", mentor: "#f59e0b",
-  partner: "#3b82f6", recruiter: "#ec4899", friend: "#06b6d4",
+const PRIORITY_COLORS: Record<string, string> = {
+  vip: "#8b5cf6", high: "#22c55e", medium: "#f59e0b", low: "#3b82f6",
 };
 
-function getColor(tags: string[]): string {
-  for (const t of tags) if (TAG_COLORS[t.toLowerCase()]) return TAG_COLORS[t.toLowerCase()];
+function getColor(priority?: string): string {
+  if (priority && PRIORITY_COLORS[priority.toLowerCase()]) return PRIORITY_COLORS[priority.toLowerCase()];
   return "#6477b8";
 }
 
@@ -66,7 +65,7 @@ export function NetworkOverviewWidget() {
               const angle = (2 * Math.PI * i) / preview.length;
               const cx = 100 + Math.cos(angle) * 40;
               const cy = 60 + Math.sin(angle) * 40;
-              const color = getColor(c.tags || []);
+              const color = getColor(c.priority);
               const initials = (c.name || "").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
               return (
                 <g key={c.id}>

@@ -5,7 +5,14 @@ export function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  // Only block with a spinner if we're loading AND there is a stored session
+  // token hint (i.e., the user might already be logged in). This prevents the
+  // login form from being invisible when Supabase is slow to hydrate.
+  const hasStoredSession = Object.keys(localStorage).some((k) =>
+    k.startsWith("sb-") && k.endsWith("-auth-token")
+  );
+
+  if (loading && hasStoredSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />

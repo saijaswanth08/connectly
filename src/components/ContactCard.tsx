@@ -1,12 +1,12 @@
-import { Contact } from "@/lib/types";
+import { DbContact } from "@/lib/api";
 import { ImportanceBadge } from "./ImportanceBadge";
-import { TagBadge } from "./TagBadge";
+
 import { Building2, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-export function ContactCard({ contact, index = 0 }: { contact: Contact; index?: number }) {
+export function ContactCard({ contact, index = 0 }: { contact: DbContact; index?: number }) {
   const initials = contact.name.split(" ").map((n) => n[0]).join("").slice(0, 2);
 
   return (
@@ -30,20 +30,15 @@ export function ContactCard({ contact, index = 0 }: { contact: Contact; index?: 
               <h3 className="font-display font-semibold text-sm truncate group-hover:text-primary transition-colors">
                 {contact.name}
               </h3>
-              <ImportanceBadge level={contact.importance} />
+              <ImportanceBadge level={contact.priority || "medium"} />
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Building2 className="h-3 w-3 shrink-0" />
-              <span className="truncate">{contact.jobTitle} at {contact.company}</span>
+              <span className="truncate">{contact.job_title} at {contact.company}</span>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Mail className="h-3 w-3 shrink-0" />
               <span className="truncate">{contact.email}</span>
-            </div>
-            <div className="flex gap-1.5 pt-1 flex-wrap">
-              {contact.tags.map((tag) => (
-                <TagBadge key={tag} tag={tag} />
-              ))}
             </div>
           </div>
         </div>

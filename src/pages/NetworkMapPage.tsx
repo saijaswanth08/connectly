@@ -14,22 +14,17 @@ import { useToast } from "@/hooks/use-toast";
 import { DbContact } from "@/lib/api";
 import { Link } from "react-router-dom";
 
-const TAG_COLORS: Record<string, string> = {
-  investor: "#8b5cf6",
-  client: "#22c55e",
-  mentor: "#f59e0b",
-  partner: "#3b82f6",
-  recruiter: "#ec4899",
-  friend: "#06b6d4",
-  colleague: "#6366f1",
+const PRIORITY_COLORS: Record<string, string> = {
+  vip: "#8b5cf6",
+  high: "#22c55e",
+  medium: "#f59e0b",
+  low: "#3b82f6",
 };
 
 const DEFAULT_COLOR = "#6477b8";
 
-function getNodeColor(tags: string[]): string {
-  for (const tag of tags) {
-    if (TAG_COLORS[tag.toLowerCase()]) return TAG_COLORS[tag.toLowerCase()];
-  }
+function getNodeColor(priority?: string): string {
+  if (priority && PRIORITY_COLORS[priority.toLowerCase()]) return PRIORITY_COLORS[priority.toLowerCase()];
   return DEFAULT_COLOR;
 }
 
@@ -42,8 +37,8 @@ interface Node {
   name: string;
   initials: string;
   color: string;
-  tags: string[];
-  importance: string;
+
+  priority: string;
   contact: DbContact;
 }
 
@@ -99,7 +94,7 @@ export default function NetworkMapPage() {
   // Build nodes
   const filteredContacts = useMemo(() => {
     return contacts.filter((c) => {
-      if (filter !== "all" && !(c.tags || []).some((t) => t.toLowerCase() === filter)) return false;
+      if (filter !== "all" && c.priority?.toLowerCase() !== filter) return false;
       return true;
     });
   }, [contacts, filter]);
@@ -123,9 +118,8 @@ export default function NetworkMapPage() {
         vy: 0,
         name: c.name,
         initials: c.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase(),
-        color: getNodeColor(c.tags || []),
-        tags: c.tags || [],
-        importance: c.importance,
+        color: getNodeColor(c.priority),
+        priority: c.priority || "medium",
         contact: c,
       };
     });
@@ -253,10 +247,9 @@ export default function NetworkMapPage() {
         ctx.fillText(edge.type || "", mx, my - 4);
       }
 
-      // Nodes
       for (const node of nodes) {
         const isHighlighted = highlightedIdRef.current === node.id;
-        const radius = node.importance === "vip" ? 28 : 22;
+        const radius = node.priority === "vip" ? 28 : 22;
         const nx = node.x ?? 0;
         const ny = node.y ?? 0;
 
@@ -319,7 +312,7 @@ export default function NetworkMapPage() {
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     const pos = getCanvasPos(e);
     const node = nodesRef.current.find((n) => {
-      const r = n.importance === "vip" ? 28 : 22;
+      const r = n.priority === "vip" ? 28 : 22;
       return Math.sqrt((pos.x - n.x) ** 2 + (pos.y - n.y) ** 2) < r;
     });
     if (node) {
@@ -408,12 +401,11 @@ export default function NetworkMapPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Contacts</SelectItem>
-            <SelectItem value="investor">Investors</SelectItem>
-            <SelectItem value="client">Clients</SelectItem>
-            <SelectItem value="mentor">Mentors</SelectItem>
-            <SelectItem value="partner">Partners</SelectItem>
-            <SelectItem value="friend">Friends</SelectItem>
+            <SelectItem value="all">All Priorities</SelectItem>
+            <SelectItem value="vip">VIP</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
           </SelectContent>
         </Select>
         <div className="flex gap-1">
@@ -425,10 +417,10 @@ export default function NetworkMapPage() {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-3 text-xs shrink-0">
-        {Object.entries(TAG_COLORS).map(([tag, color]) => (
-          <span key={tag} className="flex items-center gap-1.5 capitalize">
+        {Object.entries(PRIORITY_COLORS).map(([priority, color]) => (
+          <span key={priority} className="flex items-center gap-1.5 capitalize">
             <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
-            {tag}
+            {priority}
           </span>
         ))}
       </div>
@@ -474,13 +466,6 @@ export default function NetworkMapPage() {
                 {selectedContact.email && <p className="text-muted-foreground">{selectedContact.email}</p>}
                 {selectedContact.phone && <p className="text-muted-foreground">{selectedContact.phone}</p>}
               </div>
-              {selectedContact.tags && selectedContact.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedContact.tags.map((t) => (
-                    <span key={t} className="rounded-full bg-accent text-accent-foreground px-2.5 py-0.5 text-xs font-medium">{t}</span>
-                  ))}
-                </div>
-              )}
               {selectedContact.notes && (
                 <div>
                   <p className="text-sm font-semibold mb-1">Notes</p>

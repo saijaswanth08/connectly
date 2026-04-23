@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import ScrollToTop from "@/components/ScrollToTop";
-import { AuthProvider } from "@/context/AuthProvider";
+import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicRoute } from "@/components/PublicRoute";
 import { AppLayout } from "@/components/AppLayout";
@@ -29,7 +29,7 @@ import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import VerifyPasswordUpdatePage from "@/pages/VerifyPasswordUpdatePage";
 
 // Lazy load heavy/secondary pages
-const AppDashboard = lazy(() => import("@/pages/AppDashboard"));
+const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ContactDetailView = lazy(() => import("@/pages/ContactDetailView"));
 const InteractionsPage = lazy(() => import("@/pages/InteractionsPage"));
 const VideoMeetingsPage = lazy(() => import("@/pages/VideoMeetingsPage"));
@@ -107,16 +107,22 @@ const App = () => (
               <Route path="/about" element={<AboutPage />} />
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
               <Route path="/profile/:username" element={<PublicProfilePage />} />
               
               {/* Protected Routes - Heavy pages safely lazy loaded with per-route Suspense */}
               <Route element={<ProtectedAppLayout />}>
                 <Route path="/dashboard" element={
                   <Suspense fallback={<PageLoader />}>
-                    <AppDashboard />
+                    <DashboardPage />
                   </Suspense>
                 } />
                 <Route path="/dashboard/contacts/:id" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ContactDetailView />
+                  </Suspense>
+                } />
+                <Route path="/contacts/:id" element={
                   <Suspense fallback={<PageLoader />}>
                     <ContactDetailView />
                   </Suspense>

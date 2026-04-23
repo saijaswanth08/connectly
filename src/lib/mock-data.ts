@@ -3,43 +3,43 @@ import { Contact, Meeting, Reminder, TimelineEntry } from "./types";
 export const mockContacts: Contact[] = [
   {
     id: "1", name: "Sarah Chen", email: "sarah@venturecap.co", phone: "+1 415-555-0101",
-    company: "Venture Capital Partners", jobTitle: "Managing Partner", tags: ["investor"],
-    importance: "vip", dateAdded: "2026-01-15", notes: "Interested in AI/ML startups. Prefer morning meetings.",
+    company: "Venture Capital Partners", job_title: "Managing Partner", tags: ["investor"],
+    priority: "vip", created_at: "2026-01-15", notes: "Interested in AI/ML startups. Prefer morning meetings.",
   },
   {
     id: "2", name: "Marcus Williams", email: "marcus@techforge.io", phone: "+1 628-555-0202",
-    company: "TechForge", jobTitle: "CEO & Co-Founder", tags: ["partner", "client"],
-    importance: "high", dateAdded: "2026-01-22", notes: "Building enterprise SaaS. Looking for strategic partnerships.",
+    company: "TechForge", job_title: "CEO & Co-Founder", tags: ["partner", "client"],
+    priority: "high", created_at: "2026-01-22", notes: "Building enterprise SaaS. Looking for strategic partnerships.",
   },
   {
     id: "3", name: "Priya Patel", email: "priya@growthlab.com", phone: "+1 510-555-0303",
-    company: "GrowthLab", jobTitle: "Head of Operations", tags: ["mentor"],
-    importance: "high", dateAdded: "2026-02-03", notes: "Expert in scaling operations. Great advisor.",
+    company: "GrowthLab", job_title: "Head of Operations", tags: ["mentor"],
+    priority: "high", created_at: "2026-02-03", notes: "Expert in scaling operations. Great advisor.",
   },
   {
     id: "4", name: "James Rodriguez", email: "james@blockbridge.fi", phone: "+1 212-555-0404",
-    company: "BlockBridge Finance", jobTitle: "Investment Director", tags: ["investor", "partner"],
-    importance: "vip", dateAdded: "2026-02-10", notes: "Fintech focused. $50M fund for Series A/B.",
+    company: "BlockBridge Finance", job_title: "Investment Director", tags: ["investor", "partner"],
+    priority: "vip", created_at: "2026-02-10", notes: "Fintech focused. $50M fund for Series A/B.",
   },
   {
     id: "5", name: "Emily Nakamura", email: "emily@designstudio.co", phone: "+1 323-555-0505",
-    company: "Design Studio Co", jobTitle: "Creative Director", tags: ["client"],
-    importance: "medium", dateAdded: "2026-02-18", notes: "Potential design partner for brand refresh.",
+    company: "Design Studio Co", job_title: "Creative Director", tags: ["client"],
+    priority: "medium", created_at: "2026-02-18", notes: "Potential design partner for brand refresh.",
   },
   {
     id: "6", name: "David Kim", email: "david@talentsync.io", phone: "+1 650-555-0606",
-    company: "TalentSync", jobTitle: "Senior Recruiter", tags: ["recruiter"],
-    importance: "medium", dateAdded: "2026-02-25", notes: "Specializes in C-suite placements for tech startups.",
+    company: "TalentSync", job_title: "Senior Recruiter", tags: ["recruiter"],
+    priority: "medium", created_at: "2026-02-25", notes: "Specializes in C-suite placements for tech startups.",
   },
   {
     id: "7", name: "Olivia Thompson", email: "olivia@nexusai.com", phone: "+1 408-555-0707",
-    company: "Nexus AI", jobTitle: "CTO", tags: ["partner", "friend"],
-    importance: "high", dateAdded: "2026-03-01", notes: "Building AI infrastructure. Potential integration partner.",
+    company: "Nexus AI", job_title: "CTO", tags: ["partner", "friend"],
+    priority: "high", created_at: "2026-03-01", notes: "Building AI infrastructure. Potential integration partner.",
   },
   {
     id: "8", name: "Alex Morgan", email: "alex@greenpeak.vc", phone: "+1 415-555-0808",
-    company: "GreenPeak Ventures", jobTitle: "Analyst", tags: ["investor"],
-    importance: "low", dateAdded: "2026-03-04", notes: "Junior analyst. Good for deal flow introductions.",
+    company: "GreenPeak Ventures", job_title: "Analyst", tags: ["investor"],
+    priority: "low", created_at: "2026-03-04", notes: "Junior analyst. Good for deal flow introductions.",
   },
 ];
 
