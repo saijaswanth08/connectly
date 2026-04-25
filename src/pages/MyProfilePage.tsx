@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { updateProfile } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +38,7 @@ export default function MyProfilePage() {
 
   const [form, setForm] = useState({
     name: "", email: "", company: "", job_title: "", phone: "",
-    linkedin_url: "", instagram: "",
+    linkedin: "", instagram: "",
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -53,7 +54,7 @@ export default function MyProfilePage() {
         company: (p.company as string) || "",
         job_title: (p.job_title as string) || "",
         phone: (p.phone as string) || "",
-        linkedin_url: (p.linkedin_url as string) || "",
+        linkedin: (p.linkedin as string) || "",
         instagram: (p.instagram as string) || "",
       });
       initialized.current = true;
@@ -66,11 +67,10 @@ export default function MyProfilePage() {
 
   // Build a shareable profile URL for the QR code
   const buildQrUrl = useCallback(() => {
-    const identifier = profile ? (profile as Record<string, unknown>).username as string : user?.id;
-    if (!identifier) return "";
+    if (!user?.id) return "";
     const base = `${window.location.protocol}//${window.location.host}`;
-    return `${base}/profile/${identifier}`;
-  }, [profile, user]);
+    return `${base}/profile/${user.id}`;
+  }, [user]);
 
   const handleGenerateQr = () => {
     const url = buildQrUrl();
@@ -243,20 +243,20 @@ export default function MyProfilePage() {
     if (!user?.id) return;
     setSavingProfile(true);
     try {
-      const { error } = await supabase.from("profiles").update({
+      await updateProfile({
         name: form.name,
         email: form.email,
         company: form.company,
         job_title: form.job_title,
         phone: form.phone,
-        linkedin_url: form.linkedin_url,
+        linkedin: form.linkedin,
         instagram: form.instagram,
-      } as Record<string, unknown>).eq("id", user.id);
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      });
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast({ title: "Profile updated successfully!" });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Unknown error";
+      const err = e as { message?: string; details?: string; hint?: string };
+      const msg = err?.message || err?.details || err?.hint || "Unknown error";
       toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setSavingProfile(false);
@@ -265,19 +265,30 @@ export default function MyProfilePage() {
 
   const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const filePath = `${user.id}/avatar.${ext}`;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not logged in");
+
+      const filePath = `${user.id}/${file.name}`;
+
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file, { upsert: true });
+
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      await supabase.from("profiles").update({ avatar_url: publicUrl } as Record<string, unknown>).eq("id", user.id);
-      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+
+      const { data } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: data.publicUrl })
+        .eq("id", user.id);
+
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast({ title: "Profile photo updated!" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload failed";
@@ -291,8 +302,8 @@ export default function MyProfilePage() {
   const handleRemovePhoto = async () => {
     if (!user?.id) return;
     try {
-      await supabase.from("profiles").update({ avatar_url: null } as Record<string, unknown>).eq("id", user.id);
-      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      await supabase.from("profiles").upsert({ id: user.id, avatar_url: null }, { onConflict: "id" });
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast({ title: "Profile photo removed" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Unknown error";
@@ -379,7 +390,7 @@ export default function MyProfilePage() {
               <Avatar className="h-20 w-20 border-4 border-card shadow-md ring-2 ring-indigo-500/20">
                 {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
                 <AvatarFallback className="bg-indigo-100 text-indigo-700 text-2xl font-bold">
-                  {initials}
+                  {user?.email?.[0]?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -494,7 +505,7 @@ export default function MyProfilePage() {
             <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
               <Linkedin className="h-3 w-3" /> LinkedIn URL
             </Label>
-            <Input value={form.linkedin_url} onChange={e => setForm({ ...form, linkedin_url: e.target.value })}
+            <Input value={form.linkedin} onChange={e => setForm({ ...form, linkedin: e.target.value })}
               placeholder="linkedin.com/in/username" className="rounded-lg h-9" />
           </div>
 

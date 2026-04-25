@@ -174,9 +174,6 @@ export default function DashboardPage() {
   // Track which tab the user was on before opening a contact
   const [previousTab, setPreviousTab] = useState<ActiveTab>(null);
 
-  // 🔍 DEBUG — remove once contacts appear
-  console.log("USER ID:", user?.id);
-  console.log("CONTACTS:", contacts);
 
 
   const vipCount = contacts.filter((c) => c.priority === "vip").length;
@@ -414,14 +411,28 @@ export default function DashboardPage() {
             <h2 className="font-display font-semibold">Recent Contacts</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {recentContacts.map((c, i) => (
-              <ClickableContactCard
-                key={c.id}
-                contact={c}
-                index={i}
-                onSelect={handleSelectContact}
-              />
-            ))}
+            {recentContacts.length === 0 ? (
+              <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center rounded-xl border border-dashed border-border/60 bg-muted/20">
+                <Users className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                <p className="text-sm font-medium text-muted-foreground">No contacts yet</p>
+                <p className="text-xs text-muted-foreground/70 mt-1 mb-4">Add your first contact to get started</p>
+                <a
+                  href="/dashboard/contacts"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                >
+                  + Add your first contact
+                </a>
+              </div>
+            ) : (
+              recentContacts.map((c, i) => (
+                <ClickableContactCard
+                  key={c.id}
+                  contact={c}
+                  index={i}
+                  onSelect={handleSelectContact}
+                />
+              ))
+            )}
           </div>
         </motion.div>
       )}

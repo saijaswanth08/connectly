@@ -109,7 +109,7 @@ export function ProfileDropdown() {
 
       if (updateError) throw updateError;
 
-      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast.success("Profile photo updated!");
       setUploadDialogOpen(false);
       setSelectedFile(null);
@@ -132,7 +132,7 @@ export function ProfileDropdown() {
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast.success("Profile photo removed.");
       setDeleteDialogOpen(false);
     } catch (err: unknown) {

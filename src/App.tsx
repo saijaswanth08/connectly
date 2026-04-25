@@ -108,7 +108,7 @@ const App = () => (
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-              <Route path="/profile/:username" element={<PublicProfilePage />} />
+              <Route path="/profile/:id" element={<PublicProfilePage />} />
               
               {/* Protected Routes - Heavy pages safely lazy loaded with per-route Suspense */}
               <Route element={<ProtectedAppLayout />}>

@@ -34,7 +34,7 @@ type ProfileRow = {
   phone: string | null;
   company: string | null;
   job_title: string | null;
-  linkedin_url: string | null; // actual DB column
+  linkedin: string | null; // actual DB column
   instagram: string | null;
   avatar_url: string | null;
   created_at: string;
@@ -60,9 +60,9 @@ export default function ProfileSettingsPage() {
       if (error) throw error;
 
       // Cast raw Supabase response to known DB shape
-      const row = data as ProfileRow;
+      const row = data as unknown as ProfileRow;
 
-      // Map DB columns → frontend Profile type (linkedin_url → linkedin)
+      // Map DB columns → frontend Profile type (linkedin → linkedin)
       return {
         id: row.id,
         name: row.name ?? null,
@@ -70,7 +70,7 @@ export default function ProfileSettingsPage() {
         phone: row.phone ?? null,
         company: row.company ?? null,
         job_title: row.job_title ?? null,
-        linkedin: row.linkedin_url ?? null,
+        linkedin: row.linkedin ?? null,
         instagram: row.instagram ?? null,
         avatar_url: row.avatar_url ?? null,
         created_at: row.created_at,
@@ -80,7 +80,7 @@ export default function ProfileSettingsPage() {
   });
 
   const [form, setForm] = useState({
-    name: "", phone: "", linkedin_url: "", instagram: "", company: "", job_title: "",
+    name: "", phone: "", linkedin: "", instagram: "", company: "", job_title: "",
   });
   const [originalForm, setOriginalForm] = useState({ ...form });
   const [saving, setSaving] = useState(false);
@@ -92,7 +92,7 @@ export default function ProfileSettingsPage() {
       const values = {
         name: profile.name || "",
         phone: profile.phone || "",
-        linkedin_url: profile.linkedin || "",
+        linkedin: profile.linkedin || "",
         instagram: profile.instagram || "",
         company: profile.company || "",
         job_title: profile.job_title || "",
@@ -126,14 +126,14 @@ export default function ProfileSettingsPage() {
       await updateProfile({
         name: form.name || undefined,
         phone: form.phone || undefined,
-        linkedin: form.linkedin_url || undefined,
+        linkedin: form.linkedin || undefined,
         instagram: form.instagram || undefined,
         company: form.company || undefined,
         job_title: form.job_title || undefined,
       });
 
       setOriginalForm(form);
-      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast({ title: "Profile updated successfully" });
     } catch (err: any) {
       console.error("PROFILE SAVE ERROR:", err);
@@ -153,23 +153,37 @@ export default function ProfileSettingsPage() {
 
   const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const filePath = `${user.id}/avatar.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not logged in");
+
+      const filePath = `${user.id}/${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
-      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+
+      const { data } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: data.publicUrl })
+        .eq("id", user.id);
+
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast({ title: "Photo updated!" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error uploading photo";
       toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -177,7 +191,7 @@ export default function ProfileSettingsPage() {
     if (!user?.id) return;
     try {
       await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
-      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast({ title: "Photo removed" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error removing photo";
@@ -215,7 +229,7 @@ export default function ProfileSettingsPage() {
               <Avatar className="h-20 w-20 border-4 border-card shadow-md ring-2 ring-primary/20">
                 {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
                 <AvatarFallback className="bg-primary/15 text-primary text-2xl font-bold">
-                  {initials}
+                  {user?.email?.[0]?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
             </div>
@@ -312,8 +326,8 @@ export default function ProfileSettingsPage() {
               <Linkedin className="h-3 w-3" /> LinkedIn Profile
             </Label>
             <Input
-              value={form.linkedin_url}
-              onChange={(e) => update("linkedin_url", e.target.value)}
+              value={form.linkedin}
+              onChange={(e) => update("linkedin", e.target.value)}
               placeholder="linkedin.com/in/username"
               className="rounded-lg h-9"
             />

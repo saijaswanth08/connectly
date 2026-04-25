@@ -100,6 +100,10 @@ export const createContact = async (contact: any): Promise<DbContact> => {
 // UPDATE CONTACT
 // =======================
 export const updateContact = async (id: string, updates: any): Promise<DbContact> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("User not authenticated");
+
   const payload = {
     name: updates.name ?? "",
     email: updates.email ?? "",
@@ -117,13 +121,11 @@ export const updateContact = async (id: string, updates: any): Promise<DbContact
     .from("contacts")
     .update(payload)
     .eq("id", id)
+    .eq("user_id", user.id)   // ✅ REQUIRED
     .select()
     .single();
 
-  if (error) {
-    console.error("[updateContact] Supabase error:", error);
-    throw error;
-  }
+  if (error) throw error;
 
   return data as DbContact;
 };
@@ -132,10 +134,15 @@ export const updateContact = async (id: string, updates: any): Promise<DbContact
 // DELETE CONTACT
 // =======================
 export const deleteContact = async (id: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("User not authenticated");
+
   const { error } = await supabase
     .from("contacts")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", user.id);   // ✅ REQUIRED
 
   if (error) throw error;
 };
@@ -144,14 +151,20 @@ export const deleteContact = async (id: string): Promise<void> => {
 // SEARCH CONTACTS
 // =======================
 export async function searchContacts(query: string): Promise<DbContact[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("User not authenticated");
+
   const { data, error } = await supabase
     .from("contacts")
     .select("*")
+    .eq("user_id", user.id)   // ✅ REQUIRED
     .or(`name.ilike.%${query}%,company.ilike.%${query}%,job_title.ilike.%${query}%,notes.ilike.%${query}%,email.ilike.%${query}%`)
     .order("created_at", { ascending: false });
+
   if (error) throw error;
 
-  return (data ?? []) as DbContact[];
+  return data ?? [];
 }
 
 // =======================
@@ -367,33 +380,24 @@ export const updateProfile = async (updates: {
     throw new Error("User not authenticated");
   }
 
-  // Build explicit payload mapping frontend fields → actual DB column names
-  // linkedin_url is the DB column name, not linkedin
   const payload = {
-    name: updates.name ?? null,
-    email: updates.email ?? null,
-    company: updates.company ?? null,
-    job_title: updates.job_title ?? null,
-    phone: updates.phone ?? null,
-    linkedin_url: updates.linkedin ?? null,  // DB column is linkedin_url
-    instagram: updates.instagram ?? null,
+    id: user.id,
+    name: updates.name ?? "",
+    email: updates.email ?? "",
+    company: updates.company ?? "",
+    job_title: updates.job_title ?? "",
+    phone: updates.phone ?? "",
+    linkedin: updates.linkedin ?? "",
+    instagram: updates.instagram ?? "",
   };
-
-  console.log("FINAL PAYLOAD:", payload);
 
   const { data, error } = await supabase
     .from("profiles")
-    .update(payload)
-    .eq("id", user.id)
+    .upsert(payload)
     .select()
     .single();
 
-  if (error) {
-    console.error("🔥 SUPABASE ERROR:", error.message, error.details, error.hint);
-    throw error;
-  }
-
-  console.log("✅ UPDATE SUCCESS:", data);
+  if (error) throw error;
 
   return data;
 };
