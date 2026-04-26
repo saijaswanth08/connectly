@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/lib/supabase";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { updateProfile } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -24,46 +25,42 @@ export default function MyProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const qrRef = useRef<HTMLDivElement>(null);
   const modalQrRef = useRef<HTMLDivElement>(null);
-  const initialized = useRef(false);
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      return data;
-    },
-    enabled: !!user?.id,
-  });
+  const { data: profile, isLoading } = useProfile();
 
   const [form, setForm] = useState({
-    name: "", email: "", company: "", job_title: "", phone: "",
-    linkedin: "", instagram: "",
+    name: "",
+    email: "",
+    company: "",
+    job_title: "",
+    phone: "",
+    linkedin: "",
+    instagram: "",
+    avatar_url: "",
   });
+
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [qrValue, setQrValue] = useState("");
   const [showQrModal, setShowQrModal] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
-    if (profile && !initialized.current) {
-      const p = profile as Record<string, unknown>;
+    if (profile) {
       setForm({
         name: profile.name || "",
-        email: profile.email || user?.email || "",
-        company: (p.company as string) || "",
-        job_title: (p.job_title as string) || "",
-        phone: (p.phone as string) || "",
-        linkedin: (p.linkedin as string) || "",
-        instagram: (p.instagram as string) || "",
+        email: profile.email || "",
+        company: profile.company || "",
+        job_title: profile.job_title || "",
+        phone: profile.phone || "",
+        linkedin: (profile as any).linkedin || "", // FIXED: Use correct database column name (linkedin instead of linkedin_url)
+        instagram: profile.instagram || "",
+        avatar_url: profile.avatar_url || "",
       });
-      initialized.current = true;
     }
-  }, [profile, user]);
+  }, [profile]);
 
-  const fullName = form.name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
-  const initials = fullName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-  const avatarUrl = profile ? (profile as Record<string, unknown>).avatar_url as string : null;
+  const fullName = form.name || user?.email?.split("@")[0] || "User";
 
   // Build a shareable profile URL for the QR code
   const buildQrUrl = useCallback(() => {
@@ -213,10 +210,8 @@ export default function MyProfilePage() {
       ctx.font = "500 24px Inter";
       ctx.fillText("Scan to connect", canvas.width / 2, 970);
 
-      // Export
-      const p = profile as Record<string, unknown>;
-      const username = (p?.username as string) || fullName.replace(/\s+/g, "_");
-      const fileName = `${username}_ConnectlyQR.png`;
+      // Export — profile has no `username` field; use fullName as the filename base
+      const fileName = `${fullName.replace(/\s+/g, "_")}_ConnectlyQR.png`;
       
       canvas.toBlob((blob) => {
         if (!blob) {
@@ -239,43 +234,39 @@ export default function MyProfilePage() {
     }
   };
 
-  const handleSaveProfile = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault(); // 🔥 CRITICAL FIX
+
     if (!user?.id) return;
+
     setSavingProfile(true);
     try {
-      await updateProfile({
-        name: form.name,
-        email: form.email,
-        company: form.company,
-        job_title: form.job_title,
-        phone: form.phone,
-        linkedin: form.linkedin,
-        instagram: form.instagram,
+      const { error } = await supabase.from("profiles").upsert({
+        id: user.id,
+        ...form,
       });
-      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile updated successfully!" });
-    } catch (e: unknown) {
-      const err = e as { message?: string; details?: string; hint?: string };
-      const msg = err?.message || err?.details || err?.hint || "Unknown error";
-      toast({ title: "Error", description: msg, variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Unknown error", variant: "destructive" });
     } finally {
       setSavingProfile(false);
     }
   };
 
-  const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadAvatar = async (fileToUpload: File) => {
+    if (!user) return;
     setUploading(true);
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not logged in");
-
-      const filePath = `${user.id}/${file.name}`;
+      const filePath = `${user.id}/${Date.now()}-${fileToUpload.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, fileToUpload, { upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -283,18 +274,22 @@ export default function MyProfilePage() {
         .from("avatars")
         .getPublicUrl(filePath);
 
+      const avatarUrl = data.publicUrl;
+
       await supabase
         .from("profiles")
-        .update({ avatar_url: data.publicUrl })
+        .update({ avatar_url: avatarUrl })
         .eq("id", user.id);
 
-      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+      setForm((prev) => ({ ...prev, avatar_url: avatarUrl }));
+
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile photo updated!" });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Upload failed";
-      toast({ title: "Upload failed", description: msg, variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
       setUploading(false);
+      setFile(null); // Clear file state if it's still being kept around
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
@@ -303,11 +298,10 @@ export default function MyProfilePage() {
     if (!user?.id) return;
     try {
       await supabase.from("profiles").upsert({ id: user.id, avatar_url: null }, { onConflict: "id" });
-      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile photo removed" });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      toast({ title: "Error", description: msg, variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Unknown error", variant: "destructive" });
     }
   };
 
@@ -387,12 +381,13 @@ export default function MyProfilePage() {
               onClick={() => fileInputRef.current?.click()}
               title="Click to upload photo"
             >
-              <Avatar className="h-20 w-20 border-4 border-card shadow-md ring-2 ring-indigo-500/20">
-                {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-                <AvatarFallback className="bg-indigo-100 text-indigo-700 text-2xl font-bold">
-                  {user?.email?.[0]?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} className="rounded-full w-20 h-20 object-cover border-4 border-card shadow-md ring-2 ring-indigo-500/20" />
+              ) : (
+                <div className="rounded-full w-20 h-20 flex items-center justify-center bg-indigo-100 text-indigo-700 text-2xl font-bold border-4 border-card shadow-md ring-2 ring-indigo-500/20">
+                  {profile?.name?.charAt(0) || "U"}
+                </div>
+              )}
               <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <ImagePlus className="h-5 w-5 text-white" />
               </div>
@@ -419,7 +414,12 @@ export default function MyProfilePage() {
               type="file"
               accept="image/jpeg,image/png,image/webp"
               className="hidden"
-              onChange={handleUploadPhoto}
+              onChange={(e) => {
+                const selectedFile = e.target.files?.[0];
+                if (selectedFile) {
+                  uploadAvatar(selectedFile);
+                }
+              }}
             />
             <Button variant="outline" size="sm" className="gap-1.5 text-xs"
               onClick={() => fileInputRef.current?.click()} disabled={uploading}>
@@ -428,7 +428,7 @@ export default function MyProfilePage() {
             </Button>
             <Button variant="outline" size="sm"
               className="gap-1.5 text-xs text-destructive hover:text-destructive"
-              onClick={handleRemovePhoto} disabled={!avatarUrl || uploading}>
+              onClick={handleRemovePhoto} disabled={!profile?.avatar_url || uploading}>
               <Trash2 className="h-3.5 w-3.5" />
               Remove
             </Button>
@@ -450,7 +450,7 @@ export default function MyProfilePage() {
       </div>
 
       {/* Account Information Card */}
-      <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5">
+      <form onSubmit={handleSave} className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5">
         <div>
           <h2 className="font-semibold text-foreground">Account Information</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Update your contact and workplace details</p>
@@ -521,12 +521,12 @@ export default function MyProfilePage() {
 
         {/* Save */}
         <div className="pt-2">
-          <Button onClick={handleSaveProfile} disabled={savingProfile} className="gap-2 min-w-[130px]">
+          <Button type="submit" disabled={savingProfile} className="gap-2 min-w-[130px]">
             <Save className="h-4 w-4" />
             {savingProfile ? "Saving..." : "Save Changes"}
           </Button>
         </div>
-      </div>
+      </form>
 
       {/* QR Code Card */}
       <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5">

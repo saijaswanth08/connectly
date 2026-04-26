@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/lib/supabase";
 import { updateProfile } from "@/lib/api";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,38 +47,7 @@ export default function ProfileSettingsPage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: profile, isLoading } = useQuery<Profile | null>({
-    queryKey: ["profile", user?.id],
-    queryFn: async (): Promise<Profile | null> => {
-      if (!user?.id) return null;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error) throw error;
-
-      // Cast raw Supabase response to known DB shape
-      const row = data as unknown as ProfileRow;
-
-      // Map DB columns → frontend Profile type (linkedin → linkedin)
-      return {
-        id: row.id,
-        name: row.name ?? null,
-        email: row.email ?? null,
-        phone: row.phone ?? null,
-        company: row.company ?? null,
-        job_title: row.job_title ?? null,
-        linkedin: row.linkedin ?? null,
-        instagram: row.instagram ?? null,
-        avatar_url: row.avatar_url ?? null,
-        created_at: row.created_at,
-      } satisfies Profile;
-    },
-    enabled: !!user?.id,
-  });
+  const { profile, isLoading } = useProfile();
 
   const [form, setForm] = useState({
     name: "", phone: "", linkedin: "", instagram: "", company: "", job_title: "",
@@ -107,14 +77,15 @@ export default function ProfileSettingsPage() {
   const fullName = form.name || user?.email?.split("@")[0] || "";
   const initials = fullName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
   const avatarUrl = profile?.avatar_url || null;
-
   const update = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
 
   const handleCancel = () => {
     setForm(originalForm);
   };
 
-  const handleSave = async (): Promise<void> => {
+  const handleSave = async (e?: React.FormEvent): Promise<void> => {
+    if (e) e.preventDefault();
+
     if (!user?.id) {
       console.warn("[ProfileSettings] handleSave aborted: user ID is missing");
       return;
@@ -159,7 +130,7 @@ export default function ProfileSettingsPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      const filePath = `${user.id}/${file.name}`;
+      const filePath = `${user.id}/${Date.now()}-${file.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")

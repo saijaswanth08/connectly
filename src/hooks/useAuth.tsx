@@ -53,20 +53,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Fire-and-forget profile upsert on sign-in (do NOT await here)
+      // Fire-and-forget profile creation on sign-in (do NOT await here)
       if (session?.user) {
         const u = session.user;
-        supabase.from("profiles").upsert(
-          {
-            id: u.id,
-            name: u.user_metadata?.full_name || u.user_metadata?.name || "",
-            email: u.email ?? "",
-            avatar_url: u.user_metadata?.avatar_url || u.user_metadata?.picture || null,
-          },
-          { onConflict: "id" }
-        ).then(({ error }) => {
-          if (error) console.error("[useAuth] profile upsert error:", error.message);
-        });
+        
+        // 1. Check if profile already exists to prevent overwriting user data (like avatar_url)
+        supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", u.id)
+          .single()
+          .then(({ data: existing }) => {
+            // 2. Only insert if profile is completely missing
+            if (!existing) {
+              supabase
+                .from("profiles")
+                .insert({
+                  id: u.id,
+                  name: u.user_metadata?.full_name || u.user_metadata?.name || "",
+                  email: u.email ?? ""
+                })
+                .then(({ error }) => {
+                  if (error) console.error("[useAuth] profile insert error:", error.message);
+                });
+            }
+          });
       }
     });
 

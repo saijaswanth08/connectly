@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -16,65 +16,59 @@ import {
   BookOpen,
   Bug,
 } from "lucide-react";
-import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function SidebarUserMenu() {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
 
-  const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      return data;
-    },
-    enabled: !!user?.id,
-  });
+  const { data: profile, isLoading } = useProfile();
 
-  const fullName = profile?.name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
-  const email = profile?.email || user?.email || "";
-  const initials = fullName
-    .split(" ")
-    .map((n: string) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-  const avatarUrl = profile?.avatar_url || null;
-
-  const handleLogout = () => {
-    signOut();
-  };
+  const displayName = profile?.name || "User";
+  const displayEmail = profile?.email || "";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="w-full flex items-center gap-3 rounded-lg p-2 text-left outline-none transition-colors hover:bg-sidebar-accent/50 focus-visible:ring-2 focus-visible:ring-ring">
-          <Avatar className="h-8 w-8 shrink-0">
-            {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-            <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          {/* Avatar */}
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} className="rounded-full w-10 h-10 object-cover" />
+          ) : (
+            <div className="rounded-full w-10 h-10 bg-primary/15 text-primary flex items-center justify-center font-semibold">
+              {profile?.name?.charAt(0) || "U"}
+            </div>
+          )}
+
+          {/* Name + email (hidden when sidebar is collapsed) */}
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-sidebar-accent-foreground truncate">{fullName}</p>
-                <p className="text-[10px] text-sidebar-foreground truncate">{email}</p>
+                {isLoading ? (
+                  <>
+                    <Skeleton className="h-3 w-24 mb-1" />
+                    <Skeleton className="h-2.5 w-32" />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs font-medium text-sidebar-accent-foreground truncate">
+                      {displayName}
+                    </p>
+                    <p className="text-[10px] text-sidebar-foreground truncate">
+                      {displayEmail}
+                    </p>
+                  </>
+                )}
               </div>
               <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-sidebar-foreground" />
             </>
           )}
         </button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent
         side="top"
         align="start"
@@ -96,7 +90,10 @@ export function SidebarUserMenu() {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+        <DropdownMenuItem
+          onClick={signOut}
+          className="text-destructive focus:text-destructive"
+        >
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out
         </DropdownMenuItem>
