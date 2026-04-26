@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
 export default function VerifyPasswordUpdatePage() {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
   const { toast } = useToast();
   const navigate = useNavigate();
   const [status, setStatus] = useState<"verifying" | "updating" | "success" | "error">("verifying");
@@ -18,7 +16,14 @@ export default function VerifyPasswordUpdatePage() {
 
   useEffect(() => {
     if (updateAttempted.current) return;
-    if (!token) {
+
+    // 1. Parse Supabase auth hash from URL
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.replace("#", ""));
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
+
+    if (!access_token || !refresh_token) {
       setStatus("error");
       setErrorMessage("Missing verification token.");
       return;
@@ -27,11 +32,20 @@ export default function VerifyPasswordUpdatePage() {
     const verifyAndUpdate = async () => {
       updateAttempted.current = true;
       try {
-        // 1. Verify token with backend
+        // 2. Set Supabase session BEFORE updating password
+        if (access_token && refresh_token) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          });
+          if (sessionError) throw sessionError;
+        }
+
+        // 3. Verify token with backend to retrieve staged new password
         const res = await fetch(`${BACKEND_URL}/api/password-update/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ token: access_token }),
         });
 
         const result = await res.json();
@@ -64,7 +78,7 @@ export default function VerifyPasswordUpdatePage() {
     };
 
     verifyAndUpdate();
-  }, [token, toast]);
+  }, [toast]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
