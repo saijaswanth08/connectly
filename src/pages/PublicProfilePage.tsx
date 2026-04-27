@@ -83,51 +83,64 @@ END:VCARD`;
     try {
       setIsSaving(true);
 
+      const { data: { user } } = await supabase.auth.getUser();
+
       if (!user) {
-        // If NOT logged in → redirect to /login
         navigate("/login");
         return;
       }
+
+      console.log("USER:", user);
 
       // Show confirmation popup: "Do you want to save this contact?"
       if (!window.confirm("Do you want to save this contact?")) {
         return;
       }
 
-      // Prevent duplicates: Check: owner_id + contact_id
-      const { data: existing, error: checkError } = await (supabase.from("contacts") as any)
-        .select("id")
-        .eq("user_id", user.id) // owner_id
-        .eq("contact_id", profileId) // contact_id
-        .maybeSingle();
+      // Prevent duplicates: Check user_id + email
+      if (profile.email) {
+        const { data: existing, error: checkError } = await supabase
+          .from("contacts")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("email", profile.email)
+          .maybeSingle();
 
-      if (checkError) throw checkError;
+        if (checkError) {
+          console.log("CHECK ERROR:", checkError);
+          throw checkError;
+        }
 
-      if (existing) {
-        // If already exists: Show alert "Contact already saved"
-        alert("Contact already saved");
-        return;
+        if (existing) {
+          alert("Contact already saved");
+          return;
+        }
       }
 
       // Else: Insert into "contacts" table
       const payload = {
-        user_id: user.id, // owner_id
-        contact_id: profileId, // contact_id
+        user_id: user.id,
         name: profile.name || "",
         email: profile.email || "",
         phone: profile.phone || "",
         linkedin: linkedinUrl || "",
         instagram: instagramUrl || "",
+        company: profile.company || "",
+        job_title: profile.job_title || "",
       };
 
-      const { error: insertError } = await (supabase.from("contacts") as any).insert(payload);
+      const { error } = await supabase.from("contacts").insert(payload);
 
-      if (insertError) throw insertError;
+      if (error) {
+        console.log("INSERT ERROR:", error);
+        alert(error.message);
+        return;
+      }
 
-      alert("Contact saved successfully!");
-    } catch (error) {
+      alert("Contact saved ✅");
+    } catch (error: any) {
       console.error("Error saving contact:", error);
-      alert("Failed to save contact");
+      alert(error.message || "Failed to save contact");
     } finally {
       setIsSaving(false);
     }
