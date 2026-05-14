@@ -106,15 +106,16 @@ export default function ProfileSettingsPage() {
       setOriginalForm(form);
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast({ title: "Profile updated successfully" });
-    } catch (err: any) {
-      console.error("PROFILE SAVE ERROR:", err);
+    } catch (err) {
+      const error = err as Error & { details?: string; hint?: string };
+      console.error("PROFILE SAVE ERROR:", error);
       toast({
         title: "Error",
         description:
-          err?.message ||
-          err?.details ||
-          err?.hint ||
-          JSON.stringify(err),
+          error.message ||
+          error.details ||
+          error.hint ||
+          JSON.stringify(error),
         variant: "destructive",
       });
     } finally {

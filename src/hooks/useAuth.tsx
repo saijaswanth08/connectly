@@ -36,8 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(session.user);
           }
         }
-      } catch (error: any) {
-        console.error("[useAuth] getSession exception:", error.message);
+      } catch (error) {
+        console.error("[useAuth] getSession exception:", error instanceof Error ? error.message : String(error));
       }
     };
 
@@ -120,4 +120,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

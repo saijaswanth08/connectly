@@ -12,10 +12,6 @@ export default {
       screens: { "2xl": "1400px" },
     },
     extend: {
-      fontFamily: {
-        display: ["Space Grotesk", "sans-serif"],
-        body: ["Inter", "sans-serif"],
-      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

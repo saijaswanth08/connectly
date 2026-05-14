@@ -11,16 +11,18 @@ export const updatePresence = async () => {
 
   const { error } = await supabase
     .from("user_presence")
-    .insert([
+    .upsert(
       {
         user_id: user.id,
         status: "online",
         last_seen: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       },
-    ]);
+      { onConflict: "user_id" }
+    );
 
   if (error) {
-    console.error("Presence error:", error.message);
+    console.error("Presence upsert error:", error.message, error);
   }
 };
 

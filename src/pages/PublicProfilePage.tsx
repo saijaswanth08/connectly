@@ -52,7 +52,8 @@ export default function PublicProfilePage() {
     return url.split("?")[0];
   };
 
-  const linkedinUrl = cleanUrl((profile as any).linkedin_url || (profile as any).linkedin);
+  const profileData = profile as Record<string, string>;
+  const linkedinUrl = cleanUrl(profileData.linkedin_url || profileData.linkedin);
   const instagramUrl = cleanUrl(profile.instagram);
   const initial = profile.name ? profile.name.charAt(0).toUpperCase() : "U";
 
@@ -138,9 +139,10 @@ END:VCARD`;
       }
 
       alert("Contact saved ✅");
-    } catch (error: any) {
-      console.error("Error saving contact:", error);
-      alert(error.message || "Failed to save contact");
+    } catch (error) {
+      const e = error as Error;
+      console.error("Error saving contact:", e);
+      alert(e.message || "Failed to save contact");
     } finally {
       setIsSaving(false);
     }

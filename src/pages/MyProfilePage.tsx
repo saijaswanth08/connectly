@@ -53,7 +53,7 @@ export default function MyProfilePage() {
         company: profile.company || "",
         job_title: profile.job_title || "",
         phone: profile.phone || "",
-        linkedin: (profile as any).linkedin || "", // FIXED: Use correct database column name (linkedin instead of linkedin_url)
+        linkedin: (profile as Record<string, string>).linkedin || "", // FIXED: Use correct database column name (linkedin instead of linkedin_url)
         instagram: profile.instagram || "",
         avatar_url: profile.avatar_url || "",
       });
@@ -241,17 +241,30 @@ export default function MyProfilePage() {
 
     setSavingProfile(true);
     try {
-      const { error } = await supabase.from("profiles").upsert({
-        id: user.id,
-        ...form,
-      });
+      const { error } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: user.id,
+            name: form.name,
+            email: form.email,
+            company: form.company,
+            job_title: form.job_title,
+            phone: form.phone,
+            linkedin: form.linkedin,
+            instagram: form.instagram,
+            avatar_url: form.avatar_url,
+          },
+          { onConflict: "id" }
+        );
 
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile updated successfully!" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Unknown error", variant: "destructive" });
+    } catch (e) {
+      const error = e as Error;
+      toast({ title: "Error", description: error.message || "Unknown error", variant: "destructive" });
     } finally {
       setSavingProfile(false);
     }
@@ -285,8 +298,9 @@ export default function MyProfilePage() {
 
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile photo updated!" });
-    } catch (err: any) {
-      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } catch (err) {
+      const error = err as Error;
+      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
     } finally {
       setUploading(false);
       setFile(null); // Clear file state if it's still being kept around
@@ -300,8 +314,9 @@ export default function MyProfilePage() {
       await supabase.from("profiles").upsert({ id: user.id, avatar_url: null }, { onConflict: "id" });
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile photo removed" });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Unknown error", variant: "destructive" });
+    } catch (err) {
+      const error = err as Error;
+      toast({ title: "Error", description: error.message || "Unknown error", variant: "destructive" });
     }
   };
 

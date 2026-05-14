@@ -47,16 +47,17 @@ export default function AppDashboard() {
         if (isMounted) {
           setContacts(
             (data || []).map((item) => ({
-              ...item,
-              tags: (item as any).tags ?? [],
+              ...(item as DbContact),
+              tags: (item as DbContact).tags ?? [],
             }))
           );
         }
-      } catch (err: any) {
-        console.error("Dashboard error:", err);
+      } catch (err) {
+        const error = err as Error;
+        console.error("Dashboard error:", error);
         toast({
           title: "Error fetching data",
-          description: err.message,
+          description: error.message,
           variant: "destructive",
         });
       } finally {

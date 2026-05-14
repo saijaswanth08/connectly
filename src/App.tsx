@@ -10,7 +10,6 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicRoute } from "@/components/PublicRoute";
 import { AppLayout } from "@/components/AppLayout";
-import { supabase } from "@/lib/supabase";
 
 // Normalize important imports for performance & faster initial load
 import LandingPage from "@/pages/LandingPage";
@@ -85,7 +84,7 @@ function PublicAppLayout() {
 }
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />

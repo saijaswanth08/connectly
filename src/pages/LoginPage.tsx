@@ -57,11 +57,12 @@ export default function LoginPage() {
           navigate(redirectTo, { replace: true });
         }, 1500);
       }
-    } catch (err: any) {
-      console.error("[Login] Unexpected exception:", err);
+    } catch (err) {
+      const error = err as Error;
+      console.error("[Login] Unexpected exception:", error);
       toast({
         title: "Login failed",
-        description: err?.message || "An unexpected error occurred.",
+        description: error.message || "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {

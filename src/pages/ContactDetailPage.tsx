@@ -17,7 +17,7 @@ export default function ContactDetailPage() {
     if (user?.id && contacts.length === 0) {
       fetchContacts(user.id);
     }
-  }, [user?.id]);
+  }, [user?.id, contacts.length, fetchContacts]);
 
   const contact = contacts.find((c) => c.id === id);
   if (!contact) {

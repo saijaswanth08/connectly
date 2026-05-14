@@ -56,9 +56,10 @@ export default function SignupPage() {
         setLoading(false);
         setSuccess(true);
       }
-    } catch (err: any) {
+    } catch (err) {
       setLoading(false);
-      const errorMessage = err?.message || "An unexpected network error occurred.";
+      const error = err as Error;
+      const errorMessage = error.message || "An unexpected network error occurred.";
       toast({ 
         title: "Signup failed", 
         description: errorMessage === "Failed to fetch" 
@@ -66,7 +67,7 @@ export default function SignupPage() {
           : errorMessage, 
         variant: "destructive" 
       });
-      console.error("Signup exception:", err);
+      console.error("Signup exception:", error);
     }
   };
 

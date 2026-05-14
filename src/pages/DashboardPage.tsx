@@ -237,8 +237,9 @@ export default function DashboardPage() {
               title: "Total Contacts",
               value: contacts.length,
               trend: "+15% this month",
-              variant: "glow" as const,
+              variant: "default" as const,
               subtitle: undefined,
+              accentColor: "primary" as const,
             },
             {
               tab: "vip" as ActiveTab,
@@ -247,7 +248,8 @@ export default function DashboardPage() {
               value: vipCount,
               subtitle: "Top priority",
               trend: undefined,
-              variant: undefined,
+              variant: "default" as const,
+              accentColor: "primary" as const,
             },
             {
               tab: "reminders" as ActiveTab,
@@ -256,7 +258,8 @@ export default function DashboardPage() {
               value: pendingReminders,
               subtitle: "Action needed",
               trend: undefined,
-              variant: undefined,
+              variant: "default" as const,
+              accentColor: "primary" as const,
             },
             {
               tab: "meetings" as ActiveTab,
@@ -265,10 +268,11 @@ export default function DashboardPage() {
               value: meetings.length,
               trend: "+3 this week",
               subtitle: undefined,
-              variant: undefined,
+              variant: "default" as const,
+              accentColor: "primary" as const,
             },
           ]
-        ).map(({ tab, icon, title, value, subtitle, trend, variant }) => (
+        ).map(({ tab, icon, title, value, subtitle, trend, variant, accentColor }) => (
           <div
             key={tab}
             onClick={() => handleTabClick(tab)}
@@ -285,6 +289,7 @@ export default function DashboardPage() {
               subtitle={subtitle}
               trend={trend}
               variant={variant}
+              accentColor={accentColor}
             />
           </div>
         ))}

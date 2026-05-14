@@ -115,8 +115,27 @@
 }
 
 @layer base {
-  * {
+  *:not([class*="animate"]):not([data-framer]) {
     @apply border-border;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-primary;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/10 rounded-full border-2 border-transparent bg-clip-padding hover:bg-muted-foreground/20 transition-colors;
   }
 
   html {
@@ -141,7 +160,15 @@
     font-family: var(--font-body);
   }
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-sm;
+    @apply bg-card/60 backdrop-blur-xl border border-white/10 shadow-xl;
+    background-image: linear-gradient(
+      to bottom right,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0)
+    );
+  }
+  .shimmer {
+    @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent;
   }
   .text-gradient {
     background: linear-gradient(135deg, hsl(var(--soft-blue)), hsl(var(--soft-purple)));
@@ -182,4 +209,10 @@
 .reveal.active {
   opacity: 1;
   transform: translateY(0);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }

@@ -61,7 +61,7 @@ export const fetchContacts = async (): Promise<DbContact[]> => {
 // =======================
 // CREATE CONTACT
 // =======================
-export const createContact = async (contact: any): Promise<DbContact> => {
+export const createContact = async (contact: Partial<DbContact>): Promise<DbContact> => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
   if (userError || !user) {
@@ -99,7 +99,7 @@ export const createContact = async (contact: any): Promise<DbContact> => {
 // =======================
 // UPDATE CONTACT
 // =======================
-export const updateContact = async (id: string, updates: any): Promise<DbContact> => {
+export const updateContact = async (id: string, updates: Partial<DbContact>): Promise<DbContact> => {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error("User not authenticated");
@@ -393,7 +393,7 @@ export const updateProfile = async (updates: {
 
   const { data, error } = await supabase
     .from("profiles")
-    .upsert(payload)
+    .upsert(payload, { onConflict: "id" })
     .select()
     .single();
 
