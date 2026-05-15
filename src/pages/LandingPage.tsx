@@ -123,10 +123,9 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
-        {/* Existing hero content — unchanged */}
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2 md:py-32 reveal">
+      <section className="relative overflow-hidden min-h-[calc(100vh-64px)] flex items-center py-16 md:py-24">
+        <div className="relative z-10 w-full">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-2 reveal">
             <motion.div initial="hidden" animate="visible" className="space-y-8">
               <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem]">
                 Remember Every{" "}
