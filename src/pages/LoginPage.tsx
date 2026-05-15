@@ -75,7 +75,6 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        // After Google auth, Supabase redirects here and detectSessionInUrl exchanges the code
         redirectTo: window.location.origin + "/dashboard",
       },
     });
