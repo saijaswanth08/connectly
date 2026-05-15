@@ -1,6 +1,8 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, Star, Bell, Calendar, ArrowLeft, Phone, Mail, Building2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 import { MetricCard } from "@/components/MetricCard";
 import { ImportanceBadge } from "@/components/ImportanceBadge";
 import { TagBadge } from "@/components/TagBadge";
@@ -167,6 +169,7 @@ type ActiveTab = "contacts" | "vip" | "reminders" | "meetings" | null;
 export default function DashboardPage() {
   const { user } = useAuth();
   const { data: contacts = [] } = useContacts();
+  const { toast } = useToast();
   const { data: reminders = [] } = useReminders();
   const { data: meetings = [] } = useMeetings();
 
@@ -176,7 +179,53 @@ export default function DashboardPage() {
   const [previousTab, setPreviousTab] = useState<ActiveTab>(null);
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
 
-
+  useEffect(() => {
+    const checkPendingContact = async () => {
+      const pendingProfileId = sessionStorage.getItem("pending_save_contact");
+      if (pendingProfileId && user) {
+        sessionStorage.removeItem("pending_save_contact");
+        
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", pendingProfileId)
+            .single();
+            
+          if (profile) {
+            const { data: existing } = await supabase
+              .from("contacts")
+              .select("id")
+              .eq("user_id", user.id)
+              .eq("email", profile.email)
+              .maybeSingle();
+              
+            if (!existing) {
+              const payload = {
+                user_id: user.id,
+                name: profile.name || "",
+                email: profile.email || "",
+                phone: profile.phone || "",
+                linkedin: profile.linkedin_url || "",
+                instagram: profile.instagram || "",
+                company: profile.company || "",
+                job_title: profile.job_title || "",
+              };
+              await supabase.from("contacts").insert(payload);
+              toast({ 
+                title: "Contact saved ✅", 
+                description: `${profile.name} was added to your contacts.` 
+              });
+            }
+          }
+        } catch (e) {
+          console.error("Failed to save pending contact", e);
+        }
+      }
+    };
+    
+    checkPendingContact();
+  }, [user, toast]);
 
   const vipCount = contacts.filter((c) => c.priority === "vip").length;
   const pendingReminders = reminders.filter((r) => !r.completed).length;

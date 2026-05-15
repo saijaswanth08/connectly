@@ -87,7 +87,8 @@ END:VCARD`;
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        navigate("/login");
+        sessionStorage.setItem("pending_save_contact", profileId as string);
+        navigate("/signup");
         return;
       }
 
@@ -114,6 +115,7 @@ END:VCARD`;
 
         if (existing) {
           alert("Contact already saved");
+          navigate("/");
           return;
         }
       }
@@ -139,6 +141,7 @@ END:VCARD`;
       }
 
       alert("Contact saved ✅");
+      navigate("/");
     } catch (error) {
       const e = error as Error;
       console.error("Error saving contact:", e);
