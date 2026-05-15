@@ -124,19 +124,31 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden pt-20 pb-16 md:pt-24 md:pb-24 lg:min-h-[calc(100vh-64px)] flex items-center">
+        {/* Gradient mesh background */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
+          <div className="absolute top-1/2 -right-32 w-[400px] h-[400px] rounded-full bg-[hsl(263_70%_58%/0.08)] blur-[100px]" />
+          <div className="absolute bottom-0 left-1/3 w-[300px] h-[300px] rounded-full bg-[hsl(142_71%_45%/0.06)] blur-[80px]" />
+        </div>
         <div className="relative z-10 w-full">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-2 reveal">
-            <motion.div initial="hidden" animate="visible" className="space-y-8 order-2 md:order-1 text-center md:text-left">
-              <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem] mx-auto md:mx-0 max-w-xl md:max-w-none">
+            <motion.div initial="hidden" animate="visible" className="space-y-7 order-2 md:order-1 text-center md:text-left">
+              <motion.div custom={0} variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-1.5 mx-auto md:mx-0">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-xs font-semibold text-primary tracking-wide uppercase">Personal CRM for Professionals</span>
+              </motion.div>
+              <motion.h1 custom={1} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem] mx-auto md:mx-0 max-w-xl md:max-w-none">
                 Remember Every{" "}
-                <span className="text-primary">Connection</span>{" "}
+                <span className="relative">
+                  <span className="text-gradient">Connection</span>
+                </span>{" "}
                 You Make
               </motion.h1>
-              <motion.p custom={1} variants={fadeUp} className="max-w-lg mx-auto md:mx-0 text-lg text-muted-foreground leading-relaxed">
+              <motion.p custom={2} variants={fadeUp} className="max-w-lg mx-auto md:mx-0 text-lg text-muted-foreground leading-relaxed">
                 Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
               </motion.p>
-              <motion.div custom={2} variants={fadeUp} className="flex flex-wrap gap-3 justify-center md:justify-start pt-2">
-                <Button size="lg" className="rounded-full gap-2 px-8 text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-none" asChild>
+              <motion.div custom={3} variants={fadeUp} className="flex flex-wrap gap-3 justify-center md:justify-start pt-1">
+                <Button size="lg" className="rounded-full gap-2 px-8 text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow" asChild>
                   <Link to="/signup">
                     Get Started <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -144,10 +156,10 @@ export default function LandingPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-full px-8 text-base group/demo relative overflow-hidden"
+                  className="rounded-full px-8 text-base group/demo relative overflow-hidden border-border/60 hover:border-primary/40"
                   onClick={() => setShowDemo(true)}
                 >
-                  <span className="relative z-10">Demo</span>
+                  <span className="relative z-10">Watch Demo</span>
                   <div className="absolute inset-0 bg-primary/5 translate-y-full group-hover/demo:translate-y-0 transition-transform duration-300" />
                 </Button>
               </motion.div>
@@ -161,7 +173,10 @@ export default function LandingPage() {
       </section>
 
       {/* Product Explanation */}
-      <section className="bg-background py-24">
+      <section className="relative py-24 overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-primary/5 blur-[100px]" />
+        </div>
         <div className="mx-auto max-w-6xl px-6 reveal">
           <div className="grid items-center gap-14 md:grid-cols-2">
             <motion.div
@@ -173,14 +188,17 @@ export default function LandingPage() {
             >
               <NetworkGraphAnimated />
             </motion.div>
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="space-y-5">
-              <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
-                Your Personal Networking CRM
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="space-y-5 text-center md:text-left">
+              <motion.div custom={0} variants={fadeUp}>
+                <span className="text-xs font-bold uppercase tracking-widest text-primary">How it works</span>
+              </motion.div>
+              <motion.h2 custom={1} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
+                Your Personal <span className="text-gradient">Networking CRM</span>
               </motion.h2>
-              <motion.p custom={1} variants={fadeUp} className="text-muted-foreground leading-relaxed">
+              <motion.p custom={2} variants={fadeUp} className="text-muted-foreground leading-relaxed">
                 Professionals meet many people at conferences, meetings, and events. Remembering every conversation becomes difficult.
               </motion.p>
-              <motion.p custom={2} variants={fadeUp} className="text-muted-foreground leading-relaxed">
+              <motion.p custom={3} variants={fadeUp} className="text-muted-foreground leading-relaxed">
                 Connectly helps you store contacts, notes, and relationship history in one place so you never forget an important connection.
               </motion.p>
             </motion.div>
@@ -189,35 +207,57 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-24">
+      <section className="py-24 bg-muted/30">
         <div className="mx-auto max-w-6xl px-6 reveal">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="mx-auto max-w-2xl text-center space-y-4 mb-16">
-            <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
-              Everything You Need to Manage Your Professional Network
+            <motion.div custom={0} variants={fadeUp}>
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">Features</span>
+            </motion.div>
+            <motion.h2 custom={1} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
+              Everything You Need to Manage Your{" "}
+              <span className="text-gradient">Professional Network</span>
             </motion.h2>
-            <motion.p custom={1} variants={fadeUp} className="text-muted-foreground text-lg">
+            <motion.p custom={2} variants={fadeUp} className="text-muted-foreground text-lg">
               Powerful tools designed for professionals who value their relationships.
             </motion.p>
           </motion.div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, i) => (
-              <motion.div
-                key={feature.title}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-40px" }}
-                custom={i}
-                variants={fadeUp}
-                className="group rounded-2xl border border-border bg-card p-7 shadow-sm transition-shadow duration-150 hover:shadow-md"
-              >
-                <div className="mb-4 inline-flex rounded-xl bg-accent p-3">
-                  <feature.icon className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature, i) => {
+              const gradients = [
+                "from-blue-500/10 to-indigo-500/10 border-blue-200/50 dark:border-blue-800/30",
+                "from-purple-500/10 to-pink-500/10 border-purple-200/50 dark:border-purple-800/30",
+                "from-emerald-500/10 to-teal-500/10 border-emerald-200/50 dark:border-emerald-800/30",
+                "from-amber-500/10 to-orange-500/10 border-amber-200/50 dark:border-amber-800/30",
+                "from-rose-500/10 to-red-500/10 border-rose-200/50 dark:border-rose-800/30",
+                "from-cyan-500/10 to-sky-500/10 border-cyan-200/50 dark:border-cyan-800/30",
+              ];
+              const iconGradients = [
+                "from-blue-500 to-indigo-600",
+                "from-purple-500 to-pink-600",
+                "from-emerald-500 to-teal-600",
+                "from-amber-500 to-orange-600",
+                "from-rose-500 to-red-600",
+                "from-cyan-500 to-sky-600",
+              ];
+              return (
+                <motion.div
+                  key={feature.title}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-40px" }}
+                  custom={i}
+                  variants={fadeUp}
+                  className={`group rounded-2xl border bg-gradient-to-br ${gradients[i]} p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default`}
+                >
+                  <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${iconGradients[i]} p-3 shadow-sm`}>
+                    <feature.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="font-display text-base font-semibold text-foreground mb-1.5">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
