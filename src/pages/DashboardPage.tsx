@@ -9,6 +9,7 @@ import { useMeetings, useContacts } from "@/hooks/useContacts";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DbContact, DbReminder, DbMeeting } from "@/lib/api";
+import { AddContactDialog } from "@/components/AddContactDialog";
 
 // ────────────────────────────────────────────────────────────
 // Inline Contact Detail View (no routing, no modal)
@@ -173,6 +174,7 @@ export default function DashboardPage() {
   const [selectedContact, setSelectedContact] = useState<DbContact | null>(null);
   // Track which tab the user was on before opening a contact
   const [previousTab, setPreviousTab] = useState<ActiveTab>(null);
+  const [isAddContactOpen, setIsAddContactOpen] = useState(false);
 
 
 
@@ -222,6 +224,7 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <AddContactDialog open={isAddContactOpen} onClose={() => setIsAddContactOpen(false)} />
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-1">
         <h1 className="text-2xl font-display font-bold">Dashboard</h1>
         <p className="text-sm text-muted-foreground">Your networking overview at a glance</p>
@@ -421,12 +424,12 @@ export default function DashboardPage() {
                 <Users className="h-10 w-10 text-muted-foreground/40 mb-3" />
                 <p className="text-sm font-medium text-muted-foreground">No contacts yet</p>
                 <p className="text-xs text-muted-foreground/70 mt-1 mb-4">Add your first contact to get started</p>
-                <a
-                  href="/dashboard/contacts"
+                <button
+                  onClick={() => setIsAddContactOpen(true)}
                   className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
                 >
                   + Add your first contact
-                </a>
+                </button>
               </div>
             ) : (
               recentContacts.map((c, i) => (
