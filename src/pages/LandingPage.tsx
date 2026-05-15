@@ -123,7 +123,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden pt-12 pb-10 md:pt-24 md:pb-24 lg:min-h-[calc(100vh-64px)] flex items-center">
+      <section className="relative overflow-hidden min-h-[calc(100vh-64px)] flex items-center py-12 md:py-24">
         {/* Gradient mesh background */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
