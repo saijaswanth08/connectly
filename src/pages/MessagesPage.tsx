@@ -36,7 +36,10 @@ function formatMessageTime(dateStr: string) {
   return format(d, "MMM d");
 }
 
+import { useToast } from "@/hooks/use-toast";
+
 export default function MessagesPage() {
+  const { toast } = useToast();
   useEffect(() => {
     console.log("MessagesPage loaded");
   }, []);
@@ -104,18 +107,27 @@ export default function MessagesPage() {
   async function handleSend() {
     if (!messageText.trim() || !selectedContactId) return;
 
-    let convId = selectedConversationId;
-    if (!convId) {
-      const conv = await getOrCreateConv.mutateAsync(selectedContactId);
-      convId = conv.id;
-      setSelectedConversationId(conv.id);
-    }
+    try {
+      let convId = selectedConversationId;
+      if (!convId) {
+        const conv = await getOrCreateConv.mutateAsync(selectedContactId);
+        convId = conv.id;
+        setSelectedConversationId(conv.id);
+      }
 
-    await sendMessage.mutateAsync({
-      conversationId: convId,
-      content: messageText.trim(),
-    });
-    setMessageText("");
+      await sendMessage.mutateAsync({
+        conversationId: convId,
+        content: messageText.trim(),
+      });
+      setMessageText("");
+    } catch (error: any) {
+      console.error("Message send error:", error);
+      toast({
+        title: "Failed to send message",
+        description: error.message || "An unknown database error occurred. This is likely an RLS permission issue.",
+        variant: "destructive",
+      });
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

@@ -45,7 +45,7 @@ export function AppLayout() {
             </AnimatePresence>
           </main>
         </div>
-        <FloatingQuickAdd />
+        {location.pathname === "/dashboard" && <FloatingQuickAdd />}
       </div>
     </SidebarProvider>
   );
