@@ -373,6 +373,7 @@ export const updateProfile = async (updates: {
   phone?: string;
   linkedin?: string;
   instagram?: string;
+  daily_digest_enabled?: boolean;
 }) => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -389,6 +390,7 @@ export const updateProfile = async (updates: {
     phone: updates.phone ?? "",
     linkedin: updates.linkedin ?? "",
     instagram: updates.instagram ?? "",
+    ...(updates.daily_digest_enabled !== undefined ? { daily_digest_enabled: updates.daily_digest_enabled } : {})
   };
 
   const { data, error } = await supabase

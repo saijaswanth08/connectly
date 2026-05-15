@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Plus, Check, Pencil, Trash2, Clock, User, CalendarIcon, X } from "lucide-react";
+import { Bell, Plus, Check, Pencil, Trash2, Clock, User, CalendarIcon, X, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { DbReminder } from "@/lib/api";
 import { format, isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
+
+function getGoogleCalendarUrl(title: string, date: Date, details: string) {
+  const start = date.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  const endDate = new Date(date.getTime() + 30 * 60000); // 30 min duration
+  const end = endDate.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  
+  const url = new URL("https://calendar.google.com/calendar/render");
+  url.searchParams.append("action", "TEMPLATE");
+  url.searchParams.append("text", title);
+  url.searchParams.append("dates", `${start}/${end}`);
+  if (details) url.searchParams.append("details", details);
+  
+  return url.toString();
+}
 
 export default function RemindersPage() {
   const { user } = useAuth();
@@ -152,6 +166,10 @@ export default function RemindersPage() {
           <h1 className="text-2xl font-display font-bold text-foreground">Reminders</h1>
           <p className="text-sm text-muted-foreground">{upcoming.length} upcoming · {completed.length} completed</p>
         </div>
+        <Button onClick={openCreate} className="gap-2">
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Add Reminder</span>
+        </Button>
       </div>
 
       {/* Empty state */}
@@ -204,6 +222,11 @@ export default function RemindersPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
+                    <Button size="icon" variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10" asChild title="Add to Google Calendar">
+                      <a href={getGoogleCalendarUrl(r.title, rDate, r.message || (contactName ? `Follow up with ${contactName}` : "Reminder"))} target="_blank" rel="noopener noreferrer">
+                        <CalendarPlus className="h-4 w-4" />
+                      </a>
+                    </Button>
                     <Button size="icon" variant="ghost" onClick={() => handleToggle(r)} title="Mark as done">
                       <Check className="h-4 w-4" />
                     </Button>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format, isPast, isToday } from "date-fns";
-import { Bell, Plus, Check, Pencil, Trash2, Clock, CalendarIcon } from "lucide-react";
+import { Bell, Plus, Check, Pencil, Trash2, Clock, CalendarIcon, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,20 @@ import { cn } from "@/lib/utils";
 interface ContactRemindersProps {
   contactId: string;
   contactName: string;
+}
+
+function getGoogleCalendarUrl(title: string, date: Date, details: string) {
+  const start = date.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  const endDate = new Date(date.getTime() + 30 * 60000); // 30 min duration
+  const end = endDate.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  
+  const url = new URL("https://calendar.google.com/calendar/render");
+  url.searchParams.append("action", "TEMPLATE");
+  url.searchParams.append("text", title);
+  url.searchParams.append("dates", `${start}/${end}`);
+  if (details) url.searchParams.append("details", details);
+  
+  return url.toString();
 }
 
 export function ContactReminders({ contactId, contactName }: ContactRemindersProps) {
@@ -130,9 +144,14 @@ export function ContactReminders({ contactId, contactName }: ContactRemindersPro
               </p>
             </div>
             <div className="flex items-center gap-0.5 shrink-0">
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleToggle(r)}><Check className="h-3.5 w-3.5" /></Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(r)}><Pencil className="h-3.5 w-3.5" /></Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleDelete(r.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7 text-primary hover:text-primary hover:bg-primary/10" asChild title="Add to Google Calendar">
+                <a href={getGoogleCalendarUrl(r.title, rDate, r.message || `Follow up with ${contactName}`)} target="_blank" rel="noopener noreferrer">
+                  <CalendarPlus className="h-3.5 w-3.5" />
+                </a>
+              </Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleToggle(r)} title="Mark as done"><Check className="h-3.5 w-3.5" /></Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(r)} title="Edit"><Pencil className="h-3.5 w-3.5" /></Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleDelete(r.id)} title="Delete"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
             </div>
           </div>
         );

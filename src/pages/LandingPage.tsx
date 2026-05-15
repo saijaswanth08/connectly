@@ -123,19 +123,19 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden min-h-[calc(100vh-64px)] flex items-center py-16 md:py-24">
+      <section className="relative overflow-hidden pt-20 pb-16 md:pt-24 md:pb-24 lg:min-h-[calc(100vh-64px)] flex items-center">
         <div className="relative z-10 w-full">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-2 reveal">
-            <motion.div initial="hidden" animate="visible" className="space-y-8">
-              <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem]">
+            <motion.div initial="hidden" animate="visible" className="space-y-8 order-2 md:order-1 text-center md:text-left">
+              <motion.h1 custom={0} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem] mx-auto md:mx-0 max-w-xl md:max-w-none">
                 Remember Every{" "}
                 <span className="text-primary">Connection</span>{" "}
                 You Make
               </motion.h1>
-              <motion.p custom={1} variants={fadeUp} className="max-w-lg text-lg text-muted-foreground leading-relaxed">
+              <motion.p custom={1} variants={fadeUp} className="max-w-lg mx-auto md:mx-0 text-lg text-muted-foreground leading-relaxed">
                 Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
               </motion.p>
-              <motion.div custom={2} variants={fadeUp} className="flex flex-wrap gap-3 pt-2">
+              <motion.div custom={2} variants={fadeUp} className="flex flex-wrap gap-3 justify-center md:justify-start pt-2">
                 <Button size="lg" className="rounded-full gap-2 px-8 text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-none" asChild>
                   <Link to="/signup">
                     Get Started <ArrowRight className="h-4 w-4" />
@@ -153,7 +153,9 @@ export default function LandingPage() {
               </motion.div>
             </motion.div>
 
-            <HeroFloatingElements />
+            <div className="order-1 md:order-2 w-full flex justify-center">
+              <HeroFloatingElements />
+            </div>
           </div>
         </div>
       </section>

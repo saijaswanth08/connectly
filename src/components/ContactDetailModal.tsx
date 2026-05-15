@@ -1,5 +1,5 @@
 import { DbContact } from "@/lib/api";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -45,6 +45,9 @@ export function ContactDetailModal({ contact, open, onOpenChange, onEdit, onDele
                   <DialogTitle className="font-display text-xl font-bold text-foreground">
                     {contact.name}
                   </DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Detailed contact information and timeline for {contact.name}.
+                  </DialogDescription>
                   <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border ${imp.class}`}>
                     {imp.label}
                   </span>

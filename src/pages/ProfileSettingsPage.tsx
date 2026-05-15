@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, ImagePlus, Trash2, Mail, Phone,
@@ -25,6 +26,7 @@ type Profile = {
   instagram: string | null;
   avatar_url: string | null;
   created_at: string;
+  daily_digest_enabled: boolean;
 };
 
 // Shape of the raw row Supabase returns (mirrors actual DB columns)
@@ -39,6 +41,7 @@ type ProfileRow = {
   instagram: string | null;
   avatar_url: string | null;
   created_at: string;
+  daily_digest_enabled: boolean;
 };
 
 export default function ProfileSettingsPage() {
@@ -47,10 +50,10 @@ export default function ProfileSettingsPage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { profile, isLoading } = useProfile();
+  const { data: profile, isLoading } = useProfile();
 
   const [form, setForm] = useState({
-    name: "", phone: "", linkedin: "", instagram: "", company: "", job_title: "",
+    name: "", phone: "", linkedin: "", instagram: "", company: "", job_title: "", daily_digest_enabled: true,
   });
   const [originalForm, setOriginalForm] = useState({ ...form });
   const [saving, setSaving] = useState(false);
@@ -62,10 +65,11 @@ export default function ProfileSettingsPage() {
       const values = {
         name: profile.name || "",
         phone: profile.phone || "",
-        linkedin: profile.linkedin || "",
+        linkedin: profile.linkedin_url || "",
         instagram: profile.instagram || "",
         company: profile.company || "",
         job_title: profile.job_title || "",
+        daily_digest_enabled: profile.daily_digest_enabled ?? true,
       };
       setForm(values);
       setOriginalForm(values);
@@ -77,7 +81,7 @@ export default function ProfileSettingsPage() {
   const fullName = form.name || user?.email?.split("@")[0] || "";
   const initials = fullName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
   const avatarUrl = profile?.avatar_url || null;
-  const update = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
+  const update = (key: string, val: string | boolean) => setForm((p) => ({ ...p, [key]: val }));
 
   const handleCancel = () => {
     setForm(originalForm);
@@ -101,6 +105,7 @@ export default function ProfileSettingsPage() {
         instagram: form.instagram || undefined,
         company: form.company || undefined,
         job_title: form.job_title || undefined,
+        daily_digest_enabled: form.daily_digest_enabled,
       });
 
       setOriginalForm(form);
@@ -350,6 +355,25 @@ export default function ProfileSettingsPage() {
               className="rounded-lg h-9"
             />
           </div>
+        </div>
+      </div>
+
+      {/* Preferences */}
+      <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5">
+        <div>
+          <h2 className="font-semibold text-foreground">Preferences</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Manage your notifications and settings</p>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-sm font-medium text-foreground">Daily Reminder Digest</Label>
+            <p className="text-xs text-muted-foreground">Receive a daily email summarizing your upcoming reminders.</p>
+          </div>
+          <Switch 
+            checked={form.daily_digest_enabled} 
+            onCheckedChange={(checked) => update("daily_digest_enabled", checked)}
+          />
         </div>
       </div>
 

@@ -275,6 +275,7 @@ export type Database = {
           bio: string | null
           company: string | null
           created_at: string
+          daily_digest_enabled: boolean
           email: string
           id: string
           instagram: string | null
@@ -291,6 +292,7 @@ export type Database = {
           bio?: string | null
           company?: string | null
           created_at?: string
+          daily_digest_enabled?: boolean
           email?: string
           id: string
           instagram?: string | null
@@ -307,6 +309,7 @@ export type Database = {
           bio?: string | null
           company?: string | null
           created_at?: string
+          daily_digest_enabled?: boolean
           email?: string
           id?: string
           instagram?: string | null
@@ -325,6 +328,7 @@ export type Database = {
           completed: boolean
           contact_id: string | null
           created_at: string
+          email_sent: boolean
           id: string
           message: string | null
           reminder_date: string
@@ -336,6 +340,7 @@ export type Database = {
           completed?: boolean
           contact_id?: string | null
           created_at?: string
+          email_sent?: boolean
           id?: string
           message?: string | null
           reminder_date: string
@@ -347,6 +352,7 @@ export type Database = {
           completed?: boolean
           contact_id?: string | null
           created_at?: string
+          email_sent?: boolean
           id?: string
           message?: string | null
           reminder_date?: string
