@@ -114,7 +114,7 @@ function ConnectionLines() {
 
 export default function HeroFloatingElements() {
   return (
-    <div className="relative w-full h-[340px] sm:h-[400px] md:h-[440px]">
+    <div className="relative w-full h-[260px] sm:h-[400px] md:h-[440px]">
       <ConnectionLines />
 
       {/* Floating contact cards */}

@@ -131,8 +131,9 @@ export default function LandingPage() {
           <div className="absolute bottom-0 left-1/3 w-[300px] h-[300px] rounded-full bg-[hsl(142_71%_45%/0.06)] blur-[80px]" />
         </div>
         <div className="relative z-10 w-full">
-          <div className="mx-auto grid max-w-6xl items-center gap-8 md:gap-12 px-6 md:grid-cols-2 reveal">
-            <motion.div initial="hidden" animate="visible" className="space-y-7 order-2 md:order-1 text-center md:text-left">
+          <div className="mx-auto max-w-6xl px-6 reveal">
+            <div className="flex flex-col md:grid md:grid-cols-2 items-center gap-8 md:gap-12">
+            <motion.div initial="hidden" animate="visible" className="space-y-6 order-2 md:order-1 text-center md:text-left w-full">
               <motion.div custom={0} variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-1.5 mx-auto md:mx-0">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                 <span className="text-xs font-semibold text-primary tracking-wide uppercase">Personal CRM for Professionals</span>
@@ -169,6 +170,7 @@ export default function LandingPage() {
               <HeroFloatingElements />
             </div>
           </div>
+          </div>
         </div>
       </section>
 
@@ -178,13 +180,13 @@ export default function LandingPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-primary/5 blur-[100px]" />
         </div>
         <div className="mx-auto max-w-6xl px-6 reveal">
-          <div className="grid items-center gap-10 md:gap-14 md:grid-cols-2">
+          <div className="flex flex-col md:grid md:grid-cols-2 items-center gap-10 md:gap-14">
             <motion.div
               initial={{ opacity: 0, x: -24 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.5 }}
-              className="flex justify-center"
+              className="flex justify-center w-full"
             >
               <NetworkGraphAnimated />
             </motion.div>
@@ -222,7 +224,7 @@ export default function LandingPage() {
             </motion.p>
           </motion.div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, i) => {
               const gradients = [
                 "from-blue-500/10 to-indigo-500/10 border-blue-200/50 dark:border-blue-800/30",
