@@ -221,6 +221,54 @@ export type Database = {
           },
         ]
       }
+      message_requests: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          recipient_id: string
+          sender_email: string
+          sender_id: string
+          sender_name: string
+          status: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          recipient_id: string
+          sender_email: string
+          sender_id: string
+          sender_name: string
+          status?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          sender_email?: string
+          sender_id?: string
+          sender_name?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_requests_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_requests_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -451,7 +499,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      handle_message_request: {
+        Args: {
+          p_request_id: string
+          p_action: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -178,3 +178,52 @@ export function useUnreadCount() {
   const { data: conversations } = useConversations();
   return conversations?.length ?? 0;
 }
+
+export interface MessageRequest {
+  id: string;
+  recipient_id: string;
+  sender_id: string;
+  sender_name: string;
+  sender_email: string;
+  content: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+}
+
+export function useMessageRequests() {
+  const { user } = useAuth();
+  return useQuery<MessageRequest[]>({
+    queryKey: ["message_requests"],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("message_requests")
+        .select("*")
+        .eq("recipient_id", user.id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as MessageRequest[];
+    },
+    enabled: !!user,
+  });
+}
+
+export function useHandleMessageRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ requestId, action }: { requestId: string; action: 'accept' | 'reject' }) => {
+      const { error } = await supabase.rpc('handle_message_request', {
+        p_request_id: requestId,
+        p_action: action
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["message_requests"] });
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+      qc.invalidateQueries({ queryKey: ["contacts"] });
+      qc.invalidateQueries({ queryKey: ["messages"] });
+    }
+  });
+}
