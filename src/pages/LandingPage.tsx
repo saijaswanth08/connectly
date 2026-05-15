@@ -123,7 +123,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden pt-20 pb-16 md:pt-24 md:pb-24 lg:min-h-[calc(100vh-64px)] flex items-center">
+      <section className="relative overflow-hidden pt-12 pb-10 md:pt-24 md:pb-24 lg:min-h-[calc(100vh-64px)] flex items-center">
         {/* Gradient mesh background */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
@@ -131,7 +131,7 @@ export default function LandingPage() {
           <div className="absolute bottom-0 left-1/3 w-[300px] h-[300px] rounded-full bg-[hsl(142_71%_45%/0.06)] blur-[80px]" />
         </div>
         <div className="relative z-10 w-full">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-2 reveal">
+          <div className="mx-auto grid max-w-6xl items-center gap-8 md:gap-12 px-6 md:grid-cols-2 reveal">
             <motion.div initial="hidden" animate="visible" className="space-y-7 order-2 md:order-1 text-center md:text-left">
               <motion.div custom={0} variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-1.5 mx-auto md:mx-0">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
@@ -173,12 +173,12 @@ export default function LandingPage() {
       </section>
 
       {/* Product Explanation */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-14 md:py-24 overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-primary/5 blur-[100px]" />
         </div>
         <div className="mx-auto max-w-6xl px-6 reveal">
-          <div className="grid items-center gap-14 md:grid-cols-2">
+          <div className="grid items-center gap-10 md:gap-14 md:grid-cols-2">
             <motion.div
               initial={{ opacity: 0, x: -24 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -207,9 +207,9 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-24 bg-muted/30">
+      <section className="py-14 md:py-24 bg-muted/30">
         <div className="mx-auto max-w-6xl px-6 reveal">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="mx-auto max-w-2xl text-center space-y-4 mb-16">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="mx-auto max-w-2xl text-center space-y-3 mb-10 md:mb-16">
             <motion.div custom={0} variants={fadeUp}>
               <span className="text-xs font-bold uppercase tracking-widest text-primary">Features</span>
             </motion.div>
@@ -263,9 +263,9 @@ export default function LandingPage() {
       </section>
 
       {/* Dashboard Preview */}
-      <section className="bg-background py-24">
+      <section className="bg-background py-14 md:py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="mx-auto max-w-2xl text-center space-y-4 mb-14">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} className="mx-auto max-w-2xl text-center space-y-4 mb-10 md:mb-14">
             <motion.h2 custom={0} variants={fadeUp} className="font-display text-3xl font-bold text-foreground sm:text-4xl">
               A smarter way to manage relationships
             </motion.h2>
@@ -292,7 +292,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-24">
+      <section className="py-14 md:py-24">
         <div className="mx-auto max-w-6xl px-6 reveal">
           <motion.div
             initial="hidden"
