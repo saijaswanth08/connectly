@@ -24,13 +24,15 @@ export function usePresence() {
       },
     });
 
+    const syncState = () => {
+      const state = channel.presenceState();
+      const onlineIds = new Set<string>(Object.keys(state));
+      console.log("Presence sync. Online users:", onlineIds.size);
+      setOnlineUsers(onlineIds);
+    };
+
     channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const onlineIds = new Set<string>(Object.keys(state));
-        console.log("Presence sync. Online users:", onlineIds.size);
-        setOnlineUsers(onlineIds);
-      })
+      .on('presence', { event: 'sync' }, syncState)
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           console.log("Presence channel subscribed");
@@ -38,6 +40,7 @@ export function usePresence() {
             user_id: user.id,
             online_at: new Date().toISOString(),
           });
+          syncState(); // Initial sync immediately after subscription
         }
       });
 
@@ -45,7 +48,7 @@ export function usePresence() {
       console.log("Cleaning up presence channel");
       supabase.removeChannel(channel);
     };
-  }, [user?.id]); // Use user?.id for more stable dependency
+  }, [user?.id]);
 
   return { onlineUsers };
 }

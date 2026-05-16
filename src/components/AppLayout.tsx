@@ -10,7 +10,7 @@ import { FloatingQuickAdd } from "@/components/FloatingQuickAdd";
 import { useKeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimeContactRequests } from "@/hooks/useRealtimeContactRequests";
-import { updatePresence, setOffline } from "@/hooks/usePresence";
+import { usePresence } from "@/hooks/usePresence";
 import { useEffect } from "react";
 
 export function AppLayout() {
@@ -18,6 +18,7 @@ export function AppLayout() {
   const location = useLocation();
   const { user } = useAuth();
   useRealtimeContactRequests(user?.id);
+  usePresence(); // Enable global presence tracking while in dashboard
   
   return (
     <SidebarProvider>
