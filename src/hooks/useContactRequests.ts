@@ -15,7 +15,6 @@ export function useIncomingContactRequests() {
   return useQuery<DbContactRequest[]>({
     queryKey: ['contact_requests', 'incoming'],
     queryFn: fetchIncomingContactRequests,
-    refetchInterval: 30000,
   });
 }
 
@@ -23,7 +22,6 @@ export function useOutgoingAcceptedRequests() {
   return useQuery<DbContactRequest[]>({
     queryKey: ['contact_requests', 'accepted_outgoing'],
     queryFn: fetchOutgoingAcceptedRequests,
-    refetchInterval: 30000,
   });
 }
 

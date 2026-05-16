@@ -5,14 +5,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { FloatingQuickAdd } from "@/components/FloatingQuickAdd";
 import { useKeyboardShortcuts } from "@/components/KeyboardShortcuts";
+import { useAuth } from "@/hooks/useAuth";
+import { useRealtimeContactRequests } from "@/hooks/useRealtimeContactRequests";
 
 export function AppLayout() {
   useKeyboardShortcuts();
   const location = useLocation();
+  const { user } = useAuth();
+  useRealtimeContactRequests(user?.id);
 
   return (
     <SidebarProvider>
