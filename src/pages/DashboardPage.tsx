@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
-import { Users, Star, Bell, Calendar, ArrowLeft, Phone, Mail, Building2 } from "lucide-react";
+import { Users, Star, Bell, Calendar, ArrowLeft, Phone, Mail, Building2, Pencil, Trash2, Loader2, Linkedin, Instagram } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { MetricCard } from "@/components/MetricCard";
@@ -9,9 +9,11 @@ import { TagBadge } from "@/components/TagBadge";
 import { useReminders } from "@/hooks/useReminders";
 import { useMeetings, useContacts } from "@/hooks/useContacts";
 import { motion } from "framer-motion";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DbContact, DbReminder, DbMeeting } from "@/lib/api";
 import { AddContactDialog } from "@/components/AddContactDialog";
+import { EditContactDialog } from "@/components/EditContactDialog";
+import { useDeleteContact } from "@/hooks/useContacts";
 
 // ────────────────────────────────────────────────────────────
 // Inline Contact Detail View (no routing, no modal)
@@ -30,25 +32,71 @@ function ContactDetailView({
     .slice(0, 2)
     .toUpperCase();
 
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteContact = useDeleteContact();
+  const { toast } = useToast();
+
+  async function handleDelete() {
+    if (!confirm(`Are you sure you want to delete ${contact.name}?`)) return;
+    setIsDeleting(true);
+    try {
+      await deleteContact.mutateAsync(contact.id);
+      toast({ title: "Contact deleted" });
+      onBack();
+    } catch (e: unknown) {
+      toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* Back button */}
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back
-      </button>
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsEditOpen(true)}
+            className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors px-3 py-1.5 rounded-md hover:bg-primary/10"
+          >
+            <Pencil className="h-4 w-4" />
+            Edit
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="flex items-center gap-1.5 text-sm text-destructive hover:text-destructive/80 transition-colors px-3 py-1.5 rounded-md hover:bg-destructive/10"
+          >
+            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <EditContactDialog
+        contact={contact}
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+      />
 
       {/* Contact header card */}
       <div className="glass-card rounded-xl p-6">
         <div className="flex items-start gap-5">
           <Avatar className="h-16 w-16 shrink-0">
+            {contact.avatar_url && (
+              <AvatarImage src={contact.avatar_url} alt={contact.name} className="object-cover" />
+            )}
             <AvatarFallback className="bg-primary/10 text-primary font-display font-bold text-xl">
               {initials}
             </AvatarFallback>
@@ -68,9 +116,16 @@ function ContactDetailView({
         {/* Contact info */}
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {contact.email && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Mail className="h-4 w-4 text-primary shrink-0" />
-              <span className="truncate">{contact.email}</span>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground group/link">
+              <Mail className="h-4 w-4 text-primary shrink-0 transition-transform group-hover/link:scale-110" />
+              <a 
+                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${contact.email}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="transition-all duration-200 group-hover/link:text-primary font-medium truncate"
+              >
+                {contact.email}
+              </a>
             </div>
           )}
           {contact.phone && (
@@ -83,6 +138,32 @@ function ContactDetailView({
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Building2 className="h-4 w-4 text-primary shrink-0" />
               <span>{contact.company}</span>
+            </div>
+          )}
+          {contact.linkedin && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground group/link">
+              <Linkedin className="h-4 w-4 text-primary shrink-0 transition-transform group-hover/link:scale-110" />
+              <a 
+                href={contact.linkedin.startsWith('http') ? contact.linkedin : `https://${contact.linkedin}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="transition-all duration-200 group-hover/link:text-primary font-medium truncate"
+              >
+                LinkedIn Profile
+              </a>
+            </div>
+          )}
+          {contact.instagram && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground group/link">
+              <Instagram className="h-4 w-4 text-primary shrink-0 transition-transform group-hover/link:scale-110" />
+              <a 
+                href={contact.instagram.startsWith('http') ? contact.instagram : `https://instagram.com/${contact.instagram.replace('@', '')}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="transition-all duration-200 group-hover/link:text-primary font-medium truncate"
+              >
+                {contact.instagram.includes('instagram.com') ? 'Instagram Profile' : (contact.instagram.startsWith('@') ? contact.instagram : `@${contact.instagram}`)}
+              </a>
             </div>
           )}
         </div>
@@ -131,6 +212,9 @@ function ClickableContactCard({
     >
       <div className="flex items-start gap-3">
         <Avatar className="h-11 w-11 shrink-0">
+          {contact.avatar_url && (
+            <AvatarImage src={contact.avatar_url} alt={contact.name} className="object-cover" />
+          )}
           <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm">
             {initials}
           </AvatarFallback>
@@ -210,6 +294,7 @@ export default function DashboardPage() {
                 instagram: profile.instagram || "",
                 company: profile.company || "",
                 job_title: profile.job_title || "",
+                avatar_url: profile.avatar_url,
               };
               await supabase.from("contacts").insert(payload);
               toast({ 

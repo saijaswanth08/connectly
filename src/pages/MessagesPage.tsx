@@ -198,7 +198,7 @@ export default function MessagesPage() {
                         </AvatarFallback>
                       </Avatar>
                       {(() => {
-                        const presence = getPresenceStatus(presenceRecords, contact.id);
+                        const presence = getPresenceStatus(presenceRecords, contact.target_user_id || '');
                         return (
                           <div className={cn(
                             "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-card",
@@ -313,7 +313,7 @@ export default function MessagesPage() {
                     {selectedContact.name}
                   </h3>
                   {(() => {
-                    const presence = getPresenceStatus(presenceRecords, selectedContact.id);
+                    const presence = getPresenceStatus(presenceRecords, selectedContact.target_user_id || '');
                     return presence.isOnline ? (
                       <p className="text-[11px] text-emerald-600 flex items-center gap-1">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />

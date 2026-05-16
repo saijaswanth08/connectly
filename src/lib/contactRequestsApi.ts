@@ -68,19 +68,31 @@ export async function acceptContactRequest(requestId: string, fromUserId: string
   if (!user) throw new Error('Not authenticated');
   const { data: p } = await supabase.from('profiles').select('*').eq('id', fromUserId).single();
   if (p) {
-    await supabase.from('contacts').insert({
-      user_id: user.id,
-      name: p.name || 'Unknown',
-      email: p.email || '',
-      phone: p.phone || '',
-      company: p.company || '',
-      job_title: p.job_title || '',
-      linkedin: p.linkedin || '',
-      instagram: p.instagram || '',
-      notes: 'Connected via Connectly',
-      priority: 'medium',
-      tags: [],
-    });
+    // Check if contact already exists
+    const { data: existingContacts } = await supabase
+      .from('contacts')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('email', p.email || '')
+      .limit(1);
+
+    if (!existingContacts || existingContacts.length === 0) {
+      await supabase.from('contacts').insert({
+        user_id: user.id,
+        name: p.name || 'Unknown',
+        email: p.email || '',
+        phone: p.phone || '',
+        company: p.company || '',
+        job_title: p.job_title || '',
+        linkedin: p.linkedin_url || '',
+        instagram: p.instagram || '',
+        notes: 'Connected via Connectly',
+        priority: 'medium',
+        avatar_url: p.avatar_url,
+        target_user_id: p.id,
+        tags: [],
+      });
+    }
   }
   const { error } = await supabase
     .from('contact_requests')
@@ -103,20 +115,42 @@ export async function addContactFromAcceptedRequest(requestId: string, toUserId:
   if (!user) throw new Error('Not authenticated');
   const { data: p } = await supabase.from('profiles').select('*').eq('id', toUserId).single();
   if (p) {
-    await supabase.from('contacts').insert({
-      user_id: user.id,
-      name: p.name || 'Unknown',
-      email: p.email || '',
-      phone: p.phone || '',
-      company: p.company || '',
-      job_title: p.job_title || '',
-      linkedin: p.linkedin || '',
-      instagram: p.instagram || '',
-      notes: 'Connected via Connectly',
-      priority: 'medium',
-      tags: [],
-    });
+    // Check if contact already exists
+    const { data: existingContacts } = await supabase
+      .from('contacts')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('email', p.email || '')
+      .limit(1);
+
+    if (!existingContacts || existingContacts.length === 0) {
+      await supabase.from('contacts').insert({
+        user_id: user.id,
+        name: p.name || 'Unknown',
+        email: p.email || '',
+        phone: p.phone || '',
+        company: p.company || '',
+        job_title: p.job_title || '',
+        linkedin: p.linkedin_url || '',
+        instagram: p.instagram || '',
+        notes: 'Connected via Connectly',
+        priority: 'medium',
+        avatar_url: p.avatar_url,
+        target_user_id: p.id,
+        tags: [],
+      });
+    }
   }
   // Repurpose "declined" as "processed" to hide from outgoing accepted list
-  await supabase.from('contact_requests').update({ status: 'declined' }).eq('id', requestId);
+  const { data, error } = await supabase
+    .from('contact_requests')
+    .update({ status: 'declined' })
+    .eq('id', requestId)
+    .select();
+
+  if (error) throw error;
+  
+  if (!data || data.length === 0) {
+    throw new Error("Failed to dismiss notification. Make sure you have permission to update your requests.");
+  }
 }

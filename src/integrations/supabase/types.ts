@@ -56,6 +56,45 @@ export type Database = {
           },
         ]
       }
+      contact_requests: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          status: string
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          status?: string
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          status?: string
+          to_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_requests_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_requests_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       contacts: {
         Row: {
           company: string | null

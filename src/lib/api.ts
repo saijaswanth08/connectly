@@ -17,6 +17,8 @@ export interface DbContact {
   linkedin: string;
   instagram: string;
   notes: string;
+  avatar_url?: string | null;
+  target_user_id?: string | null;
   created_at: string;
 }
 
@@ -79,7 +81,8 @@ export const createContact = async (contact: Partial<DbContact>): Promise<DbCont
     phone: contact.phone || "",
     job_title: contact.job_title || "",
     priority: contact.priority || "medium",
-    tags: contact.tags || [],
+    avatar_url: contact.avatar_url || null,
+    target_user_id: contact.target_user_id || null,
   };
 
   const { data, error } = await supabase
@@ -114,7 +117,7 @@ export const updateContact = async (id: string, updates: Partial<DbContact>): Pr
     phone: updates.phone ?? "",
     job_title: updates.job_title ?? "",
     priority: updates.priority ?? "medium",
-    tags: updates.tags ?? [],
+    target_user_id: updates.target_user_id || null,
   };
 
   const { data, error } = await supabase
@@ -122,12 +125,12 @@ export const updateContact = async (id: string, updates: Partial<DbContact>): Pr
     .update(payload)
     .eq("id", id)
     .eq("user_id", user.id)   // ✅ REQUIRED
-    .select()
-    .single();
+    .select();
 
   if (error) throw error;
+  if (!data || data.length === 0) throw new Error("Contact not found or update failed.");
 
-  return data as DbContact;
+  return data[0] as DbContact;
 };
 
 // =======================
@@ -138,13 +141,17 @@ export const deleteContact = async (id: string): Promise<void> => {
 
   if (!user) throw new Error("User not authenticated");
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("contacts")
     .delete()
     .eq("id", id)
-    .eq("user_id", user.id);   // ✅ REQUIRED
+    .eq("user_id", user.id)
+    .select();
 
   if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error("Failed to delete contact. You might not have permission or it may have already been deleted.");
+  }
 };
 
 // =======================
