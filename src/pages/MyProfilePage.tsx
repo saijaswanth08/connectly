@@ -53,7 +53,7 @@ export default function MyProfilePage() {
         company: profile.company || "",
         job_title: profile.job_title || "",
         phone: profile.phone || "",
-        linkedin: (profile as Record<string, string>).linkedin || "", // FIXED: Use correct database column name (linkedin instead of linkedin_url)
+        linkedin: (profile as Record<string, unknown>).linkedin as string || "", // Access linkedin field (not in generated types yet)
         instagram: profile.instagram || "",
         avatar_url: profile.avatar_url || "",
       });

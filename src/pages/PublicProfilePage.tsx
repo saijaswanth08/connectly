@@ -52,8 +52,8 @@ export default function PublicProfilePage() {
     return url.split("?")[0];
   };
 
-  const profileData = profile as Record<string, string>;
-  const linkedinUrl = cleanUrl(profileData.linkedin_url || profileData.linkedin);
+  const profileData = profile as Record<string, unknown>;
+  const linkedinUrl = cleanUrl((profileData.linkedin_url || profileData.linkedin) as string | undefined);
   const instagramUrl = cleanUrl(profile.instagram);
   const initial = profile.name ? profile.name.charAt(0).toUpperCase() : "U";
 
