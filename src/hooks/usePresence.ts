@@ -1,117 +1,64 @@
 import { supabase } from "@/lib/supabase";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
-// ---------------------------------------------------------------------------
-// Simple insert-based presence update (no upsert, no onConflict)
-// ---------------------------------------------------------------------------
-export const updatePresence = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const { error } = await supabase
-    .from("user_presence")
-    .upsert(
-      {
-        user_id: user.id,
-        status: "online",
-        last_seen: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" }
-    );
-
-  if (error) {
-    console.error("Presence upsert error:", error.message, error);
-  }
-};
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-export interface PresenceRecord {
-  user_id: string;
-  status: string;
-  last_seen: string;
+export interface PresenceState {
+  [key: string]: Array<{
+    user_id: string;
+    online_at: string;
+  }>;
 }
 
-// ---------------------------------------------------------------------------
-// Fetch all presence records (silently returns [] if table is missing)
-// ---------------------------------------------------------------------------
-export function useAllPresence() {
-  const queryClient = useQueryClient();
+export function usePresence() {
+  const { user } = useAuth();
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
-  const query = useQuery<PresenceRecord[]>({
-    queryKey: ["user_presence"],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("user_presence")
-          .select("user_id, status, last_seen");
-
-        if (error) return [];
-        return (data || []) as PresenceRecord[];
-      } catch {
-        return [];
-      }
-    },
-    refetchInterval: 30_000,
-  });
-
-  // Realtime subscription
   useEffect(() => {
-    const channel = supabase
-      .channel("presence-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "user_presence" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["user_presence"] });
+    if (!user) return;
+
+    const channel = supabase.channel('global-presence', {
+      config: {
+        presence: {
+          key: user.id,
+        },
+      },
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const onlineIds = new Set<string>(Object.keys(state));
+        setOnlineUsers(onlineIds);
+      })
+      .on('presence', { event: 'join' }, ({ key }) => {
+        setOnlineUsers((prev) => new Set([...prev, key]));
+      })
+      .on('presence', { event: 'leave' }, ({ key }) => {
+        setOnlineUsers((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: user.id,
+            online_at: new Date().toISOString(),
+          });
         }
-      )
-      .subscribe();
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [user]);
 
-  return query;
+  return { onlineUsers };
 }
 
-// ---------------------------------------------------------------------------
-// Helpers used by MessagesPage
-// ---------------------------------------------------------------------------
-export function getPresenceStatus(
-  presenceRecords: PresenceRecord[],
-  userId: string
-): { isOnline: boolean; lastSeen: string | null } {
-  const record = presenceRecords.find((r) => r.user_id === userId);
-  if (!record) return { isOnline: false, lastSeen: null };
-
-  const lastSeen = new Date(record.last_seen);
-  const elapsed = Date.now() - lastSeen.getTime();
-  const isOnline = record.status === "online" && elapsed < 90_000;
-
-  return { isOnline, lastSeen: record.last_seen };
-}
-
-export function formatLastSeen(lastSeenStr: string | null): string {
-  if (!lastSeenStr) return "Offline";
-
-  const lastSeen = new Date(lastSeenStr);
-  const diffMs = Date.now() - lastSeen.getTime();
-  const diffMin = Math.floor(diffMs / 60_000);
-  const diffHours = Math.floor(diffMs / 3_600_000);
-
-  if (diffMin < 1) return "Just now";
-  if (diffMin < 60) return `Last seen ${diffMin}m ago`;
-  if (diffHours < 24) {
-    const hours = lastSeen.getHours();
-    const minutes = lastSeen.getMinutes().toString().padStart(2, "0");
-    const ampm = hours >= 12 ? "PM" : "AM";
-    const h = hours % 12 || 12;
-    return `Last seen today at ${h}:${minutes} ${ampm}`;
-  }
-  return `Last seen ${lastSeen.toLocaleDateString()}`;
+// Helper to check if a specific user is online
+export function isUserOnline(onlineUsers: Set<string>, targetUserId: string | null | undefined): boolean {
+  if (!targetUserId) return false;
+  return onlineUsers.has(targetUserId);
 }

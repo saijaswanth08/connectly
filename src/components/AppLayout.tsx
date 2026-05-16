@@ -10,7 +10,7 @@ import { FloatingQuickAdd } from "@/components/FloatingQuickAdd";
 import { useKeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimeContactRequests } from "@/hooks/useRealtimeContactRequests";
-import { updatePresence } from "@/hooks/usePresence";
+import { updatePresence, setOffline } from "@/hooks/usePresence";
 import { useEffect } from "react";
 
 export function AppLayout() {
@@ -19,18 +19,6 @@ export function AppLayout() {
   const { user } = useAuth();
   useRealtimeContactRequests(user?.id);
   
-  useEffect(() => {
-    if (!user) return;
-    
-    // Initial update
-    updatePresence();
-    
-    // Set up heartbeat (every 60 seconds)
-    const interval = setInterval(updatePresence, 60000);
-    
-    return () => clearInterval(interval);
-  }, [user]);
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-muted/30">

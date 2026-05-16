@@ -8,7 +8,7 @@ import {
   useRealtimeMessages,
   useRealtimeConversations,
 } from "@/hooks/useMessages";
-import { useAllPresence, getPresenceStatus, formatLastSeen } from "@/hooks/usePresence";
+import { usePresence, isUserOnline } from "@/hooks/usePresence";
 import { DbContact } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -57,7 +57,7 @@ export default function MessagesPage() {
   const { data: messages = [], isLoading: isLoadingMessages } = useMessages(selectedConversationId);
   const sendMessage = useSendMessage();
   const getOrCreateConv = useGetOrCreateConversation();
-  const { data: presenceRecords = [] } = useAllPresence();
+  const { onlineUsers } = usePresence();
 
   useRealtimeMessages(selectedConversationId);
   useRealtimeConversations();
@@ -198,11 +198,11 @@ export default function MessagesPage() {
                         </AvatarFallback>
                       </Avatar>
                       {(() => {
-                        const presence = getPresenceStatus(presenceRecords, contact.target_user_id || '');
+                        const isOnline = isUserOnline(onlineUsers, contact.target_user_id);
                         return (
                           <div className={cn(
                             "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-card",
-                            presence.isOnline ? "bg-emerald-500" : "bg-muted-foreground/40"
+                            isOnline ? "bg-emerald-500" : "bg-muted-foreground/40"
                           )} />
                         );
                       })()}
@@ -313,15 +313,15 @@ export default function MessagesPage() {
                     {selectedContact.name}
                   </h3>
                   {(() => {
-                    const presence = getPresenceStatus(presenceRecords, selectedContact.target_user_id || '');
-                    return presence.isOnline ? (
+                    const isOnline = isUserOnline(onlineUsers, selectedContact.target_user_id);
+                    return isOnline ? (
                       <p className="text-[11px] text-emerald-600 flex items-center gap-1">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
                         Online
                       </p>
                     ) : (
                       <p className="text-[11px] text-muted-foreground">
-                        {formatLastSeen(presence.lastSeen)}
+                        Offline
                       </p>
                     );
                   })()}
