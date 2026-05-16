@@ -70,13 +70,43 @@ export default function MyProfilePage() {
   }, [user]);
 
   const handleGenerateQr = () => {
-    const url = buildQrUrl();
-    if (!url) {
-      toast({ title: "Profile not ready", description: "Save your profile at least once before generating a QR code.", variant: "destructive" });
+    // 1. Verify all required professional details are filled
+    const requiredFields = [
+      { key: "name", label: "Full Name" },
+      { key: "email", label: "Email Address" },
+      { key: "company", label: "Company" },
+      { key: "job_title", label: "Job Title" },
+      { key: "phone", label: "Phone Number" },
+    ];
+
+    const missing = requiredFields.filter(f => !form[f.key as keyof typeof form]?.trim());
+
+    if (missing.length > 0) {
+      toast({
+        title: "Profile Incomplete",
+        description: `Please fill in your ${missing.map(m => m.label).join(", ")} to generate a professional QR code.`,
+        variant: "destructive"
+      });
       return;
     }
+
+    // 2. Build the URL
+    const url = buildQrUrl();
+    if (!url) {
+      toast({ 
+        title: "Error", 
+        description: "Could not generate profile link. Please try again.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     setQrValue(url);
     setShowQrModal(true);
+    toast({
+      title: "QR Code Generated!",
+      description: "You can now download or share your professional profile."
+    });
   };
 
   const handleDownloadQr = async (ref: React.RefObject<HTMLDivElement>) => {
