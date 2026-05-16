@@ -28,20 +28,12 @@ export function usePresence() {
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
         const onlineIds = new Set<string>(Object.keys(state));
+        console.log("Presence sync. Online users:", onlineIds.size);
         setOnlineUsers(onlineIds);
-      })
-      .on('presence', { event: 'join' }, ({ key }) => {
-        setOnlineUsers((prev) => new Set([...prev, key]));
-      })
-      .on('presence', { event: 'leave' }, ({ key }) => {
-        setOnlineUsers((prev) => {
-          const next = new Set(prev);
-          next.delete(key);
-          return next;
-        });
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
+          console.log("Presence channel subscribed");
           await channel.track({
             user_id: user.id,
             online_at: new Date().toISOString(),
@@ -50,9 +42,10 @@ export function usePresence() {
       });
 
     return () => {
+      console.log("Cleaning up presence channel");
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user?.id]); // Use user?.id for more stable dependency
 
   return { onlineUsers };
 }

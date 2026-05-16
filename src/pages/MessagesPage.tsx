@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useContacts } from "@/hooks/useContacts";
+import { useRealtimeContacts } from "@/hooks/useRealtimeContacts";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useConversations,
   useMessages,
@@ -58,9 +60,11 @@ export default function MessagesPage() {
   const sendMessage = useSendMessage();
   const getOrCreateConv = useGetOrCreateConversation();
   const { onlineUsers } = usePresence();
+  const { user } = useAuth();
 
   useRealtimeMessages(selectedConversationId);
   useRealtimeConversations();
+  useRealtimeContacts(user?.id);
 
   // Build a map of contact_id -> conversation
   const convByContact = useMemo(() => 
