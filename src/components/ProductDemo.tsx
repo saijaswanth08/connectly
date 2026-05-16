@@ -149,11 +149,8 @@ export function ProductDemo({ onClose }: { onClose: () => void }) {
     let timer: NodeJS.Timeout;
     if (isAutoPlaying) {
       timer = setTimeout(() => {
-        if (currentScene < scenes.length - 1) {
-          setCurrentScene(currentScene + 1);
-        } else {
-          setIsAutoPlaying(false);
-        }
+        // Loop back to the first scene instead of stopping
+        setCurrentScene((s) => (s < scenes.length - 1 ? s + 1 : 0));
       }, 8000);
     }
     return () => clearTimeout(timer);
@@ -191,25 +188,28 @@ export function ProductDemo({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Scene Area */}
-        <div className="flex-1 relative overflow-hidden flex flex-col bg-[radial-gradient(circle_at_50%_50%,rgba(17,24,39,1),rgba(3,7,18,1))]">
-            <AnimatePresence mode="wait">
-                <motion.div 
-                    key={currentScene}
-                    className="flex-1"
-                    initial={{ opacity: 0, scale: 1.05 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                >
-                    {scenes[currentScene].component}
-                </motion.div>
-            </AnimatePresence>
+        <div className="flex-1 min-h-0 relative flex flex-col bg-[radial-gradient(circle_at_50%_50%,rgba(17,24,39,1),rgba(3,7,18,1))]">
+            {/* Scene viewport — takes remaining space, clips overflow */}
+            <div className="flex-1 min-h-0 relative overflow-hidden">
+                <AnimatePresence mode="wait">
+                    <motion.div 
+                        key={currentScene}
+                        className="absolute inset-0"
+                        initial={{ opacity: 0, scale: 1.05 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                        {scenes[currentScene].component}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
 
-            {/* Narration Overlay */}
-            <div className="p-8 pb-14 flex justify-center">
+            {/* Narration — always visible, never clipped */}
+            <div className="shrink-0 px-6 py-5 flex justify-center">
                 <motion.div 
                     key={`narration-${currentScene}`}
-                    className="max-w-3xl w-full bg-white/[0.03] border border-white/10 backdrop-blur-2xl p-8 rounded-[32px] text-center space-y-2 relative overflow-hidden shadow-2xl"
+                    className="max-w-3xl w-full bg-white/[0.03] border border-white/10 backdrop-blur-2xl px-8 py-6 rounded-[32px] text-center relative overflow-hidden shadow-2xl"
                     initial={{ y: 30, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.6 }}
@@ -222,7 +222,7 @@ export function ProductDemo({ onClose }: { onClose: () => void }) {
                             transition={{ duration: 8, ease: "linear" }}
                         />
                     </div>
-                    <p className="text-xl sm:text-2xl font-medium leading-relaxed bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent italic tracking-tight">
+                    <p className="text-base sm:text-xl font-medium leading-relaxed bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent italic tracking-tight">
                         "{scenes[currentScene].narration}"
                     </p>
                 </motion.div>
@@ -244,7 +244,7 @@ export function ProductDemo({ onClose }: { onClose: () => void }) {
                     size="sm" 
                     className="rounded-full text-xs uppercase tracking-widest px-6"
                     disabled={currentScene === 0}
-                    onClick={() => { setCurrentScene(s => s - 1); setIsAutoPlaying(false); }}
+                    onClick={() => { setCurrentScene(s => s - 1); }}
                 >
                     Prev
                 </Button>
@@ -254,13 +254,12 @@ export function ProductDemo({ onClose }: { onClose: () => void }) {
                     onClick={() => {
                         if (currentScene < scenes.length - 1) {
                             setCurrentScene(s => s + 1);
-                            setIsAutoPlaying(false);
                         } else {
                             onClose();
                         }
                     }}
                 >
-                    {currentScene === scenes.length - 1 ? "Finish Tour" : "Next Project"}
+                    {currentScene === scenes.length - 1 ? "Finish Tour" : "Continue"}
                 </Button>
             </div>
         </div>

@@ -355,6 +355,17 @@ export default function InteractionsPage() {
         </div>
       )}
 
+      {/* Add Dialog */}
+      <Dialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) resetForm(); }}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display">Log Interaction</DialogTitle>
+            <DialogDescription>Record a new professional interaction.</DialogDescription>
+          </DialogHeader>
+          {renderForm(handleAdd, "Save Interaction", createInteraction.isPending)}
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={(o) => { setEditOpen(o); if (!o) { resetForm(); setSelectedInteraction(null); } }}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -365,6 +376,7 @@ export default function InteractionsPage() {
           {renderForm(handleEdit, "Save Changes", updateInteraction.isPending)}
         </DialogContent>
       </Dialog>
+
 
       {/* Detail Sheet */}
       <Sheet open={detailOpen} onOpenChange={(o) => { setDetailOpen(o); if (!o) setSelectedInteraction(null); }}>

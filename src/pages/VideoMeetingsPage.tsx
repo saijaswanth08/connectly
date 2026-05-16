@@ -66,9 +66,18 @@ export default function VideoMeetingsPage() {
         contact_id: null,
       },
       {
-        onSuccess: () => {
+        onSuccess: (newMeeting) => {
           setActiveRoom(roomId);
           toast({ title: "Meeting started!", description: "Your meeting room is live." });
+          // Timeline event
+          supabase.from("timeline_events").insert({
+            user_id: user.id,
+            contact_id: newMeeting.contact_id || null,
+            event_type: "meeting",
+            title: "Instant Meeting started",
+            description: "",
+            event_date: new Date().toISOString(),
+          }).then(() => {}, () => {});
         },
       }
     );
@@ -108,10 +117,21 @@ export default function VideoMeetingsPage() {
         contact_id: form.contactId || null,
       },
       {
-        onSuccess: () => {
+        onSuccess: (newMeeting) => {
           toast({ title: "Meeting scheduled!", description: `"${form.title}" has been scheduled.` });
           setForm({ title: "", date: undefined, time: "09:00", meetingType: "video_call", contactId: "", notes: "" });
           setScheduleOpen(false);
+          // Timeline event
+          if (form.contactId) {
+            supabase.from("timeline_events").insert({
+              user_id: user.id,
+              contact_id: form.contactId,
+              event_type: "meeting",
+              title: `Scheduled: ${form.title}`,
+              description: form.notes || "",
+              event_date: meetingTime.toISOString(),
+            }).then(() => {}, () => {});
+          }
         },
       }
     );

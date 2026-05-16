@@ -1,243 +1,163 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCreateContact } from "@/hooks/useContacts";
+import { Loader2, CheckCircle2, XCircle, UserPlus } from "lucide-react";
+import { lookupProfileByEmail } from "@/lib/contactRequestsApi";
+import { useSendContactRequest } from "@/hooks/useContactRequests";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
-
-
-const emptyForm = {
-  name: "",
-  email: "",
-  phone: "",
-  company: "",
-  job_title: "",
-  linkedin: "",
-  instagram: "",
-  priority: "medium",
-
-  notes: "",
-};
-
 interface AddContactDialogProps {
-  /** Controlled mode: pass open + onClose to drive the dialog from outside */
   open?: boolean;
   onClose?: () => void;
 }
 
+type CheckState = 'idle' | 'checking' | 'found' | 'not_found';
+
 export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDialogProps = {}) {
   const isControlled = controlledOpen !== undefined;
-
   const [internalOpen, setInternalOpen] = useState(false);
   const dialogOpen = isControlled ? controlledOpen : internalOpen;
 
-  const [form, setForm] = useState(emptyForm);
-  const [errors, setErrors] = useState<{ name?: string }>({});
+  const [email, setEmail] = useState('');
+  const [checkState, setCheckState] = useState<CheckState>('idle');
+  const [foundProfile, setFoundProfile] = useState<{ id: string; name: string; email: string; company: string; job_title: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const createContact = useCreateContact();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset form when dialog closes
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const sendRequest = useSendContactRequest();
+
   useEffect(() => {
     if (!dialogOpen) {
-      setForm(emptyForm);
-      setErrors({});
+      setEmail('');
+      setCheckState('idle');
+      setFoundProfile(null);
     }
   }, [dialogOpen]);
 
   function handleOpenChange(val: boolean) {
-    if (isControlled) {
-      if (!val) onClose?.();
-    } else {
-      setInternalOpen(val);
-    }
+    if (isControlled) { if (!val) onClose?.(); }
+    else setInternalOpen(val);
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function handleEmailChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    setEmail(val);
+    setCheckState('idle');
+    setFoundProfile(null);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!val.includes('@')) return;
+
+    debounceRef.current = setTimeout(async () => {
+      setCheckState('checking');
+      try {
+        const profile = await lookupProfileByEmail(val);
+        if (profile && profile.id !== user?.id) {
+          setFoundProfile(profile);
+          setCheckState('found');
+        } else if (profile && profile.id === user?.id) {
+          setCheckState('not_found'); // Can't add yourself
+        } else {
+          setCheckState('not_found');
+        }
+      } catch {
+        setCheckState('idle');
+      }
+    }, 600);
+  }
+
+  async function handleSendRequest(e: React.FormEvent) {
     e.preventDefault();
-    setErrors({});
-    if (!form.name.trim()) {
-      setErrors({ name: "Name is required" });
-      return;
-    }
-
-    if (!user) {
-      toast({ title: "Error", description: "You must be logged in to add contacts.", variant: "destructive" });
-      return;
-    }
-
+    if (!foundProfile || !user) return;
     setSubmitting(true);
     try {
-      await createContact.mutateAsync({
-        user_id: user.id,
-        name: form.name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        company: form.company.trim(),
-        job_title: form.job_title.trim(),
-        priority: form.priority,
-
-        linkedin: form.linkedin.trim(),
-        instagram: form.instagram.trim(),
-        notes: form.notes.trim(),
-      });
-
+      await sendRequest.mutateAsync(foundProfile.id);
       toast({
-        title: "Contact added successfully",
-        description: `${form.name} has been saved.`,
+        title: "Contact request sent!",
+        description: `${foundProfile.name} will be notified in-app.`,
         className: "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800",
       });
       handleOpenChange(false);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : (err as { message?: string })?.message ?? "Failed to save contact. Please try again.";
-      console.error("[AddContactDialog] createContact error:", err);
-      toast({ title: "Error adding contact", description: message, variant: "destructive" });
+      const msg = err instanceof Error ? err.message : "Failed to send request.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
-  };
-
-
+  }
 
   return (
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">Add New Contact</DialogTitle>
-          <DialogDescription className="sr-only">Fill out the form below to add a new contact to your CRM.</DialogDescription>
+          <DialogTitle className="font-display">Add Contact</DialogTitle>
+          <DialogDescription>
+            Enter the email address of a Connectly user to send them a contact request.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-          {/* Two-column grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="ac-name" className={errors.name ? "text-destructive" : ""}>
-                Full Name *
-              </Label>
-              <Input
-                id="ac-name"
-                value={form.name}
-                onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); if (errors.name) setErrors({}); }}
-                placeholder="Your full name"
-                className={errors.name ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"}
-              />
-              {errors.name && <p className="text-[11px] font-medium text-destructive">{errors.name}</p>}
-            </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="ac-email">Email Address</Label>
-              <Input
-                id="ac-email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                placeholder="you@example.com"
-                className="focus-visible:ring-primary"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="ac-company">Company</Label>
-              <Input
-                id="ac-company"
-                value={form.company}
-                onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
-                placeholder="Company name"
-                className="focus-visible:ring-primary"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="ac-jobTitle">Job Title</Label>
-              <Input
-                id="ac-jobTitle"
-                value={form.job_title}
-                onChange={(e) => setForm((f) => ({ ...f, job_title: e.target.value }))}
-                placeholder="Your role"
-                className="focus-visible:ring-primary"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="ac-phone">Phone Number</Label>
-              <Input
-                id="ac-phone"
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                placeholder="+91 XXXXXXXXXX"
-                className="focus-visible:ring-primary"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Priority</Label>
-              <Select value={form.priority} onValueChange={(v) => setForm((f) => ({ ...f, priority: v }))}>
-                <SelectTrigger className="focus-visible:ring-primary">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vip">VIP</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="ac-linkedin">LinkedIn URL</Label>
-              <Input
-                id="ac-linkedin"
-                value={form.linkedin}
-                onChange={(e) => setForm((f) => ({ ...f, linkedin: e.target.value }))}
-                placeholder="linkedin.com/in/username"
-                className="focus-visible:ring-primary"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="ac-instagram">Instagram</Label>
-              <Input
-                id="ac-instagram"
-                value={form.instagram}
-                onChange={(e) => setForm((f) => ({ ...f, instagram: e.target.value }))}
-                placeholder="@your_handle"
-                className="focus-visible:ring-primary"
-              />
-            </div>
-          </div>
-
-
-
-          {/* Notes — full width */}
+        <form onSubmit={handleSendRequest} className="space-y-5 pt-1">
           <div className="space-y-1.5">
-            <Label htmlFor="ac-notes">Notes</Label>
-            <Textarea
-              id="ac-notes"
-              value={form.notes}
-              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              placeholder="How did you meet? Key discussion points..."
-              rows={3}
-              className="focus-visible:ring-primary"
+            <Label htmlFor="ac-email">Email Address *</Label>
+            <Input
+              id="ac-email"
+              type="email"
+              value={email}
+              onChange={handleEmailChange}
+              placeholder="colleague@example.com"
+              autoFocus
             />
+
+            {/* Status indicator */}
+            <div className="min-h-[40px] pt-1">
+              {checkState === 'checking' && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Checking Connectly...
+                </div>
+              )}
+
+              {checkState === 'found' && foundProfile && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 p-3">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">{foundProfile.name} is on Connectly!</p>
+                    {foundProfile.job_title && foundProfile.company && (
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400">{foundProfile.job_title} at {foundProfile.company}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {checkState === 'not_found' && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3">
+                  <XCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Not on Connectly</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      This email isn't registered. Share your profile link to invite them.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Saving…" : "Save Contact"}
+            <Button type="submit" disabled={checkState !== 'found' || submitting} className="gap-2">
+              {submitting ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</>
+              ) : (
+                <><UserPlus className="h-4 w-4" /> Send Request</>
+              )}
             </Button>
           </div>
         </form>

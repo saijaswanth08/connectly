@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Bell, Check, User, Clock, MessageSquare, X } from "lucide-react";
+import { Bell, Check, User, Clock, MessageSquare, X, UserPlus, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useReminders, useUpdateReminder } from "@/hooks/useReminders";
 import { useMessageRequests, useHandleMessageRequest } from "@/hooks/useMessages";
 import { useContacts } from "@/hooks/useContacts";
+import { useIncomingContactRequests, useOutgoingAcceptedRequests, useAcceptContactRequest, useDeclineContactRequest, useAddContactFromAccepted } from "@/hooks/useContactRequests";
 import { useToast } from "@/hooks/use-toast";
 import { format, isPast, isToday } from "date-fns";
 import { Link } from "react-router-dom";
@@ -14,38 +15,62 @@ export function NotificationBell() {
   const { data: reminders = [] } = useReminders();
   const { data: messageRequests = [] } = useMessageRequests();
   const { data: contacts = [] } = useContacts();
+  const { data: incomingContactReqs = [] } = useIncomingContactRequests();
+  const { data: acceptedOutgoing = [] } = useOutgoingAcceptedRequests();
+
   const updateReminder = useUpdateReminder();
-  const handleRequest = useHandleMessageRequest();
+  const handleMsgRequest = useHandleMessageRequest();
+  const acceptContactReq = useAcceptContactRequest();
+  const declineContactReq = useDeclineContactRequest();
+  const addFromAccepted = useAddContactFromAccepted();
+
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-
-  const pendingRequests = messageRequests;
 
   const pending = reminders
     .filter((r) => !r.completed)
     .sort((a, b) => new Date(a.reminder_date).getTime() - new Date(b.reminder_date).getTime());
 
-  const overdue = pending.filter((r) => {
-    const d = new Date(r.reminder_date);
-    return isPast(d) && !isToday(d);
-  });
-
-  const count = pending.length + pendingRequests.length;
+  const count = pending.length + messageRequests.length + incomingContactReqs.length + acceptedOutgoing.length;
   const getContactName = (id: string | null) => contacts.find((c) => c.id === id)?.name ?? null;
 
   async function markDone(id: string) {
     await updateReminder.mutateAsync({ id, updates: { completed: true } });
   }
 
-  async function respondToRequest(id: string, action: 'accept' | 'reject') {
+  async function respondToMsgRequest(id: string, action: 'accept' | 'reject') {
     try {
-      await handleRequest.mutateAsync({ requestId: id, action });
-      toast({
-        title: action === 'accept' ? "Request accepted" : "Request declined",
-        description: action === 'accept' ? "You can now chat with them in Messages." : "The message request was removed.",
-      });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+      await handleMsgRequest.mutateAsync({ requestId: id, action });
+      toast({ title: action === 'accept' ? "Request accepted" : "Request declined" });
+    } catch (e: unknown) {
+      toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
+    }
+  }
+
+  async function handleAcceptContact(requestId: string, fromUserId: string, name: string) {
+    try {
+      await acceptContactReq.mutateAsync({ requestId, fromUserId });
+      toast({ title: "Contact added!", description: `${name} is now in your contacts.` });
+    } catch (e: unknown) {
+      toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
+    }
+  }
+
+  async function handleDeclineContact(requestId: string) {
+    try {
+      await declineContactReq.mutateAsync(requestId);
+      toast({ title: "Request declined" });
+    } catch (e: unknown) {
+      toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
+    }
+  }
+
+  async function handleAddAccepted(requestId: string, toUserId: string, name: string) {
+    try {
+      await addFromAccepted.mutateAsync({ requestId, toUserId });
+      toast({ title: "Contact added!", description: `${name} is now in your contacts.` });
+    } catch (e: unknown) {
+      toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
     }
   }
 
@@ -65,35 +90,116 @@ export function NotificationBell() {
         <div className="p-3 border-b border-border">
           <h3 className="font-display font-semibold text-sm text-foreground">Notifications</h3>
           <p className="text-xs text-muted-foreground">
-            {pendingRequests.length} requests · {pending.length} reminders
+            {incomingContactReqs.length} contact requests · {messageRequests.length} messages · {pending.length} reminders
           </p>
         </div>
-        <div className="max-h-72 overflow-y-auto">
+        <div className="max-h-80 overflow-y-auto">
           {count === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">No new notifications</p>
           )}
 
-          {/* Message Requests Section */}
-          {pendingRequests.length > 0 && (
+          {/* Incoming Contact Requests */}
+          {incomingContactReqs.length > 0 && (
+            <div className="py-1">
+              <div className="px-3 py-1.5 bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Contact Requests
+              </div>
+              {incomingContactReqs.map((req) => {
+                const name = req.from_profile?.name ?? 'Someone';
+                const sub = req.from_profile?.job_title && req.from_profile?.company
+                  ? `${req.from_profile.job_title} at ${req.from_profile.company}`
+                  : req.from_profile?.email ?? '';
+                return (
+                  <div key={req.id} className="px-3 py-2.5 border-b border-border/50 bg-primary/5 hover:bg-primary/10 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground truncate">{name}</p>
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
+                          <UserPlus className="h-2.5 w-2.5" />
+                          <span>Wants to add you as a contact</span>
+                        </div>
+                        {sub && <p className="text-[11px] text-muted-foreground truncate">{sub}</p>}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          size="icon" variant="ghost"
+                          className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
+                          onClick={() => handleAcceptContact(req.id, req.from_user_id, name)}
+                          disabled={acceptContactReq.isPending}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon" variant="ghost"
+                          className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeclineContact(req.id)}
+                          disabled={declineContactReq.isPending}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Outgoing Accepted — notify requester to add back */}
+          {acceptedOutgoing.length > 0 && (
+            <div className="py-1">
+              <div className="px-3 py-1.5 bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Requests Accepted
+              </div>
+              {acceptedOutgoing.map((req) => {
+                const name = req.to_profile?.name ?? 'Someone';
+                return (
+                  <div key={req.id} className="px-3 py-2.5 border-b border-border/50 bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-50 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground truncate">{name} accepted your request!</p>
+                        <div className="flex items-center gap-1 text-[11px] text-emerald-600 mt-0.5">
+                          <UserCheck className="h-2.5 w-2.5" />
+                          <span>Tap to add them to your contacts</span>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm" variant="outline"
+                        className="h-7 text-xs shrink-0 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                        onClick={() => handleAddAccepted(req.id, req.to_user_id, name)}
+                        disabled={addFromAccepted.isPending}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Message Requests */}
+          {messageRequests.length > 0 && (
             <div className="py-1">
               <div className="px-3 py-1.5 bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Message Requests
               </div>
-              {pendingRequests.map((req) => (
+              {messageRequests.map((req) => (
                 <div key={req.id} className="px-3 py-2.5 border-b border-border/50 bg-primary/5 hover:bg-primary/10 transition-colors">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-foreground truncate">{req.sender_name}</p>
-                      <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground mt-0.5">
-                        <span className="flex items-center gap-0.5"><MessageSquare className="h-2.5 w-2.5" />Wants to connect</span>
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
+                        <MessageSquare className="h-2.5 w-2.5" />
+                        <span>Wants to connect</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 truncate italic">"{req.content}"</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100" onClick={() => respondToRequest(req.id, 'accept')}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100" onClick={() => respondToMsgRequest(req.id, 'accept')}>
                         <Check className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => respondToRequest(req.id, 'reject')}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => respondToMsgRequest(req.id, 'reject')}>
                         <X className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -103,43 +209,39 @@ export function NotificationBell() {
             </div>
           )}
 
-          {/* Reminders Section */}
+          {/* Reminders */}
           {pending.length > 0 && (
             <div className="py-1">
               <div className="px-3 py-1.5 bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Reminders
               </div>
-            {pending.slice(0, 8).map((r) => {
-              const rDate = new Date(r.reminder_date);
-              const isOverdue = isPast(rDate) && !isToday(rDate);
-              const contactName = getContactName(r.contact_id);
-              return (
-                <div key={r.id} className={cn("px-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-muted/50", isOverdue && "bg-destructive/5")}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground truncate">{r.title}</p>
-                      <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground mt-0.5">
-                        <span className="flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{format(rDate, "MMM d, h:mm a")}</span>
-                        {contactName && <span className="flex items-center gap-0.5"><User className="h-2.5 w-2.5" />{contactName}</span>}
-                        {isOverdue && <span className="text-destructive font-medium">Overdue</span>}
+              {pending.slice(0, 8).map((r) => {
+                const rDate = new Date(r.reminder_date);
+                const isOverdue = isPast(rDate) && !isToday(rDate);
+                const contactName = getContactName(r.contact_id);
+                return (
+                  <div key={r.id} className={cn("px-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-muted/50", isOverdue && "bg-destructive/5")}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground truncate">{r.title}</p>
+                        <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground mt-0.5">
+                          <span className="flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{format(rDate, "MMM d, h:mm a")}</span>
+                          {contactName && <span className="flex items-center gap-0.5"><User className="h-2.5 w-2.5" />{contactName}</span>}
+                          {isOverdue && <span className="text-destructive font-medium">Overdue</span>}
+                        </div>
                       </div>
+                      <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => markDone(r.id)}>
+                        <Check className="h-3 w-3" />
+                      </Button>
                     </div>
-                    <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => markDone(r.id)}>
-                      <Check className="h-3 w-3" />
-                    </Button>
+                    {r.contact_id && (
+                      <Link to={`/dashboard/contacts/${r.contact_id}`} className="text-[11px] text-primary hover:underline mt-1 inline-block" onClick={() => setOpen(false)}>
+                        Open Contact
+                      </Link>
+                    )}
                   </div>
-                  {r.contact_id && (
-                    <Link
-                      to={`/dashboard/contacts/${r.contact_id}`}
-                      className="text-[11px] text-primary hover:underline mt-1 inline-block"
-                      onClick={() => setOpen(false)}
-                    >
-                      Open Contact
-                    </Link>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
             </div>
           )}
         </div>

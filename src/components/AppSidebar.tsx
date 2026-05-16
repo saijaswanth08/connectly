@@ -1,4 +1,4 @@
-import { Calendar, Users, Bell, Video, Network, Clock, MessageSquare, Lightbulb, MessagesSquare, ShieldCheck } from "lucide-react";
+import { Calendar, Users, Bell, Video, Network, MessageSquare, Lightbulb, MessagesSquare, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -18,7 +18,6 @@ const mainItems = [
 ];
 
 const widgetItems = [
-  { title: "Upcoming Follow-Ups", url: "/dashboard/follow-ups", icon: Clock },
   { title: "Recent Interactions", url: "/dashboard/recent-interactions", icon: MessageSquare },
   { title: "Networking Insights", url: "/dashboard/insights", icon: Lightbulb },
 ];
