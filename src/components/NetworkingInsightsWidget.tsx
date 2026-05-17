@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { useContacts } from "@/hooks/useContacts";
 import { useTimelineEvents } from "@/hooks/useTimeline";
-import { useCreateReminder } from "@/hooks/useReminders";
+import { useCreateReminder, useReminders } from "@/hooks/useReminders";
+import { useConversations } from "@/hooks/useMessages";
 import { useAuth } from "@/hooks/useAuth";
 import { Lightbulb, Bell, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,9 +23,22 @@ export function NetworkingInsightsWidget() {
   const { user } = useAuth();
   const { data: contacts = [] } = useContacts();
   const { data: events = [] } = useTimelineEvents();
+  const { data: conversations = [] } = useConversations();
+  const { data: reminders = [] } = useReminders();
   const createReminder = useCreateReminder();
   const { toast } = useToast();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+
+  // Group active reminders by contact_id to avoid recommending contacts with active follow-ups scheduled
+  const activeReminderContacts = useMemo(() => {
+    const set = new Set<string>();
+    reminders.forEach((r) => {
+      if (!r.completed && r.contact_id) {
+        set.add(r.contact_id);
+      }
+    });
+    return set;
+  }, [reminders]);
 
   const suggestions = useMemo<Suggestion[]>(() => {
     const now = new Date();
@@ -37,15 +51,40 @@ export function NetworkingInsightsWidget() {
       eventsByContact.set(event.contact_id, list);
     });
 
+    // Group conversations by contact_id for O(1) lookup
+    const convsByContact = new Map<string, typeof conversations[number]>();
+    conversations.forEach(c => {
+      convsByContact.set(c.contact_id, c);
+    });
+
     return contacts
       .map((c) => {
+        // 1. Skip if there is an active reminder scheduled
+        if (activeReminderContacts.has(c.id)) return null;
+
+        // 2. Fetch last logged interaction event
         const contactEvents = eventsByContact.get(c.id) || [];
         const lastEvent = [...contactEvents].sort(
           (a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime()
         )[0];
-        const lastDate = lastEvent ? new Date(lastEvent.event_date) : new Date(c.created_at);
+
+        // 3. Fetch last active direct messaging chat event
+        const lastConv = convsByContact.get(c.id);
+
+        // 4. Calculate overall latest interaction date (defaulting to contact creation)
+        let lastDate = new Date(c.created_at);
+        if (lastEvent) {
+          const eventDate = new Date(lastEvent.event_date);
+          if (eventDate > lastDate) lastDate = eventDate;
+        }
+        if (lastConv && lastConv.last_message_at) {
+          const msgDate = new Date(lastConv.last_message_at);
+          if (msgDate > lastDate) lastDate = msgDate;
+        }
+
         const daysSince = differenceInDays(now, lastDate);
         if (daysSince < 7) return null;
+        
         return {
           id: c.id,
           contactId: c.id,
@@ -57,7 +96,7 @@ export function NetworkingInsightsWidget() {
       .filter((s): s is Suggestion => s !== null && !dismissed.has(s.id))
       .sort((a, b) => b.daysSince - a.daysSince)
       .slice(0, 5);
-  }, [contacts, events, dismissed]);
+  }, [contacts, events, conversations, activeReminderContacts, dismissed]);
 
   const handleCreateReminder = async (s: Suggestion) => {
     if (!user) return;

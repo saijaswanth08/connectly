@@ -14,6 +14,7 @@ import { DbContact, DbReminder, DbMeeting } from "@/lib/api";
 import { AddContactDialog } from "@/components/AddContactDialog";
 import { EditContactDialog } from "@/components/EditContactDialog";
 import { useDeleteContact } from "@/hooks/useContacts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // ────────────────────────────────────────────────────────────
 // Inline Contact Detail View (no routing, no modal)
@@ -252,10 +253,12 @@ type ActiveTab = "contacts" | "vip" | "reminders" | "meetings" | null;
 // ────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { data: contacts = [] } = useContacts();
+  const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
   const { toast } = useToast();
-  const { data: reminders = [] } = useReminders();
-  const { data: meetings = [] } = useMeetings();
+  const { data: reminders = [], isLoading: isLoadingReminders } = useReminders();
+  const { data: meetings = [], isLoading: isLoadingMeetings } = useMeetings();
+
+  const isLoading = isLoadingContacts || isLoadingReminders || isLoadingMeetings;
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(null);
   const [selectedContact, setSelectedContact] = useState<DbContact | null>(null);
@@ -419,15 +422,25 @@ export default function DashboardPage() {
                 : "hover:ring-1 hover:ring-primary/40 hover:ring-offset-1 hover:ring-offset-background"
             }`}
           >
-            <MetricCard
-              icon={icon}
-              title={title}
-              value={value}
-              subtitle={subtitle}
-              trend={trend}
-              variant={variant}
-              accentColor={accentColor}
-            />
+            {isLoading ? (
+              <div className="bg-card rounded-xl p-6 border border-border/50 space-y-3">
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24 rounded opacity-60" />
+                  <Skeleton className="h-8 w-16 rounded" />
+                </div>
+              </div>
+            ) : (
+              <MetricCard
+                icon={icon}
+                title={title}
+                value={value}
+                subtitle={subtitle}
+                trend={trend}
+                variant={variant}
+                accentColor={accentColor}
+              />
+            )}
           </div>
         ))}
       </div>
@@ -553,7 +566,17 @@ export default function DashboardPage() {
             <h2 className="font-display font-semibold">Recent Contacts</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {recentContacts.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-card rounded-xl p-4 border border-border/50 flex items-center gap-3">
+                  <Skeleton className="h-11 w-11 rounded-full shrink-0" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-32 rounded" />
+                    <Skeleton className="h-3 w-24 rounded opacity-60" />
+                  </div>
+                </div>
+              ))
+            ) : recentContacts.length === 0 ? (
               <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center rounded-xl border border-dashed border-border/60 bg-muted/20">
                 <Users className="h-10 w-10 text-muted-foreground/40 mb-3" />
                 <p className="text-sm font-medium text-muted-foreground">No contacts yet</p>

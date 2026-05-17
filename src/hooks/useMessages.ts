@@ -63,7 +63,7 @@ export function useRealtimeMessages(conversationId: string | null) {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*", // Listen to INSERT, UPDATE, and DELETE events!
           schema: "public",
           table: "messages",
           filter: `conversation_id=eq.${conversationId}`,
@@ -78,6 +78,23 @@ export function useRealtimeMessages(conversationId: string | null) {
       supabase.removeChannel(channel);
     };
   }, [conversationId, qc]);
+}
+
+export function useDeleteMessage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ messageId, conversationId }: { messageId: string; conversationId: string }) => {
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .eq("id", messageId);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ["messages", variables.conversationId] });
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
 }
 
 export function useRealtimeConversations() {
@@ -134,8 +151,55 @@ export function useSendMessage() {
         .eq("id", conversationId);
       if (convError) throw convError;
     },
-    onSuccess: (_, vars) => {
+    onMutate: async (newMessage) => {
+      await qc.cancelQueries({ queryKey: ["messages", newMessage.conversationId] });
+      const previousMessages = qc.getQueryData(["messages", newMessage.conversationId]);
+
+      qc.setQueryData(["messages", newMessage.conversationId], (old: Message[] | undefined) => [
+        ...(old || []),
+        {
+          id: `temp-${Date.now()}`,
+          conversation_id: newMessage.conversationId,
+          user_id: user?.id || "",
+          sender_type: newMessage.senderType || "user",
+          content: newMessage.content,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      return { previousMessages, conversationId: newMessage.conversationId };
+    },
+    onError: (err, newMessage, context) => {
+      if (context?.previousMessages) {
+        qc.setQueryData(["messages", context.conversationId], context.previousMessages);
+      }
+    },
+    onSettled: (data, error, vars) => {
       qc.invalidateQueries({ queryKey: ["messages", vars.conversationId] });
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+}
+
+export function useClearConversation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .eq("conversation_id", conversationId);
+      if (error) throw error;
+
+      // Update conversation last message to empty
+      const { error: convError } = await supabase
+        .from("conversations")
+        .update({ last_message: "", last_message_at: new Date().toISOString() })
+        .eq("id", conversationId);
+      if (convError) throw convError;
+    },
+    onSuccess: (_, conversationId) => {
+      qc.invalidateQueries({ queryKey: ["messages", conversationId] });
       qc.invalidateQueries({ queryKey: ["conversations"] });
     },
   });

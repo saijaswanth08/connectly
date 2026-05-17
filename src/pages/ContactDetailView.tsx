@@ -10,6 +10,8 @@ import { ArrowLeft, Save, Trash2, Building2, Mail, Phone, MapPin, Linkedin } fro
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContactReminders } from "@/components/ContactReminders";
 import { ContactTimeline } from "@/components/ContactTimeline";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 export default function ContactDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -72,9 +74,34 @@ export default function ContactDetailView() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" asChild><Link to="/dashboard"><ArrowLeft className="h-4 w-4" /></Link></Button>
-        <h1 className="font-display text-xl font-bold flex-1">{contact.name}</h1>
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-primary/5 rounded-full">
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        
+        {/* Large Premium Profile Photo / Avatar */}
+        <Avatar key={contact.id} className="h-14 w-14 border-2 border-background shadow-md shrink-0">
+          {contact.avatar_url && <AvatarImage src={contact.avatar_url} className="object-cover" />}
+          <AvatarFallback className="bg-primary/5 text-primary text-lg font-bold">
+            {contact.name.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="flex-1 min-w-0">
+          <h1 className="font-display text-2xl font-bold text-foreground leading-tight tracking-tight">{contact.name}</h1>
+          {contact.priority && (
+            <span className={cn(
+              "inline-flex items-center px-2.5 py-0.5 mt-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+              contact.priority === "vip" && "bg-amber-500/10 text-amber-500 border border-amber-500/20",
+              contact.priority === "high" && "bg-rose-500/10 text-rose-500 border border-rose-500/20",
+              contact.priority === "medium" && "bg-blue-500/10 text-blue-500 border border-blue-500/20",
+              contact.priority === "low" && "bg-slate-500/10 text-slate-500 border border-slate-500/20"
+            )}>
+              {contact.priority} Priority
+            </span>
+          )}
+        </div>
+
         {!editing && <Button variant="outline" size="sm" onClick={startEdit}>Edit</Button>}
         {!editing && <Button variant="destructive" size="sm" onClick={handleDelete}><Trash2 className="h-4 w-4" /></Button>}
       </div>

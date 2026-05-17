@@ -15,17 +15,17 @@ import { DbContact } from "@/lib/api";
 import { Link } from "react-router-dom";
 
 const PRIORITY_COLORS: Record<string, string> = {
-  vip: "#8b5cf6",
-  high: "#22c55e",
-  medium: "#f59e0b",
-  low: "#3b82f6",
+  vip: "#d97706",    // Gorgeous Gold/Amber for VIPs
+  high: "#e11d48",   // Vivid Rose/Red for High Priority
+  medium: "#2563eb", // Premium Royal Blue for Medium Priority
+  low: "#64748b",    // Professional Slate/Gray for Low Priority
 };
 
-const DEFAULT_COLOR = "#6477b8";
+const DEFAULT_COLOR = "#2563eb";
 
 function getNodeColor(priority?: string): string {
-  if (priority && PRIORITY_COLORS[priority.toLowerCase()]) return PRIORITY_COLORS[priority.toLowerCase()];
-  return DEFAULT_COLOR;
+  const level = (priority || "medium").toLowerCase();
+  return PRIORITY_COLORS[level] || PRIORITY_COLORS.medium;
 }
 
 interface Node {
@@ -77,17 +77,17 @@ export default function NetworkMapPage() {
   const [connContactA, setConnContactA] = useState("");
   const [connContactB, setConnContactB] = useState("");
   const [connType, setConnType] = useState("colleague");
-  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
 
   // Sync refs for animation loop
   const zoomRef = useRef(1);
   const panRef = useRef({ x: 0, y: 0 });
   const draggingRef = useRef<string | null>(null);
-  const highlightedIdRef = useRef<string | null>(null);
+  const highlightedIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
   useEffect(() => { panRef.current = pan; }, [pan]);
   useEffect(() => { draggingRef.current = dragging; }, [dragging]);
-  useEffect(() => { highlightedIdRef.current = highlightedId; }, [highlightedId]);
+  useEffect(() => { highlightedIdsRef.current = highlightedIds; }, [highlightedIds]);
 
   const isLoading = loadingContacts || loadingConns;
 
@@ -136,9 +136,11 @@ export default function NetworkMapPage() {
 
   // Search highlight
   useEffect(() => {
-    if (!search.trim()) { setHighlightedId(null); return; }
-    const found = contacts.find((c) => c.name.toLowerCase().includes(search.toLowerCase()));
-    setHighlightedId(found?.id || null);
+    if (!search.trim()) { setHighlightedIds(new Set()); return; }
+    const matches = contacts
+      .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+      .map((c) => c.id);
+    setHighlightedIds(new Set(matches));
   }, [search, contacts]);
 
   // Force simulation + render
@@ -148,16 +150,38 @@ export default function NetworkMapPage() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const resize = () => {
-      const rect = canvas.parentElement!.getBoundingClientRect();
-      canvas.width = rect.width * window.devicePixelRatio;
-      canvas.height = rect.height * window.devicePixelRatio;
-      canvas.style.width = rect.width + "px";
-      canvas.style.height = rect.height + "px";
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    };
-    resize();
-    window.addEventListener("resize", resize);
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          const oldW = canvas.width / window.devicePixelRatio || 300;
+          const oldH = canvas.height / window.devicePixelRatio || 150;
+          
+          canvas.width = width * window.devicePixelRatio;
+          canvas.height = height * window.devicePixelRatio;
+          canvas.style.width = width + "px";
+          canvas.style.height = height + "px";
+          
+          const ctx2d = canvas.getContext("2d");
+          if (ctx2d) {
+            ctx2d.resetTransform();
+            ctx2d.scale(window.devicePixelRatio, window.devicePixelRatio);
+          }
+          
+          // Scale nodes layout to match newly observed canvas viewport dimensions
+          if (oldW <= 300 && width > 300) {
+            nodesRef.current.forEach((node) => {
+              node.x = (node.x / oldW) * width;
+              node.y = (node.y / oldH) * height;
+            });
+          }
+          
+          energyRef.current = 100; // Wake up simulation
+        }
+      }
+    });
+
+    resizeObserver.observe(canvas.parentElement!);
 
     const tick = () => {
       const nodes = nodesRef.current;
@@ -248,7 +272,7 @@ export default function NetworkMapPage() {
       }
 
       for (const node of nodes) {
-        const isHighlighted = highlightedIdRef.current === node.id;
+        const isHighlighted = highlightedIdsRef.current.has(node.id);
         const radius = node.priority === "vip" ? 28 : 22;
         const nx = node.x ?? 0;
         const ny = node.y ?? 0;
@@ -295,7 +319,7 @@ export default function NetworkMapPage() {
     animRef.current = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(animRef.current);
-      window.removeEventListener("resize", resize);
+      resizeObserver.disconnect();
     };
   }, [filteredContacts.length, connections.length]);
 

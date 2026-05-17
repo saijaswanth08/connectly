@@ -21,6 +21,7 @@ import { useCreateTimelineEvent } from "@/hooks/useTimeline";
 import { cn } from "@/lib/utils";
 import { DbMeeting } from "@/lib/api";
 import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const INTERACTION_TYPES = [
   { value: "meeting", label: "Meeting" },
@@ -297,9 +298,23 @@ export default function InteractionsPage() {
       </div>
 
       {/* List */}
-      {(isLoading && !isError) ? (
-        <div className="flex justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      {isLoading ? (
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-border/50 bg-card p-5 space-y-4 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-48 rounded" />
+                  <Skeleton className="h-4 w-32 rounded opacity-60" />
+                </div>
+                <Skeleton className="h-6 w-20 rounded-full opacity-40" />
+              </div>
+              <div className="flex gap-4">
+                <Skeleton className="h-3 w-32 rounded opacity-30" />
+                <Skeleton className="h-3 w-24 rounded opacity-30" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : (filtered.length === 0 || isError) ? (
         <div className="text-center py-20">
