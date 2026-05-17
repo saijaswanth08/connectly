@@ -13,19 +13,19 @@ import { AppLayout } from "@/components/AppLayout";
 
 // Normalize important imports for performance & faster initial load
 import LandingPage from "@/pages/LandingPage";
-import LoginPage from "@/pages/LoginPage";
-import SignupPage from "@/pages/SignupPage";
-import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
-import ResetPasswordPage from "@/pages/ResetPasswordPage";
-import NotFound from "./pages/NotFound";
 
-// Normal imports for lightweight/public pages
-import PublicProfilePage from "@/pages/PublicProfilePage";
-import AboutPage from "@/pages/AboutPage";
-import FeaturesPage from "@/pages/FeaturesPage";
-import ContactPage from "@/pages/ContactPage";
-import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
-import VerifyPasswordUpdatePage from "@/pages/VerifyPasswordUpdatePage";
+// Lazy load secondary public subpages for extremely fast initial page load
+const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const SignupPage = lazy(() => import("@/pages/SignupPage"));
+const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
+const PublicProfilePage = lazy(() => import("@/pages/PublicProfilePage"));
+const AboutPage = lazy(() => import("@/pages/AboutPage"));
+const FeaturesPage = lazy(() => import("@/pages/FeaturesPage"));
+const ContactPage = lazy(() => import("@/pages/ContactPage"));
+const PrivacyPolicyPage = lazy(() => import("@/pages/PrivacyPolicyPage"));
+const VerifyPasswordUpdatePage = lazy(() => import("@/pages/VerifyPasswordUpdatePage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy load heavy/secondary pages
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
@@ -93,21 +93,57 @@ const App = () => (
           <AuthProvider>
             <ScrollToTop />
             <Routes>
-              {/* Public/Auth Routes - Synchronous rendering for fast initial load */}
+              {/* Public/Auth Routes - Dynamic lazy-loaded routes with Suspense */}
               <Route element={<PublicAppLayout />}>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/login" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <LoginPage />
+                  </Suspense>
+                } />
+                <Route path="/signup" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <SignupPage />
+                  </Suspense>
+                } />
+                <Route path="/forgot-password" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ForgotPasswordPage />
+                  </Suspense>
+                } />
+                <Route path="/reset-password" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ResetPasswordPage />
+                  </Suspense>
+                } />
               </Route>
 
-              {/* Public Informational Pages - Synchronous to avoid lazy loading overhead */}
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/features" element={<FeaturesPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-              <Route path="/profile/:id" element={<PublicProfilePage />} />
+              {/* Public Informational Pages */}
+              <Route path="/about" element={
+                <Suspense fallback={<PageLoader />}>
+                  <AboutPage />
+                </Suspense>
+              } />
+              <Route path="/features" element={
+                <Suspense fallback={<PageLoader />}>
+                  <FeaturesPage />
+                </Suspense>
+              } />
+              <Route path="/contact" element={
+                <Suspense fallback={<PageLoader />}>
+                  <ContactPage />
+                </Suspense>
+              } />
+              <Route path="/privacy-policy" element={
+                <Suspense fallback={<PageLoader />}>
+                  <PrivacyPolicyPage />
+                </Suspense>
+              } />
+              <Route path="/profile/:id" element={
+                <Suspense fallback={<PageLoader />}>
+                  <PublicProfilePage />
+                </Suspense>
+              } />
               
               {/* Protected Routes - Heavy pages safely lazy loaded with per-route Suspense */}
               <Route element={<ProtectedAppLayout />}>
@@ -203,8 +239,16 @@ const App = () => (
                 } />
               </Route>
               
-              <Route path="/verify-password-update" element={<VerifyPasswordUpdatePage />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/verify-password-update" element={
+                <Suspense fallback={<PageLoader />}>
+                  <VerifyPasswordUpdatePage />
+                </Suspense>
+              } />
+              <Route path="*" element={
+                <Suspense fallback={<PageLoader />}>
+                  <NotFound />
+                </Suspense>
+              } />
             </Routes>
           </AuthProvider>
         </BrowserRouter>

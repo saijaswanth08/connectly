@@ -19,6 +19,21 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "framer-motion",
+      "lucide-react",
+      "@tanstack/react-query",
+      "@supabase/supabase-js",
+      "date-fns",
+      "recharts",
+      "clsx",
+      "tailwind-merge"
+    ]
+  },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {

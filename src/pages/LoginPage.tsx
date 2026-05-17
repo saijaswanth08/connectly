@@ -72,10 +72,22 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+
+    // Clear any existing session tokens to prevent accidental Google account linking
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("sb-"))
+      .forEach((k) => localStorage.removeItem(k));
+    Object.keys(sessionStorage)
+      .filter((k) => k.startsWith("sb-"))
+      .forEach((k) => sessionStorage.removeItem(k));
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: {
+          prompt: "select_account",
+        },
       },
     });
 

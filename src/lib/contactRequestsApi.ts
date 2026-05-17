@@ -66,7 +66,7 @@ export async function sendContactRequest(toUserId: string): Promise<void> {
 export async function acceptContactRequest(requestId: string, fromUserId: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
-  const { data: p } = await supabase.from('profiles').select('*').eq('id', fromUserId).single();
+  const { data: p } = await supabase.from('profiles').select('*').eq('id', fromUserId).maybeSingle();
   if (p) {
     // Check if contact already exists
     const { data: existingContacts } = await supabase
@@ -113,7 +113,7 @@ export async function declineContactRequest(requestId: string): Promise<void> {
 export async function addContactFromAcceptedRequest(requestId: string, toUserId: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
-  const { data: p } = await supabase.from('profiles').select('*').eq('id', toUserId).single();
+  const { data: p } = await supabase.from('profiles').select('*').eq('id', toUserId).maybeSingle();
   if (p) {
     // Check if contact already exists
     const { data: existingContacts } = await supabase

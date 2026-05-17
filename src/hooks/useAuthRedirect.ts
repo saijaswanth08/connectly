@@ -14,7 +14,7 @@ export function useAuthRedirect() {
     // If auth is finished and we have a user, head to the dashboard
     if (!loading && user) {
       console.log("[useAuthRedirect] User detected, forced redirect to /dashboard");
-      window.location.href = "/dashboard";
+      navigate("/dashboard", { replace: true });
     }
   }, [user, loading, navigate]);
 }

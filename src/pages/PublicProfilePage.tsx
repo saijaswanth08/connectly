@@ -18,7 +18,7 @@ export default function PublicProfilePage() {
         .from("profiles")
         .select("*")
         .eq("id", profileId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;

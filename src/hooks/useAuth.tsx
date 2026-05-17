@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .from("profiles")
           .select("id")
           .eq("id", u.id)
-          .single()
+          .maybeSingle()
           .then(({ data: existing }) => {
             // 2. Only insert if profile is completely missing
             if (!existing) {

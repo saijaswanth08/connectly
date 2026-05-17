@@ -277,7 +277,7 @@ export default function DashboardPage() {
             .from("profiles")
             .select("*")
             .eq("id", pendingProfileId)
-            .single();
+            .maybeSingle();
             
           if (profile) {
             const { data: existing } = await supabase

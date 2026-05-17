@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import { Bell, Check, User, Clock, MessageSquare, X, UserPlus, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -8,10 +10,11 @@ import { useContacts } from "@/hooks/useContacts";
 import { useIncomingContactRequests, useOutgoingAcceptedRequests, useAcceptContactRequest, useDeclineContactRequest, useAddContactFromAccepted } from "@/hooks/useContactRequests";
 import { useToast } from "@/hooks/use-toast";
 import { format, isPast, isToday } from "date-fns";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 export function NotificationBell() {
+  const location = useLocation();
   const { data: reminders = [] } = useReminders();
   const { data: messageRequests = [] } = useMessageRequests();
   const { data: contacts = [] } = useContacts();
@@ -27,11 +30,97 @@ export function NotificationBell() {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
+  // 1. Fetch latest incoming contact messages
+  const { data: incomingMessages = [], refetch: refetchIncoming } = useQuery({
+    queryKey: ["notification-messages"],
+    queryFn: async () => {
+      const { data: convs } = await supabase
+        .from("conversations")
+        .select("id, contact_id");
+      
+      if (!convs || convs.length === 0) return [];
+      
+      const { data: msgs, error } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("sender_type", "contact")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      
+      if (error) {
+        console.error("[NotificationBell] Error fetching messages:", error.message);
+        throw error;
+      }
+      
+      return (msgs || []).map((m) => ({
+        ...m,
+        contact_id: convs.find((c) => c.id === m.conversation_id)?.contact_id || null,
+      }));
+    },
+  });
+
+  // 2. Subscribe to real-time incoming messages
+  useEffect(() => {
+    const channel = supabase
+      .channel("notification-bell-messages-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: "sender_type=eq.contact",
+        },
+        () => {
+          refetchIncoming();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetchIncoming]);
+
+  // 3. Read/unread state using localStorage
+  const [readMessageIds, setReadMessageIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("connectly-read-messages");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const markMessageAsRead = (id: string) => {
+    setReadMessageIds((prev) => {
+      const next = prev.includes(id) ? prev : [...prev, id];
+      localStorage.setItem("connectly-read-messages", JSON.stringify(next));
+      return next;
+    });
+  };
+
+  // 4. Auto-read messages if chatting with this contact
+  const activeContactId = new URLSearchParams(location.search).get("contactId");
+  const isMessagesPage = location.pathname === "/dashboard/messages";
+
+  const unreadMessages = incomingMessages.filter((m) => {
+    const isReadLocally = readMessageIds.includes(m.id);
+    const isCurrentlyChatting = isMessagesPage && m.contact_id === activeContactId;
+
+    if (isCurrentlyChatting && !isReadLocally) {
+      setTimeout(() => markMessageAsRead(m.id), 0);
+      return false;
+    }
+
+    return !isReadLocally && !isCurrentlyChatting;
+  });
+
   const pending = reminders
     .filter((r) => !r.completed)
     .sort((a, b) => new Date(a.reminder_date).getTime() - new Date(b.reminder_date).getTime());
 
-  const count = pending.length + messageRequests.length + incomingContactReqs.length + acceptedOutgoing.length;
+  const count = pending.length + messageRequests.length + incomingContactReqs.length + acceptedOutgoing.length + unreadMessages.length;
   const getContactName = (id: string | null) => contacts.find((c) => c.id === id)?.name ?? null;
 
   async function markDone(id: string) {
@@ -90,7 +179,7 @@ export function NotificationBell() {
         <div className="p-3 border-b border-border">
           <h3 className="font-display font-semibold text-sm text-foreground">Notifications</h3>
           <p className="text-xs text-muted-foreground">
-            {incomingContactReqs.length} contact requests · {messageRequests.length} messages · {pending.length} reminders
+            {incomingContactReqs.length} contact requests · {messageRequests.length + unreadMessages.length} messages · {pending.length} reminders
           </p>
         </div>
         <div className="max-h-80 overflow-y-auto">
@@ -206,6 +295,46 @@ export function NotificationBell() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* New Chat Messages */}
+          {unreadMessages.length > 0 && (
+            <div className="py-1">
+              <div className="px-3 py-1.5 bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                New Messages
+              </div>
+              {unreadMessages.map((m) => {
+                const name = getContactName(m.contact_id) || "Someone";
+                return (
+                  <div key={m.id} className="px-3 py-2.5 border-b border-border/50 bg-primary/5 hover:bg-primary/10 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <Link 
+                        to={`/dashboard/messages?contactId=${m.contact_id}`} 
+                        className="min-w-0 flex-1 hover:underline"
+                        onClick={() => {
+                          setOpen(false);
+                          markMessageAsRead(m.id);
+                        }}
+                      >
+                        <p className="text-sm font-medium text-foreground truncate">{name}</p>
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
+                          <MessageSquare className="h-2.5 w-2.5" />
+                          <span className="truncate">{m.content}</span>
+                        </div>
+                      </Link>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 shrink-0" 
+                        onClick={() => markMessageAsRead(m.id)}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
