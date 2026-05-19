@@ -17,13 +17,17 @@ export default function VerifyPasswordUpdatePage() {
   useEffect(() => {
     if (updateAttempted.current) return;
 
-    // 1. Parse Supabase auth hash from URL
-    const hash = window.location.hash;
-    const params = new URLSearchParams(hash.replace("#", ""));
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
+    // 1. Try parsing custom token from query parameters (?token=...)
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryToken = searchParams.get("token");
 
-    if (!access_token || !refresh_token) {
+    // 2. Try parsing Supabase auth hash from URL (#access_token=...)
+    const hash = window.location.hash;
+    const hashParams = new URLSearchParams(hash.replace("#", ""));
+    const access_token = hashParams.get("access_token") || queryToken;
+    const refresh_token = hashParams.get("refresh_token");
+
+    if (!queryToken && (!access_token || !refresh_token)) {
       setStatus("error");
       setErrorMessage("Missing verification token.");
       return;
