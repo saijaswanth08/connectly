@@ -21,7 +21,7 @@ if (!supabase) {
 // Map<token, { email: string, newPassword: string, expiresAt: number }>
 const pendingUpdates = new Map<string, { email: string; newPassword: string; expiresAt: number }>();
 
-const TOKEN_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const TOKEN_TTL_MS = 1 * 60 * 1000; // 1 minute
 
 // Nodemailer setup
 const EMAIL_USER = process.env.EMAIL_USER;
@@ -100,7 +100,7 @@ router.post('/', async (req: Request, res: Response) => {
           <div style="text-align: center; margin: 32px 0;">
             <a href="${verificationLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Verify Password Update</a>
           </div>
-          <p style="color: #6b7280; font-size: 14px;">This link expires in 10 mins.</p>
+          <p style="color: #6b7280; font-size: 14px;">This link expires in 1 min.</p>
         </div>
       `,
     };

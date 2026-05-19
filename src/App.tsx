@@ -111,12 +111,14 @@ const App = () => (
                     <ForgotPasswordPage />
                   </Suspense>
                 } />
-                <Route path="/reset-password" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <ResetPasswordPage />
-                  </Suspense>
-                } />
               </Route>
+
+              {/* Reset Password must bypass PublicRoute because the recovery link establishes a temporary session */}
+              <Route path="/reset-password" element={
+                <Suspense fallback={<PageLoader />}>
+                  <ResetPasswordPage />
+                </Suspense>
+              } />
 
               {/* Public Informational Pages */}
               <Route path="/about" element={

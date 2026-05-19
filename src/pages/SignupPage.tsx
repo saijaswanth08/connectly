@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Zap } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
+import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -106,7 +107,7 @@ export default function SignupPage() {
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
         <div className="w-full max-w-md text-center space-y-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
-          <Zap className="h-10 w-10 text-primary mx-auto" />
+          <ConnectlyLogoIcon size={40} className="mx-auto" />
           <h2 className="font-display text-xl font-bold text-foreground">Check your email</h2>
           <p className="text-muted-foreground text-sm">We've sent a confirmation link to <strong>{email}</strong>. Click the link to activate your account.</p>
           <Link to="/login" className="text-primary hover:underline text-sm font-medium">Back to login</Link>
@@ -124,7 +125,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold text-foreground">
-            <Zap className="h-7 w-7 text-primary" />
+            <ConnectlyLogoIcon size={28} />
             Connect<span className="text-primary">ly</span>
           </Link>
           <h1 className="font-display text-xl font-semibold text-foreground mt-4">Create your account</h1>

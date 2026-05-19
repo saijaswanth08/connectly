@@ -25,19 +25,25 @@ export default function ResetPasswordPage() {
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   useEffect(() => {
+    let isReady = false;
+
     // Listen for the PASSWORD_RECOVERY event which fires after Supabase
     // processes the recovery token from the URL hash and establishes a session.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
+        isReady = true;
         setStatus("ready");
       }
     });
 
     // Also check if we already have a session (e.g. page reload after token was processed)
     const checkSession = async () => {
+      if (isReady) return;
+
       const { data: { session } } = await supabase.auth.getSession();
       const hash = window.location.hash;
-      if (session && hash.includes("type=recovery")) {
+      if (session && (hash.includes("type=recovery") || hash.includes("access_token"))) {
+        isReady = true;
         setStatus("ready");
       } else if (!hash.includes("type=recovery") && !hash.includes("access_token")) {
         // No recovery token at all — invalid link
@@ -51,7 +57,9 @@ export default function ResetPasswordPage() {
 
     // Fallback: if nothing happens after 5s, mark invalid
     const fallback = setTimeout(() => {
-      setStatus((prev) => (prev === "loading" ? "invalid" : prev));
+      if (!isReady) {
+        setStatus("invalid");
+      }
     }, 5000);
 
     return () => {

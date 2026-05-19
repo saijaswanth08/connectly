@@ -167,7 +167,7 @@ export default function ChangePasswordPage() {
                   <li>Set your new password on the confirmation page</li>
                 </ol>
                 <p className="text-xs text-muted-foreground mt-2">
-                  The link expires in 10 minutes. Check spam if you don't see it.
+                  The link expires in 1 minute. Check spam if you don't see it.
                 </p>
               </div>
               <Button

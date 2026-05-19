@@ -1,10 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchContactConnections, createContactConnection, deleteContactConnection, DbContactConnection } from "@/lib/api";
+import { useAuth } from "./useAuth";
 
 export function useContactConnections() {
+  const { user } = useAuth();
   return useQuery<DbContactConnection[]>({
-    queryKey: ["contact_connections"],
+    queryKey: ["contact_connections", user?.id],
     queryFn: fetchContactConnections,
+    enabled: !!user?.id,
   });
 }
 

@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Zap, Mail } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
+import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -39,7 +40,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold text-foreground">
-            <Zap className="h-7 w-7 text-primary" />
+            <ConnectlyLogoIcon size={28} />
             Connect<span className="text-primary">ly</span>
           </Link>
           <h1 className="font-display text-xl font-semibold text-foreground mt-4">Reset your password</h1>

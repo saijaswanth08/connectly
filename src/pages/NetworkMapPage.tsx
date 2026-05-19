@@ -11,7 +11,7 @@ import { useContacts } from "@/hooks/useContacts";
 import { useContactConnections, useCreateContactConnection, useDeleteContactConnection } from "@/hooks/useConnections";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { DbContact } from "@/lib/api";
+import { DbContact, DbContactConnection } from "@/lib/api";
 import { Link } from "react-router-dom";
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -22,6 +22,9 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const DEFAULT_COLOR = "#2563eb";
+
+const EMPTY_CONTACTS: DbContact[] = [];
+const EMPTY_CONNECTIONS: DbContactConnection[] = [];
 
 function getNodeColor(priority?: string): string {
   const level = (priority || "medium").toLowerCase();
@@ -49,11 +52,63 @@ interface Edge {
   type: string;
 }
 
+function runSimulationSteps(nodes: Node[], edges: Edge[], w: number, h: number, steps: number = 150) {
+  for (let step = 0; step < steps; step++) {
+    // Repulsion
+    for (let i = 0; i < nodes.length; i++) {
+      const nodeI = nodes[i];
+      for (let j = i + 1; j < nodes.length; j++) {
+        const nodeJ = nodes[j];
+        const dx = nodeJ.x - nodeI.x;
+        const dy = nodeJ.y - nodeI.y;
+        const distSq = dx * dx + dy * dy || 1;
+        const dist = Math.sqrt(distSq);
+        const repulsion = 3000 / distSq;
+        const fx = (dx / dist) * repulsion;
+        const fy = (dy / dist) * repulsion;
+        nodeI.vx -= fx;
+        nodeI.vy -= fy;
+        nodeJ.vx += fx;
+        nodeJ.vy += fy;
+      }
+    }
+
+    // Edge attraction
+    for (const edge of edges) {
+      const a = nodes.find((n) => n.id === edge.source);
+      const b = nodes.find((n) => n.id === edge.target);
+      if (!a || !b) continue;
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const attraction = (dist - 150) * 0.005;
+      const fx = (dx / dist) * attraction;
+      const fy = (dy / dist) * attraction;
+      a.vx += fx;
+      a.vy += fy;
+      b.vx -= fx;
+      b.vy -= fy;
+    }
+
+    // Center gravity and move
+    for (const node of nodes) {
+      node.vx += (w / 2 - node.x) * 0.001;
+      node.vy += (h / 2 - node.y) * 0.001;
+      node.vx *= 0.9;
+      node.vy *= 0.9;
+      node.x += node.vx;
+      node.y += node.vy;
+      node.x = Math.max(30, Math.min(w - 30, node.x));
+      node.y = Math.max(30, Math.min(h - 30, node.y));
+    }
+  }
+}
+
 export default function NetworkMapPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { data: contacts = [], isLoading: loadingContacts, isError: errorContacts } = useContacts();
-  const { data: connections = [], isLoading: loadingConns, isError: errorConns } = useContactConnections();
+  const { data: contacts = EMPTY_CONTACTS, isLoading: loadingContacts, isError: errorContacts } = useContacts();
+  const { data: connections = EMPTY_CONNECTIONS, isLoading: loadingConns, isError: errorConns } = useContactConnections();
   const createConnection = useCreateContactConnection();
   const deleteConnection = useDeleteContactConnection();
 
@@ -83,11 +138,39 @@ export default function NetworkMapPage() {
   const zoomRef = useRef(1);
   const panRef = useRef({ x: 0, y: 0 });
   const draggingRef = useRef<string | null>(null);
+  const panningRef = useRef(false);
   const highlightedIdsRef = useRef<Set<string>>(new Set());
-  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
-  useEffect(() => { panRef.current = pan; }, [pan]);
-  useEffect(() => { draggingRef.current = dragging; }, [dragging]);
-  useEffect(() => { highlightedIdsRef.current = highlightedIds; }, [highlightedIds]);
+  const hasDrawnSettledRef = useRef(false);
+
+  useEffect(() => { 
+    zoomRef.current = zoom; 
+    energyRef.current = 100; 
+    hasDrawnSettledRef.current = false;
+  }, [zoom]);
+
+  useEffect(() => { 
+    panRef.current = pan; 
+    energyRef.current = 100; 
+    hasDrawnSettledRef.current = false;
+  }, [pan]);
+
+  useEffect(() => { 
+    draggingRef.current = dragging; 
+    energyRef.current = 100; 
+    hasDrawnSettledRef.current = false;
+  }, [dragging]);
+
+  useEffect(() => {
+    panningRef.current = panning;
+    energyRef.current = 100;
+    hasDrawnSettledRef.current = false;
+  }, [panning]);
+
+  useEffect(() => { 
+    highlightedIdsRef.current = highlightedIds; 
+    energyRef.current = 100; 
+    hasDrawnSettledRef.current = false;
+  }, [highlightedIds]);
 
   const isLoading = loadingContacts || loadingConns;
 
@@ -136,11 +219,20 @@ export default function NetworkMapPage() {
 
   // Search highlight
   useEffect(() => {
-    if (!search.trim()) { setHighlightedIds(new Set()); return; }
+    if (!search.trim()) {
+      setHighlightedIds((prev) => (prev.size === 0 ? prev : new Set()));
+      return;
+    }
     const matches = contacts
       .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
       .map((c) => c.id);
-    setHighlightedIds(new Set(matches));
+    
+    setHighlightedIds((prev) => {
+      if (prev.size === matches.length && matches.every((id) => prev.has(id))) {
+        return prev;
+      }
+      return new Set(matches);
+    });
   }, [search, contacts]);
 
   // Force simulation + render
@@ -170,10 +262,17 @@ export default function NetworkMapPage() {
           
           // Scale nodes layout to match newly observed canvas viewport dimensions
           if (oldW <= 300 && width > 300) {
-            nodesRef.current.forEach((node) => {
-              node.x = (node.x / oldW) * width;
-              node.y = (node.y / oldH) * height;
+            nodesRef.current.forEach((node, i) => {
+              const angle = (2 * Math.PI * i) / nodesRef.current.length;
+              const radius = Math.min(width, height) * 0.3;
+              node.x = width / 2 + Math.cos(angle) * radius;
+              node.y = height / 2 + Math.sin(angle) * radius;
+              node.vx = 0;
+              node.vy = 0;
             });
+            // Pre-run simulation so nodes are immediately placed nicely
+            runSimulationSteps(nodesRef.current, edgesRef.current, width, height, 150);
+            hasDrawnSettledRef.current = false;
           }
           
           energyRef.current = 100; // Wake up simulation
@@ -189,9 +288,12 @@ export default function NetworkMapPage() {
       const w = canvas.width / window.devicePixelRatio;
       const h = canvas.height / window.devicePixelRatio;
 
+      const isInteracting = draggingRef.current !== null || panningRef.current;
+      const isSimulating = energyRef.current > 0.01;
+
       // Force simulation
       let currentEnergy = 0;
-      if (energyRef.current > 0.01) {
+      if (isSimulating) {
         for (let i = 0; i < nodes.length; i++) {
           const nodeI = nodes[i];
           for (let j = i + 1; j < nodes.length; j++) {
@@ -242,6 +344,18 @@ export default function NetworkMapPage() {
           node.y = Math.max(30, Math.min(h - 30, node.y));
         }
         energyRef.current = currentEnergy / nodes.length;
+      }
+
+      // Check if we can skip drawing to save CPU/GPU resources
+      if (!isSimulating && !isInteracting && hasDrawnSettledRef.current) {
+        animRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      if (!isSimulating && !isInteracting) {
+        hasDrawnSettledRef.current = true;
+      } else {
+        hasDrawnSettledRef.current = false;
       }
 
       // Render

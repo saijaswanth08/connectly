@@ -353,7 +353,17 @@ export interface DbContactConnection {
 }
 
 export async function fetchContactConnections(): Promise<DbContactConnection[]> {
-  const { data, error } = await supabase.from("contact_connections").select("*");
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("User not authenticated");
+  }
+
+  const { data, error } = await supabase
+    .from("contact_connections")
+    .select("*")
+    .eq("user_id", user.id);
+
   if (error) throw error;
   return (data ?? []) as DbContactConnection[];
 }
