@@ -86,8 +86,17 @@ router.post('/', async (req: Request, res: Response) => {
         debug_token: token // Only for dev convenience if email fails
       });
     }
-
-    const verificationLink = `http://localhost:5173/verify-password-update?token=${token}`;
+    let origin = 'http://localhost:8080';
+    const rawOrigin = req.headers.origin || req.headers.referer;
+    if (rawOrigin) {
+      try {
+        const urlObj = new URL(rawOrigin as string);
+        origin = urlObj.origin;
+      } catch (e) {
+        origin = typeof rawOrigin === 'string' ? rawOrigin : 'http://localhost:8080';
+      }
+    }
+    const verificationLink = `${origin}/verify-password-update?token=${token}`;
     
     const mailOptions = {
       from: EMAIL_USER,
