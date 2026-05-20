@@ -12,6 +12,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRealtimeContactRequests } from "@/hooks/useRealtimeContactRequests";
 import { usePresence } from "@/hooks/usePresence";
 import { useEffect } from "react";
+import { IncompleteProfileBanner } from "@/components/IncompleteProfileBanner";
+import { useProfile } from "@/hooks/useProfile";
+import { Navigate } from "react-router-dom";
 
 export function AppLayout() {
   useKeyboardShortcuts();
@@ -19,6 +22,16 @@ export function AppLayout() {
   const { user } = useAuth();
   useRealtimeContactRequests(user?.id);
   usePresence(); // Enable global presence tracking while in dashboard
+  
+  const { data: profile, isLoading } = useProfile();
+  
+  // Enforce profile completion before accessing other features
+  const isProfileIncomplete = profile && (!profile.company || !profile.job_title || !profile.phone);
+  const allowedPaths = ["/dashboard/profile-settings", "/dashboard/settings", "/support", "/report-issue"];
+  
+  if (!isLoading && isProfileIncomplete && !allowedPaths.includes(location.pathname)) {
+    return <Navigate to="/dashboard/profile-settings" replace />;
+  }
   
   return (
     <SidebarProvider>
@@ -36,6 +49,7 @@ export function AppLayout() {
               <ProfileDropdown />
             </div>
           </header>
+          <IncompleteProfileBanner />
           <main className="flex-1 overflow-hidden relative">
             <AnimatePresence mode="wait">
               <motion.div

@@ -38,17 +38,22 @@ export default function ContactSupportPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("send-support-message", {
-        body: {
+      const response = await fetch("http://localhost:3001/api/report-issue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           name: form.name,
           email: form.email,
-          subject: form.subject,
-          message: form.message,
-        },
+          category: form.subject,
+          priority: "Normal",
+          description: form.message,
+        }),
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to send message");
+      }
 
       showToast("Your message has been sent. Our support team will contact you soon.", "success");
       setForm({ name: user?.user_metadata?.full_name || "", email: user?.email || "", subject: "", message: "" });
@@ -109,9 +114,8 @@ export default function ContactSupportPage() {
               id="name"
               type="text"
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              className="w-full h-10 px-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-slate-700 dark:text-gray-100 focus:outline-none transition-shadow"
+              readOnly
+              className="w-full h-10 px-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-slate-800 dark:text-gray-400 focus:outline-none transition-shadow"
             />
           </div>
 
@@ -121,9 +125,8 @@ export default function ContactSupportPage() {
               id="email"
               type="email"
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-              className="w-full h-10 px-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-slate-700 dark:text-gray-100 focus:outline-none transition-shadow"
+              readOnly
+              className="w-full h-10 px-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-slate-800 dark:text-gray-400 focus:outline-none transition-shadow"
             />
           </div>
 

@@ -18,9 +18,9 @@ const fadeUp = {
 };
 
 const socials = [
-  { icon: Instagram, label: "Instagram", link: "https://instagram.com/connectly", handle: "@connectly", color: "text-pink-500" },
+  { icon: Instagram, label: "Instagram", link: "https://www.instagram.com/connectly_crm?igsh=bHlwY3g4ZzkzeHh6", handle: "@connectly", color: "text-pink-500" },
   { icon: MessageCircle, label: "WhatsApp", link: "https://wa.me/1234567890", handle: "+1 234 567 890", color: "text-green-500" },
-  { icon: Linkedin, label: "LinkedIn", link: "https://linkedin.com/company/connectly", handle: "Connectly", color: "text-blue-500" },
+  { icon: Linkedin, label: "LinkedIn", link: "https://www.linkedin.com/in/saijaswanth-nallamaru-1998a433b?utm_source=share_via&utm_content=profile&utm_medium=member_android", handle: "Connectly", color: "text-blue-500" },
 ];
 
 export default function ContactPage() {
@@ -115,7 +115,9 @@ export default function ContactPage() {
                 <h3 className="font-display text-lg font-semibold text-foreground">Get in touch</h3>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Mail className="h-4 w-4 text-primary" />
-                  <span>support@connectly.com</span>
+                  <a href="https://mail.google.com/mail/?view=cm&fs=1&to=connectly.support@gmail.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+                    connectly.support@gmail.com
+                  </a>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Phone className="h-4 w-4 text-primary" />

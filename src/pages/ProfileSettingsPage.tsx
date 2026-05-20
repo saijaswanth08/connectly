@@ -367,7 +367,7 @@ export default function ProfileSettingsPage() {
 
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label className="text-sm font-medium text-foreground">Daily Reminder Digest</Label>
+            <Label className="text-sm font-medium text-foreground">Daily Networking Brief</Label>
             <p className="text-xs text-muted-foreground">Receive a daily email summarizing your upcoming reminders.</p>
           </div>
           <Switch 
