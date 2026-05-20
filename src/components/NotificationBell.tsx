@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Bell, Check, User, Clock, MessageSquare, X, UserPlus, UserCheck } from "lucide-react";
@@ -12,8 +12,10 @@ import { useToast } from "@/hooks/use-toast";
 import { format, isPast, isToday } from "date-fns";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 export function NotificationBell() {
+  const { user } = useAuth();
   const location = useLocation();
   const { data: reminders = [] } = useReminders();
   const { data: messageRequests = [] } = useMessageRequests();
@@ -82,22 +84,62 @@ export function NotificationBell() {
     };
   }, [refetchIncoming]);
 
-  // 3. Read/unread state using localStorage
-  const [readMessageIds, setReadMessageIds] = useState<string[]>(() => {
+  // 3. Read/unread state using user-scoped localStorage and persistent Supabase user_metadata
+  const [localReadIds, setLocalReadIds] = useState<string[]>(() => {
+    if (!user?.id) return [];
     try {
-      const saved = localStorage.getItem("connectly-read-messages");
+      const saved = localStorage.getItem(`connectly-read-messages-${user.id}`);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
 
-  const markMessageAsRead = (id: string) => {
-    setReadMessageIds((prev) => {
-      const next = prev.includes(id) ? prev : [...prev, id];
-      localStorage.setItem("connectly-read-messages", JSON.stringify(next));
-      return next;
-    });
+  // Keep local state in sync when user changes/loads
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      const saved = localStorage.getItem(`connectly-read-messages-${user.id}`);
+      if (saved) {
+        setLocalReadIds(JSON.parse(saved));
+      } else {
+        setLocalReadIds([]);
+      }
+    } catch (err) {
+      console.error("[NotificationBell] Error loading local storage:", err);
+    }
+  }, [user?.id]);
+
+  // Merge localStorage and Supabase metadata (which synced to DB)
+  const readMessageIds = useMemo(() => {
+    const metaIds = user?.user_metadata?.read_message_ids || [];
+    return Array.from(new Set([...metaIds, ...localReadIds]));
+  }, [user?.user_metadata?.read_message_ids, localReadIds]);
+
+  const markMessageAsRead = async (id: string) => {
+    if (readMessageIds.includes(id)) return;
+    const updated = [...readMessageIds, id];
+
+    // Update local state immediately for snappy UI
+    setLocalReadIds(updated);
+
+    if (user?.id) {
+      // Save to user-scoped localStorage
+      try {
+        localStorage.setItem(`connectly-read-messages-${user.id}`, JSON.stringify(updated));
+      } catch (err) {
+        console.error("[NotificationBell] Error writing to localStorage:", err);
+      }
+
+      // Update Supabase user_metadata for cross-device/persistent synchronization
+      try {
+        await supabase.auth.updateUser({
+          data: { read_message_ids: updated }
+        });
+      } catch (err) {
+        console.warn("[NotificationBell] Persistent sync warning:", err);
+      }
+    }
   };
 
   // 4. Auto-read messages if chatting with this contact
