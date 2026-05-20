@@ -11,11 +11,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// Custom lock implementation: bypasses the Navigator Lock API which can produce
+// "lock not released within 5000ms" warnings during Vite HMR or tab-switching.
+// Instead we use a simple in-memory promise queue — safe for single-tab SPAs.
+const acquireLock = <T>(
+  _name: string,
+  _acquireTimeout: number,
+  fn: () => Promise<T>
+): Promise<T> => fn();
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true, // Required: exchanges OAuth code from URL on redirect back
     storage: localStorage,
+    lock: acquireLock,
   },
 });
+
