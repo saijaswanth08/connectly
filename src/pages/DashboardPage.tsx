@@ -270,10 +270,28 @@ export default function DashboardPage() {
   const { data: profile, isLoading: isLoadingProfile } = useProfile();
   const [dismissedBanner, setDismissedBanner] = useState(false);
 
+  const SNOOZE_MS = 5 * 60 * 1000; // 5 minutes
+
   useEffect(() => {
-    if (user?.id) {
-      const isDismissed = localStorage.getItem(`connectly-dismiss-avatar-prompt-${user.id}`) === "true";
-      setDismissedBanner(isDismissed);
+    if (!user?.id) return;
+    const key = `connectly-dismiss-avatar-prompt-${user.id}`;
+    const dismissedAt = localStorage.getItem(key);
+    if (dismissedAt) {
+      const elapsed = Date.now() - Number(dismissedAt);
+      if (elapsed < SNOOZE_MS) {
+        // Still within snooze window — hide banner and schedule re-show
+        setDismissedBanner(true);
+        const remaining = SNOOZE_MS - elapsed;
+        const timer = setTimeout(() => {
+          localStorage.removeItem(key);
+          setDismissedBanner(false);
+        }, remaining);
+        return () => clearTimeout(timer);
+      } else {
+        // Snooze expired — clear and show banner
+        localStorage.removeItem(key);
+        setDismissedBanner(false);
+      }
     }
   }, [user]);
 
@@ -388,47 +406,48 @@ export default function DashboardPage() {
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className="overflow-hidden"
         >
-          <div className="relative overflow-hidden rounded-2xl border border-indigo-100 dark:border-indigo-950 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-6 text-white shadow-xl shadow-indigo-500/10 dark:shadow-indigo-950/20">
+          <div className="relative overflow-hidden rounded-xl border border-indigo-100 dark:border-indigo-950 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 py-3 text-white shadow-lg shadow-indigo-500/10 dark:shadow-indigo-950/20">
             {/* Visual glow blobs */}
-            <div className="absolute -right-8 -bottom-8 h-32 w-32 rounded-full bg-white/10 blur-xl pointer-events-none" />
-            <div className="absolute right-1/4 -top-12 h-24 w-24 rounded-full bg-purple-400/20 blur-xl pointer-events-none" />
+            <div className="absolute -right-4 -bottom-4 h-20 w-20 rounded-full bg-white/10 blur-xl pointer-events-none" />
 
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-              <div className="flex items-center gap-4 text-center md:text-left flex-col md:flex-row">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur-md border border-white/25 shadow-inner">
-                  <ImagePlus className="h-6 w-6 text-white animate-pulse" />
+            <div className="flex items-center justify-between gap-4 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 backdrop-blur-md border border-white/25">
+                  <ImagePlus className="h-4 w-4 text-white animate-pulse" />
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-center md:justify-start gap-1.5 flex-wrap">
-                    <h3 className="font-display font-bold text-lg tracking-tight">Complete your profile photo</h3>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
-                      <Sparkles className="h-3 w-3 animate-bounce" /> Recommended
-                    </span>
-                  </div>
-                  <p className="text-sm text-indigo-50/90 max-w-xl leading-relaxed">
-                    A profile photo helps your professional network recognize and remember you when sharing cards!
-                  </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-display font-semibold text-sm">Complete your profile photo</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
+                    <Sparkles className="h-2.5 w-2.5" /> Recommended
+                  </span>
+                  <span className="text-xs text-indigo-100/80 hidden sm:inline">— A photo helps your network recognize you!</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 w-full md:w-auto shrink-0 justify-center">
+              <div className="flex items-center gap-2 shrink-0">
                 <Link
                   to="/dashboard/profile"
-                  className="inline-flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-indigo-600 shadow-lg shadow-indigo-600/10 hover:bg-indigo-50 transition-all hover:scale-[1.02] active:scale-95 duration-200"
+                  className="inline-flex h-8 items-center justify-center rounded-lg bg-white px-4 text-xs font-semibold text-indigo-600 shadow hover:bg-indigo-50 transition-all hover:scale-[1.02] active:scale-95 duration-200"
                 >
-                  Upload Profile Photo
+                  Upload Photo
                 </Link>
                 <button
                   onClick={() => {
                     if (user?.id) {
-                      localStorage.setItem(`connectly-dismiss-avatar-prompt-${user.id}`, "true");
+                      const key = `connectly-dismiss-avatar-prompt-${user.id}`;
+                      localStorage.setItem(key, String(Date.now()));
                       setDismissedBanner(true);
+                      // Auto re-show after 5 minutes if still no avatar
+                      setTimeout(() => {
+                        localStorage.removeItem(key);
+                        setDismissedBanner(false);
+                      }, 5 * 60 * 1000);
                     }
                   }}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 transition-colors"
                   aria-label="Dismiss banner"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
