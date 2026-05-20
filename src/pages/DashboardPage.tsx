@@ -1,8 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
-import { Users, Star, Bell, Calendar, ArrowLeft, Phone, Mail, Building2, Pencil, Trash2, Loader2, Linkedin, Instagram } from "lucide-react";
+import { Users, Star, Bell, Calendar, ArrowLeft, Phone, Mail, Building2, Pencil, Trash2, Loader2, Linkedin, Instagram, ImagePlus, Sparkles, X } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 import { MetricCard } from "@/components/MetricCard";
 import { ImportanceBadge } from "@/components/ImportanceBadge";
 import { TagBadge } from "@/components/TagBadge";
@@ -265,6 +267,15 @@ export default function DashboardPage() {
   // Track which tab the user was on before opening a contact
   const [previousTab, setPreviousTab] = useState<ActiveTab>(null);
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
+  const { data: profile, isLoading: isLoadingProfile } = useProfile();
+  const [dismissedBanner, setDismissedBanner] = useState(false);
+
+  useEffect(() => {
+    if (user?.id) {
+      const isDismissed = localStorage.getItem(`connectly-dismiss-avatar-prompt-${user.id}`) === "true";
+      setDismissedBanner(isDismissed);
+    }
+  }, [user]);
 
   useEffect(() => {
     const checkPendingContact = async () => {
@@ -321,6 +332,8 @@ export default function DashboardPage() {
     .sort((a, b) => a.name.localeCompare(b.name))
     .slice(0, 4);
 
+  const showAvatarPrompt = !isLoadingProfile && profile && !profile.avatar_url && !dismissedBanner;
+
   function handleTabClick(tab: ActiveTab) {
     setSelectedContact(null);
     setActiveTab((prev) => (prev === tab ? null : tab));
@@ -366,6 +379,62 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-display font-bold">Dashboard</h1>
         <p className="text-sm text-muted-foreground">Your networking overview at a glance</p>
       </motion.div>
+
+      {showAvatarPrompt && (
+        <motion.div
+          initial={{ opacity: 0, height: 0, y: -20 }}
+          animate={{ opacity: 1, height: "auto", y: 0 }}
+          exit={{ opacity: 0, height: 0, y: -20 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className="overflow-hidden"
+        >
+          <div className="relative overflow-hidden rounded-2xl border border-indigo-100 dark:border-indigo-950 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-6 text-white shadow-xl shadow-indigo-500/10 dark:shadow-indigo-950/20">
+            {/* Visual glow blobs */}
+            <div className="absolute -right-8 -bottom-8 h-32 w-32 rounded-full bg-white/10 blur-xl pointer-events-none" />
+            <div className="absolute right-1/4 -top-12 h-24 w-24 rounded-full bg-purple-400/20 blur-xl pointer-events-none" />
+
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+              <div className="flex items-center gap-4 text-center md:text-left flex-col md:flex-row">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur-md border border-white/25 shadow-inner">
+                  <ImagePlus className="h-6 w-6 text-white animate-pulse" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-center md:justify-start gap-1.5 flex-wrap">
+                    <h3 className="font-display font-bold text-lg tracking-tight">Complete your profile photo</h3>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
+                      <Sparkles className="h-3 w-3 animate-bounce" /> Recommended
+                    </span>
+                  </div>
+                  <p className="text-sm text-indigo-50/90 max-w-xl leading-relaxed">
+                    A profile photo helps your professional network recognize and remember you when sharing cards!
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 w-full md:w-auto shrink-0 justify-center">
+                <Link
+                  to="/dashboard/profile"
+                  className="inline-flex h-10 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-indigo-600 shadow-lg shadow-indigo-600/10 hover:bg-indigo-50 transition-all hover:scale-[1.02] active:scale-95 duration-200"
+                >
+                  Upload Profile Photo
+                </Link>
+                <button
+                  onClick={() => {
+                    if (user?.id) {
+                      localStorage.setItem(`connectly-dismiss-avatar-prompt-${user.id}`, "true");
+                      setDismissedBanner(true);
+                    }
+                  }}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-colors"
+                  aria-label="Dismiss banner"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* ── Stat cards (clickable tabs) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
