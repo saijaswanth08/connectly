@@ -56,16 +56,23 @@ export default function SignupPage() {
         },
       });
 
-      if (error) {
+      // Supabase's Email Enumeration Protection returns an empty identities array if the email exists
+      const emailExists = data?.user && data.user.identities && data.user.identities.length === 0;
+
+      if (error || emailExists) {
         setLoading(false);
+        let errorMsg = error?.message || "An account with this email already exists.";
+        
+        if (error?.message === "Failed to fetch") {
+          errorMsg = "Network error: Could not reach Supabase. Check your connection.";
+        }
+        
         toast({ 
           title: "Signup failed", 
-          description: error.message === "Failed to fetch" 
-            ? "Network error: Could not reach Supabase. Check your connection." 
-            : error.message, 
+          description: errorMsg,
           variant: "destructive" 
         });
-      } else if (data.session) {
+      } else if (data?.session) {
         toast({ title: "Account created!", description: "Welcome to Connectly." });
         // Redirection handled by AuthProvider
       } else {
