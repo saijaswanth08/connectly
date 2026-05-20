@@ -1,13 +1,22 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mail, RotateCcw, Check, X } from "lucide-react";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
+
+// Password policy matching Supabase's requirements
+const PASSWORD_RULES = [
+  { id: "length",    label: "At least 8 characters",   test: (p: string) => p.length >= 8 },
+  { id: "lower",     label: "One lowercase letter",     test: (p: string) => /[a-z]/.test(p) },
+  { id: "upper",     label: "One uppercase letter",     test: (p: string) => /[A-Z]/.test(p) },
+  { id: "number",    label: "One number",               test: (p: string) => /[0-9]/.test(p) },
+  { id: "special",   label: "One special character",    test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
+];
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -21,10 +30,16 @@ export default function SignupPage() {
 
   useAuthRedirect();
 
+  const passwordChecks = useMemo(() => PASSWORD_RULES.map(r => ({ ...r, passed: r.test(password) })), [password]);
+  const passwordStrength = passwordChecks.filter(r => r.passed).length; // 0-5
+  const strengthLabel = ["", "Very Weak", "Weak", "Fair", "Strong", "Very Strong"][passwordStrength];
+  const strengthColor = ["bg-border", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-400", "bg-emerald-500"][passwordStrength];
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast({ title: "Password too short", description: "Must be at least 6 characters", variant: "destructive" });
+    const failedRules = passwordChecks.filter(r => !r.passed);
+    if (failedRules.length > 0) {
+      toast({ title: "Password doesn't meet requirements", description: failedRules.map(r => r.label).join(", "), variant: "destructive" });
       return;
     }
     if (password !== confirmPassword) {
@@ -37,7 +52,7 @@ export default function SignupPage() {
         password,
         options: {
           data: { full_name: name },
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/verify-email`,
         },
       });
 
@@ -100,17 +115,78 @@ export default function SignupPage() {
     }
   };
 
+  const handleResendEmail = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/verify-email` },
+      });
+      if (error) {
+        toast({ title: "Couldn't resend", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Email resent!", description: `A new link was sent to ${email}` });
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to resend. Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+        {/* Ambient blobs */}
+        <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+        </div>
+
         <Link to="/" className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
-        <div className="w-full max-w-md text-center space-y-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
-          <ConnectlyLogoIcon size={40} className="mx-auto" />
-          <h2 className="font-display text-xl font-bold text-foreground">Check your email</h2>
-          <p className="text-muted-foreground text-sm">We've sent a confirmation link to <strong>{email}</strong>. Click the link to activate your account.</p>
-          <Link to="/login" className="text-primary hover:underline text-sm font-medium">Back to login</Link>
+
+        <div className="w-full max-w-md text-center space-y-6 rounded-2xl border border-border bg-card p-10 shadow-lg">
+          <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold text-foreground">
+            <ConnectlyLogoIcon size={28} />
+            Connect<span className="text-primary">ly</span>
+          </Link>
+
+          {/* Animated envelope icon */}
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ring-4 ring-primary/20 animate-in zoom-in duration-500">
+            <Mail className="h-10 w-10 text-primary" />
+          </div>
+
+          <div className="space-y-1">
+            <h1 className="font-display text-xl font-bold text-foreground">Check your inbox</h1>
+            <p className="text-sm text-muted-foreground">
+              We sent a verification link to{" "}
+              <strong className="text-foreground">{email}</strong>.
+              Click it to activate your account.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-muted/60 border border-border px-4 py-3 text-left space-y-1">
+            <p className="text-xs font-semibold text-foreground">Didn't get the email?</p>
+            <p className="text-xs text-muted-foreground">Check your spam folder, or click below to resend.</p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Button
+              variant="outline"
+              className="w-full rounded-full gap-2"
+              onClick={handleResendEmail}
+              disabled={loading}
+            >
+              <RotateCcw className="h-4 w-4" />
+              {loading ? "Resending…" : "Resend verification email"}
+            </Button>
+            <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Back to login
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -172,10 +248,68 @@ export default function SignupPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="rounded-lg" />
+
+              {/* Strength bar + checklist */}
+              {password.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(i => (
+                      <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i <= passwordStrength ? strengthColor : "bg-border"}`} />
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Strength: <span className={`font-semibold ${passwordStrength <= 2 ? "text-red-500" : passwordStrength === 3 ? "text-yellow-500" : "text-emerald-500"}`}>{strengthLabel}</span>
+                  </p>
+                  {/* Hide checklist when all rules pass (Very Strong) */}
+                  {passwordStrength < 5 && (
+                    <div className="grid grid-cols-1 gap-1 pt-1">
+                      {passwordChecks.map(rule => (
+                        <div key={rule.id} className="flex items-center gap-2">
+                          <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full transition-colors ${rule.passed ? "bg-emerald-500" : "bg-border"}`}>
+                            {rule.passed ? <Check className="h-2.5 w-2.5 text-white" /> : <X className="h-2.5 w-2.5 text-muted-foreground" />}
+                          </div>
+                          <span className={`text-xs transition-colors ${rule.passed ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>{rule.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input id="confirmPassword" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="rounded-lg" />
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className={`rounded-lg transition-colors ${
+                  confirmPassword.length > 0
+                    ? password === confirmPassword
+                      ? "border-emerald-500 focus-visible:ring-emerald-500"
+                      : "border-red-400 focus-visible:ring-red-400"
+                    : ""
+                }`}
+              />
+              {/* Real-time match indicator */}
+              {confirmPassword.length > 0 && (
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  {password === confirmPassword ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-500" />
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Passwords match</span>
+                    </>
+                  ) : (
+                    <>
+                      <X className="h-3.5 w-3.5 text-red-500" />
+                      <span className="text-xs text-red-500 font-medium">Passwords don't match</span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
             <Button type="submit" className="w-full rounded-full" disabled={loading}>
               {loading ? "Creating account..." : "Sign Up with Email"}

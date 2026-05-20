@@ -25,6 +25,7 @@ const FeaturesPage = lazy(() => import("@/pages/FeaturesPage"));
 const ContactPage = lazy(() => import("@/pages/ContactPage"));
 const PrivacyPolicyPage = lazy(() => import("@/pages/PrivacyPolicyPage"));
 const VerifyPasswordUpdatePage = lazy(() => import("@/pages/VerifyPasswordUpdatePage"));
+const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy load heavy/secondary pages
@@ -244,6 +245,11 @@ const App = () => (
               <Route path="/verify-password-update" element={
                 <Suspense fallback={<PageLoader />}>
                   <VerifyPasswordUpdatePage />
+                </Suspense>
+              } />
+              <Route path="/verify-email" element={
+                <Suspense fallback={<PageLoader />}>
+                  <VerifyEmailPage />
                 </Suspense>
               } />
               <Route path="*" element={
