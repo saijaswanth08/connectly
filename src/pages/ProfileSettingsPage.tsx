@@ -12,8 +12,10 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, ImagePlus, Trash2, Mail, Phone,
-  Linkedin, Instagram, Building2, Briefcase, X
+  Linkedin, Instagram, Building2, Briefcase, X, QrCode, Download
 } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
+import { QRProfileCard } from "@/components/QRProfileCard";
 
 type Profile = {
   id: string;
@@ -60,6 +62,12 @@ export default function ProfileSettingsPage() {
   const [uploading, setUploading] = useState(false);
   const initialized = useRef(false);
 
+  // QR Code States
+  const [qrValue, setQrValue] = useState("");
+  const [showQrModal, setShowQrModal] = useState(false);
+  const qrRef = useRef<HTMLDivElement>(null);
+  const modalQrRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (profile && !initialized.current) {
       const values = {
@@ -77,6 +85,16 @@ export default function ProfileSettingsPage() {
     }
   }, [profile]);
 
+  // Check if profile is complete (needs name, company, job title, phone)
+  const isProfileComplete = !!(
+    (profile?.company || form.company) &&
+    (profile?.job_title || form.job_title) &&
+    (profile?.phone || form.phone) &&
+    (profile?.name || form.name)
+  );
+
+
+
   const email = profile?.email || user?.email || "";
   const fullName = form.name || user?.email?.split("@")[0] || "";
   const initials = fullName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
@@ -85,6 +103,199 @@ export default function ProfileSettingsPage() {
 
   const handleCancel = () => {
     setForm(originalForm);
+  };
+
+  const handleGenerateQr = () => {
+    // 1. Verify all required professional details are filled
+    const requiredFields = [
+      { key: "name", label: "Full Name" },
+      { key: "company", label: "Company" },
+      { key: "job_title", label: "Job Title" },
+      { key: "phone", label: "Phone Number" },
+    ];
+
+    const missing = requiredFields.filter(f => !form[f.key as keyof typeof form]?.trim());
+
+    if (missing.length > 0) {
+      toast({
+        title: "Profile Incomplete",
+        description: `Please fill in your ${missing.map(m => m.label).join(", ")} to generate a professional QR code.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!user?.id) {
+      toast({ 
+        title: "Error", 
+        description: "Could not generate profile link. Please try again.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    const base = `${window.location.protocol}//${window.location.host}`;
+    const url = `${base}/profile/${user.id}`;
+    setQrValue(url);
+    setShowQrModal(true);
+    toast({
+      title: "QR Code Generated!",
+      description: "You can now download or share your professional profile."
+    });
+  };
+
+  const handleDownloadQr = async (ref: React.RefObject<HTMLDivElement>) => {
+    const qrCanvas = ref.current?.querySelector("canvas");
+    if (!qrCanvas) {
+      toast({ title: "Error", description: "QR Code not found", variant: "destructive" });
+      return;
+    }
+
+    try {
+      toast({ title: "Generating QR Card...", description: "Please wait while we prepare your high-quality card." });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 900;
+      canvas.height = 1100;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      // 1. Dark Gradient Background
+      const bgGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      bgGrad.addColorStop(0, "#1a1c2c");
+      bgGrad.addColorStop(0.5, "#4a192c");
+      bgGrad.addColorStop(1, "#0a0a0c");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Decorative blur spheres
+      const drawSphere = (x: number, y: number, r: number, color: string) => {
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, color);
+        grad.addColorStop(1, "transparent");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      };
+      drawSphere(200, 200, 400, "rgba(147, 51, 234, 0.2)");
+      drawSphere(800, 900, 400, "rgba(37, 99, 235, 0.2)");
+
+      // 2. Glassmorphism Card Effect
+      const cardX = 100;
+      const cardY = 100;
+      const cardW = 700;
+      const cardH = 900;
+      const radius = 50;
+
+      // Card Shadow
+      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      ctx.shadowBlur = 64;
+      ctx.shadowOffsetY = 32;
+      
+      // Card Background (Semi-transparent)
+      ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, radius);
+      ctx.fill();
+      
+      // Card Border
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 3. Branding (Top)
+      const drawLogo = (lx: number, ly: number, size: number) => {
+          const s = (v: number) => (v * size) / 40;
+          const grad = ctx.createLinearGradient(lx, ly, lx + size, ly + size);
+          grad.addColorStop(0, "#5B7CFA");
+          grad.addColorStop(1, "#8B5CF6");
+          ctx.fillStyle = grad;
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = s(3);
+          ctx.lineCap = "round";
+
+          // Nodes
+          const nodes = [[8, 10, 5], [32, 10, 5], [20, 32, 5.5]];
+          nodes.forEach(([nx, ny, nr]) => {
+              ctx.beginPath();
+              ctx.arc(lx + s(nx), ly + s(ny), s(nr), 0, Math.PI * 2);
+              ctx.fill();
+          });
+          // Connections
+          ctx.beginPath();
+          ctx.moveTo(lx + s(8), ly + s(14));
+          ctx.lineTo(lx + s(20), ly + s(28));
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(lx + s(32), ly + s(14));
+          ctx.lineTo(lx + s(20), ly + s(28));
+          ctx.stroke();
+      };
+      drawLogo(canvas.width / 2 - 35, 140, 70);
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "white";
+      ctx.font = "bold 36px Inter, system-ui, sans-serif";
+      ctx.fillText("Connectly", canvas.width / 2, 250);
+      
+      // 4. Name Section
+      ctx.fillStyle = "white";
+      ctx.font = "bold 44px Inter";
+      ctx.fillText(fullName, canvas.width / 2, 380);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.font = "500 22px Inter";
+      ctx.fillText("Connect with me on Connectly", canvas.width / 2, 425);
+
+      // 5. QR Code Section
+      const qrSize = 320;
+      const qrPadding = 30;
+      const qrX = (canvas.width - qrSize) / 2;
+      const qrY = 540;
+
+      // QR Container
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.roundRect(qrX - qrPadding, qrY - qrPadding, qrSize + qrPadding * 2, qrSize + qrPadding * 2, 32);
+      ctx.fill();
+
+      // Border for QR Container
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw the QR Code canvas content
+      ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+
+      // 6. Footer
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.font = "500 24px Inter";
+      ctx.fillText("Scan to connect", canvas.width / 2, 970);
+
+      const fileName = `${fullName.replace(/\s+/g, "_")}_ConnectlyQR.png`;
+      
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast({ title: "Export Failed", description: "Could not generate image blob.", variant: "destructive" });
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast({ title: "Success!", description: "Your QR card has been downloaded." });
+      }, "image/png");
+    } catch (err) {
+      console.error("QR Export failed:", err);
+      toast({ title: "Export Failed", description: "There was an error generating your image.", variant: "destructive" });
+    }
   };
 
   const handleSave = async (e?: React.FormEvent): Promise<void> => {
@@ -358,24 +569,72 @@ export default function ProfileSettingsPage() {
         </div>
       </div>
 
-      {/* Preferences */}
-      <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5">
-        <div>
-          <h2 className="font-semibold text-foreground">Preferences</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Manage your notifications and settings</p>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label className="text-sm font-medium text-foreground">Daily Networking Brief</Label>
-            <p className="text-xs text-muted-foreground">Receive a daily email summarizing your upcoming reminders.</p>
+      {/* Preferences or QR Code Card */}
+      {!isProfileComplete ? (
+        <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5">
+          <div>
+            <h2 className="font-semibold text-foreground">Preferences</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Manage your notifications and settings</p>
           </div>
-          <Switch 
-            checked={form.daily_digest_enabled} 
-            onCheckedChange={(checked) => update("daily_digest_enabled", checked)}
-          />
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium text-foreground">Daily Networking Brief</Label>
+              <p className="text-xs text-muted-foreground">Receive a daily email summarizing your upcoming reminders.</p>
+            </div>
+            <Switch 
+              checked={form.daily_digest_enabled} 
+              onCheckedChange={(checked) => update("daily_digest_enabled", checked)}
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-500">
+          <div>
+            <h2 className="font-semibold text-foreground flex items-center gap-2">
+              <QrCode className="h-4 w-4 text-indigo-500" />
+              Profile QR Code
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Generate a QR code containing your professional details for others to scan
+            </p>
+          </div>
+
+          {/* Always show the dashed placeholder box on the page card */}
+          <div className="flex items-center justify-center h-36 rounded-xl border border-dashed border-border/60 bg-muted/20">
+            <div className="text-center space-y-1">
+              <QrCode className="h-8 w-8 text-muted-foreground/40 mx-auto animate-pulse" />
+              <p className="text-xs text-muted-foreground">Click "Generate QR Code" to create your QR</p>
+            </div>
+          </div>
+
+          {/* Hidden QR container so download still works seamlessly */}
+          {qrValue && (
+            <div className="hidden" ref={qrRef}>
+              <QRCodeCanvas
+                value={qrValue}
+                size={180}
+                bgColor="#ffffff"
+                fgColor="#1e1b4b"
+                level="M"
+                includeMargin={false}
+              />
+            </div>
+          )}
+
+          {/* QR Buttons */}
+          <div className="flex items-center gap-3">
+            <Button onClick={handleGenerateQr} variant="outline" className="gap-2">
+              <QrCode className="h-4 w-4" />
+              Generate QR Code
+            </Button>
+            <Button onClick={() => handleDownloadQr(qrRef)} disabled={!qrValue} className="gap-2">
+              <Download className="h-4 w-4" />
+              Download QR Code
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex items-center gap-3 pt-1">
@@ -383,16 +642,76 @@ export default function ProfileSettingsPage() {
           <Save className="h-4 w-4" />
           {saving ? "Saving..." : "Save Changes"}
         </Button>
-        <Button
-          variant="outline"
-          className="gap-2"
-          onClick={handleCancel}
-          disabled={saving}
-        >
-          <X className="h-4 w-4" />
-          Cancel
-        </Button>
       </div>
+
+      {/* ── QR Code Modal ── */}
+      {showQrModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", backgroundColor: "rgba(0,0,0,0.6)" }}
+          onClick={() => setShowQrModal(false)}
+        >
+          <div
+            className="relative bg-card rounded-3xl shadow-2xl border border-border/60 p-8 flex flex-col items-center gap-6 max-w-sm w-full"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Title */}
+            <div className="text-center space-y-1">
+              <h2 className="text-lg font-bold text-foreground flex items-center justify-center gap-2">
+                <QrCode className="h-5 w-5 text-indigo-500" />
+                Your Profile QR Code
+              </h2>
+              <p className="text-xs text-muted-foreground">Scan to view {fullName}'s profile</p>
+            </div>
+
+            {/* Large QR */}
+            <div
+              ref={modalQrRef}
+              className="p-5 bg-white rounded-2xl border border-border/30 shadow-md"
+            >
+              <QRCodeCanvas
+                value={qrValue}
+                size={280}
+                bgColor="#ffffff"
+                fgColor="#1e1b4b"
+                level="M"
+                includeMargin={false}
+              />
+            </div>
+
+            <p className="text-xs text-muted-foreground/75 text-center font-medium tracking-wide italic px-2">
+              "Scan this QR code to view my digital business card & professional details"
+            </p>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <Button
+                onClick={() => handleDownloadQr(modalQrRef)}
+                className="flex-1 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white border-0"
+              >
+                <Download className="h-4 w-4" />
+                Download PNG
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 gap-2"
+                onClick={() => setShowQrModal(false)}
+              >
+                ← Back
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden QR Card Template for Export */}
+      {qrValue && (
+        <QRProfileCard
+          id="qr-profile-card-export"
+          qrValue={qrValue}
+          fullName={fullName}
+        />
+      )}
     </div>
   );
 }

@@ -49,7 +49,7 @@ export default function MyProfilePage() {
     if (profile) {
       setForm({
         name: profile.name || "",
-        email: profile.email || "",
+        email: profile.email || user?.email || "",
         company: profile.company || "",
         job_title: profile.job_title || "",
         phone: profile.phone || "",
@@ -57,8 +57,13 @@ export default function MyProfilePage() {
         instagram: profile.instagram || "",
         avatar_url: profile.avatar_url || "",
       });
+    } else if (user?.email) {
+      setForm(prev => ({
+        ...prev,
+        email: user.email || "",
+      }));
     }
-  }, [profile]);
+  }, [profile, user]);
 
   const fullName = form.name || user?.email?.split("@")[0] || "User";
 
@@ -514,8 +519,12 @@ export default function MyProfilePage() {
             <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
               <Mail className="h-3 w-3" /> Email Address
             </Label>
-            <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-              placeholder="you@example.com" className="rounded-lg h-9" />
+            <Input
+              type="email"
+              value={form.email}
+              disabled
+              className="rounded-lg h-9 bg-muted/50 text-muted-foreground cursor-not-allowed"
+            />
           </div>
 
           {/* Company */}
@@ -585,29 +594,25 @@ export default function MyProfilePage() {
           </p>
         </div>
 
-        {/* QR Display */}
-        {qrValue ? (
-          <div className="flex justify-center">
-            <div
-              ref={qrRef}
-              className="p-4 bg-white rounded-xl border border-border/40 shadow-sm inline-block"
-            >
-              <QRCodeCanvas
-                value={qrValue}
-                size={180}
-                bgColor="#ffffff"
-                fgColor="#1e1b4b"
-                level="M"
-                includeMargin={false}
-              />
-            </div>
+        {/* Always show the dashed placeholder box on the page card */}
+        <div className="flex items-center justify-center h-36 rounded-xl border border-dashed border-border/60 bg-muted/20">
+          <div className="text-center space-y-1">
+            <QrCode className="h-8 w-8 text-muted-foreground/40 mx-auto" />
+            <p className="text-xs text-muted-foreground">Click "Generate QR Code" to create your QR</p>
           </div>
-        ) : (
-          <div className="flex items-center justify-center h-36 rounded-xl border border-dashed border-border/60 bg-muted/20">
-            <div className="text-center space-y-1">
-              <QrCode className="h-8 w-8 text-muted-foreground/40 mx-auto" />
-              <p className="text-xs text-muted-foreground">Click "Generate QR Code" to create your QR</p>
-            </div>
+        </div>
+
+        {/* Hidden QR container so download still works seamlessly */}
+        {qrValue && (
+          <div className="hidden" ref={qrRef}>
+            <QRCodeCanvas
+              value={qrValue}
+              size={180}
+              bgColor="#ffffff"
+              fgColor="#1e1b4b"
+              level="M"
+              includeMargin={false}
+            />
           </div>
         )}
 
@@ -659,9 +664,8 @@ export default function MyProfilePage() {
               />
             </div>
 
-            {/* URL label */}
-            <p className="text-[11px] text-muted-foreground text-center truncate max-w-full px-2">
-              {qrValue}
+            <p className="text-xs text-muted-foreground/75 text-center font-medium tracking-wide italic px-2">
+              "Scan this QR code to view my digital business card & professional details"
             </p>
 
             {/* Actions */}
