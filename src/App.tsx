@@ -25,6 +25,7 @@ const FeaturesPage = lazy(() => import("@/pages/FeaturesPage"));
 const ContactPage = lazy(() => import("@/pages/ContactPage"));
 const PrivacyPolicyPage = lazy(() => import("@/pages/PrivacyPolicyPage"));
 const VerifyPasswordUpdatePage = lazy(() => import("@/pages/VerifyPasswordUpdatePage"));
+const CompleteProfilePage = lazy(() => import("@/pages/CompleteProfilePage"));
 const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -148,6 +149,13 @@ const App = () => (
                 </Suspense>
               } />
               
+              {/* Complete Profile (Google OAuth onboarding - needs auth but no sidebar) */}
+              <Route path="/complete-profile" element={
+                <Suspense fallback={<PageLoader />}>
+                  <CompleteProfilePage />
+                </Suspense>
+              } />
+
               {/* Protected Routes - Heavy pages safely lazy loaded with per-route Suspense */}
               <Route element={<ProtectedAppLayout />}>
                 <Route path="/dashboard" element={

@@ -83,7 +83,7 @@ export default function ContactDetailView() {
         <Avatar key={contact.id} className="h-14 w-14 border-2 border-background shadow-md shrink-0">
           {contact.avatar_url && <AvatarImage src={contact.avatar_url} className="object-cover" />}
           <AvatarFallback className="bg-primary/5 text-primary text-lg font-bold">
-            {contact.name.charAt(0).toUpperCase()}
+            {(contact.name || "U").charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
 

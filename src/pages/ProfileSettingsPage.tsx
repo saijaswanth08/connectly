@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/lib/supabase";
@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, ImagePlus, Trash2, Mail, Phone,
-  Linkedin, Instagram, Building2, Briefcase, X, QrCode, Download
+  Linkedin, Instagram, Building2, Briefcase, X, QrCode, Download, Lock
 } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import { QRProfileCard } from "@/components/QRProfileCard";
@@ -60,6 +60,7 @@ export default function ProfileSettingsPage() {
   const [originalForm, setOriginalForm] = useState({ ...form });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
   const initialized = useRef(false);
 
   // QR Code States
@@ -82,16 +83,30 @@ export default function ProfileSettingsPage() {
       setForm(values);
       setOriginalForm(values);
       initialized.current = true;
+
+      // If the profile already has all required fields, consider it "saved"
+      const alreadyComplete = !!(profile.name && profile.company && profile.job_title && profile.phone);
+      if (alreadyComplete) {
+        setProfileSaved(true);
+      }
     }
   }, [profile]);
 
-  // Check if profile is complete (needs name, company, job title, phone)
+  // Check if profile is complete based on saved values (originalForm)
   const isProfileComplete = !!(
-    (profile?.company || form.company) &&
-    (profile?.job_title || form.job_title) &&
-    (profile?.phone || form.phone) &&
-    (profile?.name || form.name)
+    originalForm.company &&
+    originalForm.job_title &&
+    originalForm.phone &&
+    originalForm.name
   );
+
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    return JSON.stringify(form) !== JSON.stringify(originalForm);
+  }, [form, originalForm]);
+
+  // QR section is unlocked only when profile is saved and no unsaved changes
+  const isQrUnlocked = profileSaved && isProfileComplete && !hasUnsavedChanges;
 
 
 
@@ -320,6 +335,7 @@ export default function ProfileSettingsPage() {
       });
 
       setOriginalForm(form);
+      setProfileSaved(true);
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast({ title: "Profile updated successfully" });
     } catch (err) {
@@ -589,7 +605,32 @@ export default function ProfileSettingsPage() {
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-500">
+        <div className="rounded-2xl bg-card border border-border/60 p-6 shadow-sm space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-500 relative overflow-hidden">
+          {/* Lock Overlay – shown when QR section is not unlocked */}
+          {!isQrUnlocked && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl" style={{ backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)", backgroundColor: "rgba(0,0,0,0.35)" }}>
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-background/90 shadow-lg border border-border/60">
+                <Lock className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium text-white text-center px-4">
+                {hasUnsavedChanges
+                  ? "Save your changes to unlock the QR Code"
+                  : "Fill in and save your profile details to unlock"}
+              </p>
+              {hasUnsavedChanges && (
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="gap-2 bg-white text-black hover:bg-white/90"
+                >
+                  <Save className="h-3.5 w-3.5" />
+                  {saving ? "Saving..." : "Save Now"}
+                </Button>
+              )}
+            </div>
+          )}
+
           <div>
             <h2 className="font-semibold text-foreground flex items-center gap-2">
               <QrCode className="h-4 w-4 text-indigo-500" />
@@ -624,11 +665,11 @@ export default function ProfileSettingsPage() {
 
           {/* QR Buttons */}
           <div className="flex items-center gap-3">
-            <Button onClick={handleGenerateQr} variant="outline" className="gap-2">
+            <Button onClick={handleGenerateQr} variant="outline" className="gap-2" disabled={!isQrUnlocked}>
               <QrCode className="h-4 w-4" />
               Generate QR Code
             </Button>
-            <Button onClick={() => handleDownloadQr(qrRef)} disabled={!qrValue} className="gap-2">
+            <Button onClick={() => handleDownloadQr(qrRef)} disabled={!qrValue || !isQrUnlocked} className="gap-2">
               <Download className="h-4 w-4" />
               Download QR Code
             </Button>

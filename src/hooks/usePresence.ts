@@ -27,7 +27,6 @@ export function usePresence() {
     const syncState = () => {
       const state = channel.presenceState();
       const onlineIds = new Set<string>(Object.keys(state));
-      console.log("Presence sync. Online users:", onlineIds.size);
       setOnlineUsers(onlineIds);
     };
 
@@ -35,7 +34,6 @@ export function usePresence() {
       .on('presence', { event: 'sync' }, syncState)
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          console.log("Presence channel subscribed");
           await channel.track({
             user_id: user.id,
             online_at: new Date().toISOString(),
@@ -45,7 +43,6 @@ export function usePresence() {
       });
 
     return () => {
-      console.log("Cleaning up presence channel");
       supabase.removeChannel(channel);
     };
   }, [user?.id]);

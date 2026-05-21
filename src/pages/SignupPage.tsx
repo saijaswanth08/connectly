@@ -61,16 +61,53 @@ export default function SignupPage() {
 
       if (error || emailExists) {
         setLoading(false);
-        let errorMsg = error?.message || "An account with this email already exists.";
-        
+
         if (error?.message === "Failed to fetch") {
-          errorMsg = "Network error: Could not reach Supabase. Check your connection.";
+          toast({
+            title: "Network error",
+            description: "Could not reach the server. Check your connection.",
+            variant: "destructive",
+          });
+          return;
         }
-        
-        toast({ 
-          title: "Signup failed", 
-          description: errorMsg,
-          variant: "destructive" 
+
+        // If the email already exists, try signing them in automatically
+        if (emailExists) {
+          try {
+            const { error: loginError } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+
+            if (!loginError) {
+              // Login succeeded — redirect to dashboard with a friendly message
+              sessionStorage.setItem("show_welcome_back", "true");
+              toast({
+                title: "Welcome back! 👋",
+                description: "An account with this email already exists. We've signed you in.",
+              });
+              navigate("/dashboard", { replace: true });
+              return;
+            }
+          } catch {
+            // Login attempt failed silently — fall through to redirect
+          }
+
+          // Password didn't match — redirect to login page with email pre-filled
+          toast({
+            title: "Account already exists",
+            description: "An account with this email already exists. Please sign in instead.",
+            variant: "destructive",
+          });
+          navigate(`/login?email=${encodeURIComponent(email)}`, { replace: true });
+          return;
+        }
+
+        // Generic error
+        toast({
+          title: "Signup failed",
+          description: error?.message || "Something went wrong. Please try again.",
+          variant: "destructive",
         });
       } else if (data?.session) {
         toast({ title: "Account created!", description: "Welcome to Connectly." });
@@ -105,10 +142,12 @@ export default function SignupPage() {
       .filter((k) => k.startsWith("sb-"))
       .forEach((k) => sessionStorage.removeItem(k));
 
+    sessionStorage.setItem("oauth_flow_source", "signup");
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/complete-profile`,
         queryParams: {
           prompt: "select_account",
         },

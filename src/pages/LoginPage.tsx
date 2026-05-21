@@ -9,15 +9,19 @@ import { ArrowLeft } from "lucide-react";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
 
+  const searchParams = new URLSearchParams(location.search);
+
+  // Pre-fill email if redirected from signup with ?email= param
+  const [email, setEmail] = useState(searchParams.get("email") || "");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
   // Redirect destination — respects ?redirect= param set by other pages
-  const redirectTo = new URLSearchParams(location.search).get("redirect") || "/dashboard";
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,10 +85,12 @@ export default function LoginPage() {
       .filter((k) => k.startsWith("sb-"))
       .forEach((k) => sessionStorage.removeItem(k));
 
+    sessionStorage.setItem("oauth_flow_source", "login");
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/complete-profile`,
         queryParams: {
           prompt: "select_account",
         },

@@ -1,13 +1,25 @@
 import { useProfile } from "@/hooks/useProfile";
 import { AlertCircle, ArrowRight, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function IncompleteProfileBanner() {
   const { data: profile, isLoading } = useProfile();
   const [dismissed, setDismissed] = useState(false);
+  const [delayActive, setDelayActive] = useState(() => {
+    return sessionStorage.getItem("show_welcome_back") === "true";
+  });
 
-  if (isLoading || !profile || dismissed) return null;
+  useEffect(() => {
+    if (delayActive) {
+      const timer = setTimeout(() => {
+        setDelayActive(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [delayActive]);
+
+  if (isLoading || !profile || dismissed || delayActive) return null;
 
   // Check if important details are missing
   const isProfileIncomplete = !profile.company || !profile.job_title || !profile.phone;

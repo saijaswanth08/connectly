@@ -16,15 +16,35 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
+const getStoredSession = (): Session | null => {
+  try {
+    const key = Object.keys(localStorage).find(
+      (k) => k.startsWith("sb-") && k.endsWith("-auth-token")
+    );
+    if (!key) return null;
+    const data = localStorage.getItem(key);
+    if (!data) return null;
+    const parsed = JSON.parse(data);
+    if (parsed && parsed.expires_at) {
+      const isExpired = parsed.expires_at * 1000 < Date.now();
+      if (isExpired) return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(() => getStoredSession());
+  const [user, setUser] = useState<User | null>(() => getStoredSession()?.user || null);
+  const [loading, setLoading] = useState(() => !getStoredSession());
 
   useEffect(() => {
     let mounted = true;
 
     // 1. Initial session check from localStorage — fast, no network needed.
+    //    Sets loading=false immediately so the UI doesn't block on the spinner.
     const initSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -35,9 +55,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setSession(session);
             setUser(session.user);
           }
+          // Resolve loading immediately from cached session data
+          // so ProtectedRoute doesn't block on the auth spinner.
+          setLoading(false);
         }
       } catch (error) {
         console.error("[useAuth] getSession exception:", error instanceof Error ? error.message : String(error));
+        if (mounted) setLoading(false);
       }
     };
 
@@ -108,9 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("[signOut] Supabase signOut error (non-blocking):", err);
     });
 
-    // Step 4: Hard redirect to login. Using href to force a full page reload
+    // Step 4: Hard redirect to landing page. Using href to force a full page reload
     // so all React state, query cache, and Supabase client memory is cleared.
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   return (

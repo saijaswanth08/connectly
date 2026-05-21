@@ -170,7 +170,7 @@ export default function MessagesPage() {
       if (convA && convB) return new Date(convB.last_message_at).getTime() - new Date(convA.last_message_at).getTime();
       if (convA) return -1;
       if (convB) return 1;
-      return a.name.localeCompare(b.name);
+      return (a.name || "").localeCompare(b.name || "");
     });
   }, [filteredContacts, convByContact]);
 
@@ -544,7 +544,7 @@ export default function MessagesPage() {
                       <div className="relative shrink-0">
                         <Avatar className="h-12 w-12 border-2 border-background shadow-sm group-hover:scale-105 transition-transform duration-300">
                           {contact.avatar_url && <AvatarImage src={contact.avatar_url} className="object-cover" />}
-                          <AvatarFallback className="bg-primary/10 text-primary font-bold">{contact.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback className="bg-primary/10 text-primary font-bold">{(contact.name || "U").charAt(0)}</AvatarFallback>
                         </Avatar>
                         {isOnline && (
                           <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full shadow-sm ring-2 ring-green-500/10" />
@@ -943,7 +943,7 @@ export default function MessagesPage() {
             <ScrollArea className="h-80">
               <div className="p-3 space-y-1">
                 {contacts
-                  .filter((c) => c.name.toLowerCase().includes(pickerSearch.toLowerCase()))
+                  .filter((c) => (c.name || "").toLowerCase().includes(pickerSearch.toLowerCase()))
                   .map((contact) => (
                     <button
                       key={contact.id}
@@ -952,7 +952,7 @@ export default function MessagesPage() {
                     >
                       <Avatar className="h-12 w-12 border-2 border-background shadow-sm group-hover:scale-105 transition-transform duration-300">
                         {contact.avatar_url && <AvatarImage src={contact.avatar_url} className="object-cover" />}
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold">{contact.name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold">{(contact.name || "U").charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">{contact.name}</p>
@@ -960,7 +960,7 @@ export default function MessagesPage() {
                       </div>
                     </button>
                   ))}
-                {contacts.filter((c) => c.name.toLowerCase().includes(pickerSearch.toLowerCase())).length === 0 && (
+                {contacts.filter((c) => (c.name || "").toLowerCase().includes(pickerSearch.toLowerCase())).length === 0 && (
                   <div className="py-20 text-center space-y-2">
                     <Users className="h-10 w-10 text-muted-foreground/20 mx-auto" />
                     <p className="text-sm text-muted-foreground">No contacts found</p>

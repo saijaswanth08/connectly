@@ -6,10 +6,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [timedOut, setTimedOut] = useState(false);
 
-  // Safety: if auth hasn't resolved in 5 seconds, stop blocking the render
+  // Safety: if auth hasn't resolved in 2 seconds, stop blocking the render
   useEffect(() => {
     if (!loading) return;
-    const t = setTimeout(() => setTimedOut(true), 5000);
+    const t = setTimeout(() => setTimedOut(true), 2000);
     return () => clearTimeout(t);
   }, [loading]);
 

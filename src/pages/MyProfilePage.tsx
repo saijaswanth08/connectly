@@ -488,7 +488,7 @@ export default function MyProfilePage() {
               className="gap-1.5 text-xs ml-auto"
               onClick={() => {
                 supabase.auth.signOut().finally(() => {
-                  window.location.replace("/login");
+                  window.location.replace("/");
                 });
               }}
             >

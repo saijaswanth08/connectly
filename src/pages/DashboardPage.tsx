@@ -28,9 +28,9 @@ function ContactDetailView({
   contact: DbContact;
   onBack: () => void;
 }) {
-  const initials = contact.name
+  const initials = (contact.name || "")
     .split(" ")
-    .map((n) => n[0])
+    .map((n) => n[0] || "")
     .join("")
     .slice(0, 2)
     .toUpperCase();
@@ -198,9 +198,9 @@ function ClickableContactCard({
   index?: number;
   onSelect: (c: DbContact) => void;
 }) {
-  const initials = contact.name
+  const initials = (contact.name || "")
     .split(" ")
-    .map((n) => n[0])
+    .map((n) => n[0] || "")
     .join("")
     .slice(0, 2)
     .toUpperCase();
@@ -269,6 +269,24 @@ export default function DashboardPage() {
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
   const { data: profile, isLoading: isLoadingProfile } = useProfile();
   const [dismissedBanner, setDismissedBanner] = useState(false);
+  const [welcomeBackDelayActive, setWelcomeBackDelayActive] = useState(() => {
+    return sessionStorage.getItem("show_welcome_back") === "true";
+  });
+
+  useEffect(() => {
+    if (welcomeBackDelayActive) {
+      toast({
+        title: "Welcome back! 👋",
+        description: "Successfully signed in to your account.",
+      });
+
+      const timer = setTimeout(() => {
+        setWelcomeBackDelayActive(false);
+        sessionStorage.removeItem("show_welcome_back");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [welcomeBackDelayActive, toast]);
 
   const SNOOZE_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -347,10 +365,15 @@ export default function DashboardPage() {
   const vipCount = contacts.filter((c) => c.priority === "vip").length;
   const pendingReminders = reminders.filter((r) => !r.completed).length;
   const recentContacts = [...contacts]
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
     .slice(0, 4);
 
-  const showAvatarPrompt = !isLoadingProfile && profile && !profile.avatar_url && !dismissedBanner;
+  const showAvatarPrompt =
+    !isLoadingProfile &&
+    profile &&
+    !profile.avatar_url &&
+    !dismissedBanner &&
+    !welcomeBackDelayActive;
 
   function handleTabClick(tab: ActiveTab) {
     setSelectedContact(null);
@@ -551,7 +574,7 @@ export default function DashboardPage() {
                 All Contacts ({contacts.length})
               </h2>
               <ContactGrid
-                list={[...contacts].sort((a, b) => a.name.localeCompare(b.name))}
+                list={[...contacts].sort((a, b) => (a.name || "").localeCompare(b.name || ""))}
               />
             </>
           )}
@@ -564,7 +587,7 @@ export default function DashboardPage() {
               <ContactGrid
                 list={contacts
                   .filter((c) => c.priority === "vip")
-                  .sort((a, b) => a.name.localeCompare(b.name))}
+                  .sort((a, b) => (a.name || "").localeCompare(b.name || ""))}
               />
             </>
           )}
