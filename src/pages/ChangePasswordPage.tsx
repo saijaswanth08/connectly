@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, ShieldCheck, Lock } from "lucide-react";
+import { ArrowLeft, Mail, ShieldCheck, Lock, Check, X } from "lucide-react";
 import { z } from "zod";
+
+// Password rules — same as SignupPage
+const PASSWORD_RULES = [
+  { id: "length",  label: "At least 8 characters",   test: (p: string) => p.length >= 8 },
+  { id: "lower",   label: "One lowercase letter",     test: (p: string) => /[a-z]/.test(p) },
+  { id: "upper",   label: "One uppercase letter",     test: (p: string) => /[A-Z]/.test(p) },
+  { id: "number",  label: "One number",               test: (p: string) => /[0-9]/.test(p) },
+  { id: "special", label: "One special character",    test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
+];
 
 const passwordSchema = z
   .string()
@@ -30,6 +39,15 @@ export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
+  // Password strength
+  const passwordChecks = useMemo(
+    () => PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(newPassword) })),
+    [newPassword]
+  );
+  const passwordStrength = passwordChecks.filter((r) => r.passed).length;
+  const strengthLabel = ["", "Very Weak", "Weak", "Fair", "Strong", "Very Strong"][passwordStrength];
+  const strengthColor = ["bg-border", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-400", "bg-emerald-500"][passwordStrength];
 
   const validatePassword = (value: string) => {
     const result = passwordSchema.safeParse(value);
@@ -117,6 +135,63 @@ export default function ChangePasswordPage() {
                     required
                     className="rounded-lg"
                   />
+                  {/* Strength bar + checklist — appears as user types */}
+                  {newPassword.length > 0 && (
+                    <div className="space-y-2 pt-1">
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <div
+                            key={i}
+                            className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                              i <= passwordStrength ? strengthColor : "bg-border"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Strength:{" "}
+                        <span
+                          className={`font-semibold ${
+                            passwordStrength <= 2
+                              ? "text-red-500"
+                              : passwordStrength === 3
+                              ? "text-yellow-500"
+                              : "text-emerald-500"
+                          }`}
+                        >
+                          {strengthLabel}
+                        </span>
+                      </p>
+                      {passwordStrength < 5 && (
+                        <div className="grid grid-cols-1 gap-1 pt-1">
+                          {passwordChecks.map((rule) => (
+                            <div key={rule.id} className="flex items-center gap-2">
+                              <div
+                                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full transition-colors ${
+                                  rule.passed ? "bg-emerald-500" : "bg-border"
+                                }`}
+                              >
+                                {rule.passed ? (
+                                  <Check className="h-2.5 w-2.5 text-white" />
+                                ) : (
+                                  <X className="h-2.5 w-2.5 text-muted-foreground" />
+                                )}
+                              </div>
+                              <span
+                                className={`text-xs transition-colors ${
+                                  rule.passed
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                {rule.label}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {passwordErrors.length > 0 && (
                     <ul className="text-xs text-destructive space-y-0.5">
                       {passwordErrors.map((err) => (
@@ -135,8 +210,29 @@ export default function ChangePasswordPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="rounded-lg"
+                    className={`rounded-lg transition-colors ${
+                      confirmPassword.length > 0
+                        ? newPassword === confirmPassword
+                          ? "border-emerald-500 focus-visible:ring-emerald-500"
+                          : "border-red-400 focus-visible:ring-red-400"
+                        : ""
+                    }`}
                   />
+                  {confirmPassword.length > 0 && (
+                    <div className="flex items-center gap-1.5 pt-0.5">
+                      {newPassword === confirmPassword ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-emerald-500" />
+                          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Passwords match</span>
+                        </>
+                      ) : (
+                        <>
+                          <X className="h-3.5 w-3.5 text-red-500" />
+                          <span className="text-xs text-red-500 font-medium">Passwords don't match</span>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <Button type="submit" disabled={loading} className="w-full rounded-full">
