@@ -58,6 +58,16 @@ export default function AboutPage() {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="flex justify-center"
           >
+            <div className="relative group">
+              {/* Decorative gradient glowing backdrop */}
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary to-indigo-500 opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-500" />
+              
+              <img
+                src={illustrationNetworking}
+                alt="Connectly Networking CRM"
+                className="relative rounded-2xl border border-border/40 bg-card p-2 shadow-2xl w-full max-w-[480px] h-auto object-contain hover:scale-[1.02] transition-transform duration-500"
+              />
+            </div>
           </motion.div>
         </div>
       </section>
