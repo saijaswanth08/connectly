@@ -141,6 +141,8 @@ export default function NetworkMapPage() {
   const panningRef = useRef(false);
   const highlightedIdsRef = useRef<Set<string>>(new Set());
   const hasDrawnSettledRef = useRef(false);
+  const dimensionsRef = useRef({ width: 0, height: 0 });
+  const hasPositionedRef = useRef(false);
 
   useEffect(() => { 
     zoomRef.current = zoom; 
@@ -184,10 +186,8 @@ export default function NetworkMapPage() {
 
   // Initialize nodes
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const w = canvas.width;
-    const h = canvas.height;
+    const w = dimensionsRef.current.width || 800;
+    const h = dimensionsRef.current.height || 600;
 
     nodesRef.current = filteredContacts.map((c, i) => {
       const existing = nodesRef.current.find((n) => n.id === c.id);
@@ -214,7 +214,14 @@ export default function NetworkMapPage() {
       type: conn.relationship_type,
     }));
     
+    if (dimensionsRef.current.width > 0 && filteredContacts.length > 0) {
+      hasPositionedRef.current = true;
+    } else {
+      hasPositionedRef.current = false;
+    }
+    
     energyRef.current = 100; // Wake up simulation on change
+    hasDrawnSettledRef.current = false;
   }, [filteredContacts, connections]);
 
   // Search highlight
@@ -246,8 +253,9 @@ export default function NetworkMapPage() {
       for (let entry of entries) {
         const { width, height } = entry.contentRect;
         if (width > 0 && height > 0) {
-          const oldW = canvas.width / window.devicePixelRatio || 300;
-          const oldH = canvas.height / window.devicePixelRatio || 150;
+          const oldW = dimensionsRef.current.width;
+          
+          dimensionsRef.current = { width, height };
           
           canvas.width = width * window.devicePixelRatio;
           canvas.height = height * window.devicePixelRatio;
@@ -260,8 +268,9 @@ export default function NetworkMapPage() {
             ctx2d.scale(window.devicePixelRatio, window.devicePixelRatio);
           }
           
-          // Scale nodes layout to match newly observed canvas viewport dimensions
-          if (oldW <= 300 && width > 300) {
+          const shouldReposition = !hasPositionedRef.current || (oldW <= 300 && width > 300);
+          
+          if (shouldReposition && nodesRef.current.length > 0) {
             nodesRef.current.forEach((node, i) => {
               const angle = (2 * Math.PI * i) / nodesRef.current.length;
               const radius = Math.min(width, height) * 0.3;
@@ -272,10 +281,11 @@ export default function NetworkMapPage() {
             });
             // Pre-run simulation so nodes are immediately placed nicely
             runSimulationSteps(nodesRef.current, edgesRef.current, width, height, 150);
-            hasDrawnSettledRef.current = false;
+            hasPositionedRef.current = true;
           }
           
           energyRef.current = 100; // Wake up simulation
+          hasDrawnSettledRef.current = false;
         }
       }
     });
@@ -285,8 +295,8 @@ export default function NetworkMapPage() {
     const tick = () => {
       const nodes = nodesRef.current;
       const edges = edgesRef.current;
-      const w = canvas.width / window.devicePixelRatio;
-      const h = canvas.height / window.devicePixelRatio;
+      const w = dimensionsRef.current.width || 800;
+      const h = dimensionsRef.current.height || 600;
 
       const isInteracting = draggingRef.current !== null || panningRef.current;
       const isSimulating = energyRef.current > 0.01;
@@ -343,7 +353,7 @@ export default function NetworkMapPage() {
           node.x = Math.max(30, Math.min(w - 30, node.x));
           node.y = Math.max(30, Math.min(h - 30, node.y));
         }
-        energyRef.current = currentEnergy / nodes.length;
+        energyRef.current = currentEnergy / (nodes.length || 1);
       }
 
       // Check if we can skip drawing to save CPU/GPU resources
