@@ -492,10 +492,21 @@ export default function NetworkMapPage() {
     setPanning(false);
   }, [dragging]);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    setZoom((z) => Math.max(0.3, Math.min(3, z - e.deltaY * 0.001)));
-  }, []);
+  // Non-passive wheel event listener to allow preventDefault for zooming
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleWheelEvent = (e: WheelEvent) => {
+      e.preventDefault();
+      setZoom((z) => Math.max(0.3, Math.min(3, z - e.deltaY * 0.001)));
+    };
+
+    canvas.addEventListener("wheel", handleWheelEvent, { passive: false });
+    return () => {
+      canvas.removeEventListener("wheel", handleWheelEvent);
+    };
+  }, [isLoading, isError, contacts.length]);
 
   async function handleAddConnection() {
     if (!user || !connContactA || !connContactB || connContactA === connContactB) return;
@@ -596,7 +607,6 @@ export default function NetworkMapPage() {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            onWheel={handleWheel}
           />
         </div>
       )}
