@@ -27,46 +27,59 @@ export default function ResetPasswordPage() {
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    let isReady = false;
+    let settled = false;
 
-    // Listen for the PASSWORD_RECOVERY event which fires after Supabase
-    // processes the recovery token from the URL hash and establishes a session.
+    const markReady = () => {
+      if (!settled) {
+        settled = true;
+        setStatus("ready");
+      }
+    };
+
+    const markInvalid = () => {
+      if (!settled) {
+        settled = true;
+        setStatus("invalid");
+      }
+    };
+
+    // 1. Listen for PASSWORD_RECOVERY event (fires when Supabase processes the token)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
-        isReady = true;
-        setStatus("ready");
+        markReady();
       }
     });
 
-    // Also check if we already have a session (e.g. page reload after token was processed)
-    const checkSession = async () => {
-      if (isReady) return;
+    // 2. Check URL for recovery tokens — Supabase uses two possible formats:
+    //    a) Hash format (old): #access_token=...&type=recovery
+    //    b) PKCE code format (new): ?code=...
+    const hash = window.location.hash;
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasHashToken = hash.includes("type=recovery") || hash.includes("access_token");
+    const hasCodeParam = searchParams.has("code");
 
-      const { data: { session } } = await supabase.auth.getSession();
-      const hash = window.location.hash;
-      if (session && (hash.includes("type=recovery") || hash.includes("access_token"))) {
-        isReady = true;
-        setStatus("ready");
-      } else if (!hash.includes("type=recovery") && !hash.includes("access_token")) {
-        // No recovery token at all — invalid link
-        setStatus("invalid");
-      }
-      // If hash has token but no session yet, keep loading — onAuthStateChange will fire
-    };
+    if (!hasHashToken && !hasCodeParam) {
+      // No token at all in the URL — this is a direct visit or stale link
+      markInvalid();
+      subscription.unsubscribe();
+      return;
+    }
 
-    // Small delay to let Supabase client process the hash
-    const timeout = setTimeout(checkSession, 1000);
-
-    // Fallback: if nothing happens after 5s, mark invalid
+    // 3. If there's a code/token, wait for Supabase to exchange it
+    //    and fire onAuthStateChange. Give it 8 seconds.
     const fallback = setTimeout(() => {
-      if (!isReady) {
-        setStatus("invalid");
-      }
-    }, 5000);
+      // If onAuthStateChange didn't fire, try checking session directly
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          markReady();
+        } else {
+          markInvalid();
+        }
+      });
+    }, 8000);
 
     return () => {
       subscription.unsubscribe();
-      clearTimeout(timeout);
       clearTimeout(fallback);
     };
   }, []);
