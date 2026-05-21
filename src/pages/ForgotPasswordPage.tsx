@@ -20,14 +20,45 @@ export default function ForgotPasswordPage() {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setSent(true);
+
+    try {
+      // First, check if the email exists in our profiles table
+      const { data: profile, error: lookupError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", email.trim().toLowerCase())
+        .maybeSingle();
+
+      if (lookupError) {
+        toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      if (!profile) {
+        toast({
+          title: "No account found",
+          description: "There's no account registered with this email address. Please check the email or create a new account.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Email exists — send the reset link
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        setSent(true);
+      }
+    } catch {
+      toast({ title: "Error", description: "An unexpected error occurred. Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
