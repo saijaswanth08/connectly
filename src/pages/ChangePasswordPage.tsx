@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, ShieldCheck, Lock, Check, X } from "lucide-react";
+import { ArrowLeft, Lock, Check, X, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 
 // Password rules — same as SignupPage
@@ -27,18 +27,21 @@ const passwordSchema = z
   .regex(/[0-9]/, "Must contain at least one number")
   .regex(/[^a-zA-Z0-9]/, "Must contain at least one special character (e.g. !@#$%)");
 
-type Step = "form" | "sent";
-
 export default function ChangePasswordPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const email = user?.email || "";
+  const { toast } = useToast();
 
-  const [step, setStep] = useState<Step>("form");
-  const [loading, setLoading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  // Show/hide toggles
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Password strength
   const passwordChecks = useMemo(
@@ -49,42 +52,71 @@ export default function ChangePasswordPage() {
   const strengthLabel = ["", "Very Weak", "Weak", "Fair", "Strong", "Very Strong"][passwordStrength];
   const strengthColor = ["bg-border", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-400", "bg-emerald-500"][passwordStrength];
 
-  const validatePassword = (value: string) => {
-    const result = passwordSchema.safeParse(value);
-    if (!result.success) {
-      setPasswordErrors(result.error.errors.map((e) => e.message));
-      return false;
-    }
-    setPasswordErrors([]);
-    return true;
-  };
-
-  const handleRequestChange = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validatePassword(newPassword)) return;
-
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match.");
+    // Validate new password
+    const result = passwordSchema.safeParse(newPassword);
+    if (!result.success) {
+      toast({
+        title: "Password too weak",
+        description: result.error.errors[0].message,
+        variant: "destructive",
+      });
       return;
     }
 
-    if (!email) {
-      toast.error("No email address found for your account.");
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Passwords don't match", variant: "destructive" });
+      return;
+    }
+
+    if (!user?.email) {
+      toast({ title: "No email found", variant: "destructive" });
       return;
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setLoading(false);
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      setStep("sent");
-      toast.success("Verification email sent! Check your inbox.");
+    try {
+      // Step 1: Re-authenticate with current password to verify identity
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        toast({
+          title: "Incorrect current password",
+          description: "Please check your current password and try again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Update the password directly (user is authenticated)
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        toast({
+          title: "Failed to update password",
+          description: updateError.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Success!
+      setDone(true);
+      toast({ title: "Password updated! 🎉", description: "Your password has been changed successfully." });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+      setLoading(false);
     }
   };
 
@@ -98,7 +130,35 @@ export default function ChangePasswordPage() {
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
 
-        {step === "form" && (
+        {/* Success State */}
+        {done ? (
+          <Card className="rounded-2xl shadow-sm border-border">
+            <CardHeader className="text-center space-y-3 pb-4">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10">
+                <CheckCircle2 className="h-7 w-7 text-emerald-500" />
+              </div>
+              <CardTitle className="font-display text-xl font-bold text-foreground">
+                Password Updated!
+              </CardTitle>
+              <CardDescription>
+                Your password has been changed successfully. Use your new password next time you sign in.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button className="w-full rounded-full" onClick={() => navigate("/dashboard")}>
+                Go to Dashboard
+              </Button>
+              <Button variant="ghost" className="w-full rounded-full text-muted-foreground" onClick={() => {
+                setDone(false);
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+              }}>
+                Change Again
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
           <Card className="rounded-2xl shadow-sm border-border">
             <CardHeader className="text-center space-y-3 pb-4">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -108,34 +168,58 @@ export default function ChangePasswordPage() {
                 Change Password
               </CardTitle>
               <CardDescription className="text-muted-foreground text-sm">
-                Enter your new password. We'll send a verification email before updating it.
+                Enter your current password, then choose a new one.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleRequestChange} className="space-y-5">
+              <form onSubmit={handleUpdate} className="space-y-5">
+
+                {/* Current Password */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Email Address</Label>
+                  <Label htmlFor="currentPassword" className="text-sm font-medium">Current Password</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input value={email} disabled className="pl-10 rounded-lg bg-muted/50" />
+                    <Input
+                      id="currentPassword"
+                      type={showCurrent ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      required
+                      className="rounded-lg pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrent(!showCurrent)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
+                {/* New Password */}
                 <div className="space-y-2">
                   <Label htmlFor="newPassword" className="text-sm font-medium">New Password</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    value={newPassword}
-                    onChange={(e) => {
-                      setNewPassword(e.target.value);
-                      if (passwordErrors.length) validatePassword(e.target.value);
-                    }}
-                    required
-                    className="rounded-lg"
-                  />
-                  {/* Strength bar + checklist — appears as user types */}
+                  <div className="relative">
+                    <Input
+                      id="newPassword"
+                      type={showNew ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      className="rounded-lg pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNew(!showNew)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+
+                  {/* Strength bar + checklist */}
                   {newPassword.length > 0 && (
                     <div className="space-y-2 pt-1">
                       <div className="flex gap-1">
@@ -150,15 +234,9 @@ export default function ChangePasswordPage() {
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Strength:{" "}
-                        <span
-                          className={`font-semibold ${
-                            passwordStrength <= 2
-                              ? "text-red-500"
-                              : passwordStrength === 3
-                              ? "text-yellow-500"
-                              : "text-emerald-500"
-                          }`}
-                        >
+                        <span className={`font-semibold ${
+                          passwordStrength <= 2 ? "text-red-500" : passwordStrength === 3 ? "text-yellow-500" : "text-emerald-500"
+                        }`}>
                           {strengthLabel}
                         </span>
                       </p>
@@ -166,24 +244,10 @@ export default function ChangePasswordPage() {
                         <div className="grid grid-cols-1 gap-1 pt-1">
                           {passwordChecks.map((rule) => (
                             <div key={rule.id} className="flex items-center gap-2">
-                              <div
-                                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full transition-colors ${
-                                  rule.passed ? "bg-emerald-500" : "bg-border"
-                                }`}
-                              >
-                                {rule.passed ? (
-                                  <Check className="h-2.5 w-2.5 text-white" />
-                                ) : (
-                                  <X className="h-2.5 w-2.5 text-muted-foreground" />
-                                )}
+                              <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full transition-colors ${rule.passed ? "bg-emerald-500" : "bg-border"}`}>
+                                {rule.passed ? <Check className="h-2.5 w-2.5 text-white" /> : <X className="h-2.5 w-2.5 text-muted-foreground" />}
                               </div>
-                              <span
-                                className={`text-xs transition-colors ${
-                                  rule.passed
-                                    ? "text-emerald-600 dark:text-emerald-400"
-                                    : "text-muted-foreground"
-                                }`}
-                              >
+                              <span className={`text-xs transition-colors ${rule.passed ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
                                 {rule.label}
                               </span>
                             </div>
@@ -192,32 +256,35 @@ export default function ChangePasswordPage() {
                       )}
                     </div>
                   )}
-                  {passwordErrors.length > 0 && (
-                    <ul className="text-xs text-destructive space-y-0.5">
-                      {passwordErrors.map((err) => (
-                        <li key={err}>• {err}</li>
-                      ))}
-                    </ul>
-                  )}
                 </div>
 
+                {/* Confirm Password */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className={`rounded-lg transition-colors ${
-                      confirmPassword.length > 0
-                        ? newPassword === confirmPassword
-                          ? "border-emerald-500 focus-visible:ring-emerald-500"
-                          : "border-red-400 focus-visible:ring-red-400"
-                        : ""
-                    }`}
-                  />
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm New Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirm ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className={`rounded-lg pr-10 transition-colors ${
+                        confirmPassword.length > 0
+                          ? newPassword === confirmPassword
+                            ? "border-emerald-500 focus-visible:ring-emerald-500"
+                            : "border-red-400 focus-visible:ring-red-400"
+                          : ""
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm(!showConfirm)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {confirmPassword.length > 0 && (
                     <div className="flex items-center gap-1.5 pt-0.5">
                       {newPassword === confirmPassword ? (
@@ -236,52 +303,9 @@ export default function ChangePasswordPage() {
                 </div>
 
                 <Button type="submit" disabled={loading} className="w-full rounded-full">
-                  {loading ? "Sending..." : "Request Password Change"}
+                  {loading ? "Updating..." : "Update Password"}
                 </Button>
               </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {step === "sent" && (
-          <Card className="rounded-2xl shadow-sm border-border">
-            <CardHeader className="text-center space-y-3 pb-4">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent">
-                <ShieldCheck className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="font-display text-xl font-bold text-foreground">
-                Verification Required
-              </CardTitle>
-              <CardDescription className="text-muted-foreground text-sm max-w-xs mx-auto">
-                We've sent a verification link to <strong className="text-foreground">{email}</strong>. Please verify your email to complete the password change.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-xl bg-muted/50 border border-border p-4 space-y-2">
-                <p className="text-sm font-medium text-foreground">What happens next?</p>
-                <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                  <li>Open the verification email in your inbox</li>
-                  <li>Click the secure link to confirm</li>
-                  <li>Set your new password on the confirmation page</li>
-                </ol>
-                <p className="text-xs text-muted-foreground mt-2">
-                  The link expires in 1 minute. Check spam if you don't see it.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => setStep("form")}
-                className="w-full rounded-full"
-              >
-                Resend Verification Email
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => navigate("/dashboard")}
-                className="w-full rounded-full text-muted-foreground"
-              >
-                Back to Dashboard
-              </Button>
             </CardContent>
           </Card>
         )}
