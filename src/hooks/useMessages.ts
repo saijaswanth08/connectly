@@ -35,47 +35,56 @@ export function useConversations() {
   });
 }
 
-export function useMessages(conversationId: string | null) {
+export function useMessages(conversationId: string | string[] | null) {
   return useQuery<Message[]>({
     queryKey: ["messages", conversationId],
     queryFn: async () => {
       if (!conversationId) return [];
+      const ids = Array.isArray(conversationId) ? conversationId : [conversationId];
+      if (ids.length === 0) return [];
+      
       const { data, error } = await supabase
         .from("messages")
         .select("*")
-        .eq("conversation_id", conversationId)
+        .in("conversation_id", ids)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as Message[];
     },
-    enabled: !!conversationId,
+    enabled: !!conversationId && (Array.isArray(conversationId) ? conversationId.length > 0 : true),
   });
 }
 
-export function useRealtimeMessages(conversationId: string | null) {
+export function useRealtimeMessages(conversationId: string | string[] | null) {
   const qc = useQueryClient();
 
   useEffect(() => {
     if (!conversationId) return;
+    const ids = Array.isArray(conversationId) ? conversationId : [conversationId];
+    if (ids.length === 0) return;
 
-    const channel = supabase
-      .channel(`messages-${conversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // Listen to INSERT, UPDATE, and DELETE events!
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        () => {
-          qc.invalidateQueries({ queryKey: ["messages", conversationId] });
-        }
-      )
-      .subscribe();
+    const channels = ids.map((id) => {
+      return supabase
+        .channel(`messages-${id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*", // Listen to INSERT, UPDATE, and DELETE events!
+            schema: "public",
+            table: "messages",
+            filter: `conversation_id=eq.${id}`,
+          },
+          () => {
+            qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+          }
+        )
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      channels.forEach((channel) => {
+        supabase.removeChannel(channel);
+      });
     };
   }, [conversationId, qc]);
 }

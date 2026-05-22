@@ -86,7 +86,41 @@ export default function MessagesPage() {
 
   const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
   const { data: conversations = [] } = useConversations();
-  const { data: messages = [], isLoading: isLoadingMessages } = useMessages(selectedConversationId);
+
+  // Build a map of contact_id -> conversation
+  const convByContact = useMemo(() => 
+    new Map(conversations.map((c) => [c.contact_id, c])),
+    [conversations]
+  );
+
+  const selectedContact = useMemo(() => {
+    return contacts.find((c) => c.id === selectedContactId);
+  }, [contacts, selectedContactId]);
+
+  // Find all sibling contacts that represent the same person
+  const siblingContacts = useMemo(() => {
+    if (!selectedContact) return [];
+    const targetId = selectedContact.target_user_id;
+    const email = selectedContact.email;
+    const name = selectedContact.name;
+    return contacts.filter((c) => {
+      if (targetId && c.target_user_id === targetId) return true;
+      if (email && c.email === email) return true;
+      if (name && c.name === name) return true;
+      return false;
+    });
+  }, [selectedContact, contacts]);
+
+  // Find all conversation IDs for these sibling contacts
+  const siblingConversationIds = useMemo(() => {
+    return siblingContacts
+      .map((c) => convByContact.get(c.id)?.id)
+      .filter((id): id is string => !!id);
+  }, [siblingContacts, convByContact]);
+
+  const { data: messages = [], isLoading: isLoadingMessages } = useMessages(
+    siblingConversationIds.length > 0 ? siblingConversationIds : selectedConversationId
+  );
   const sendMessage = useSendMessage();
   const clearChat = useClearConversation();
   const deleteMessage = useDeleteMessage();
@@ -126,15 +160,9 @@ export default function MessagesPage() {
     return [...messages, ...filteredOptimistic];
   }, [messages, optimisticMessages]);
 
-  useRealtimeMessages(selectedConversationId);
+  useRealtimeMessages(siblingConversationIds.length > 0 ? siblingConversationIds : selectedConversationId);
   useRealtimeConversations();
   useRealtimeContacts(user?.id);
-
-  // Build a map of contact_id -> conversation
-  const convByContact = useMemo(() => 
-    new Map(conversations.map((c) => [c.contact_id, c])),
-    [conversations]
-  );
 
   // Synchronize URL search params with active selectedContactId
   useEffect(() => {
@@ -164,7 +192,7 @@ export default function MessagesPage() {
 
   // Sort: contacts with conversations first (by last_message_at), then others
   const sortedContacts = useMemo(() => {
-    return [...filteredContacts].sort((a, b) => {
+    const sorted = [...filteredContacts].sort((a, b) => {
       const convA = convByContact.get(a.id);
       const convB = convByContact.get(b.id);
       if (convA && convB) return new Date(convB.last_message_at).getTime() - new Date(convA.last_message_at).getTime();
@@ -172,9 +200,17 @@ export default function MessagesPage() {
       if (convB) return 1;
       return (a.name || "").localeCompare(b.name || "");
     });
-  }, [filteredContacts, convByContact]);
 
-  const selectedContact = contacts.find((c) => c.id === selectedContactId);
+    // De-duplicate sorted contacts by partner identity
+    const seen = new Set<string>();
+    return sorted.filter((c) => {
+      const key = (c.target_user_id || c.email || c.name || "").toLowerCase().trim();
+      if (!key) return true;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [filteredContacts, convByContact]);
 
   // Scroll to bottom helper with layout-safe execution
   const scrollToBottom = (behavior: "auto" | "smooth" = "smooth") => {
@@ -520,7 +556,12 @@ export default function MessagesPage() {
                 {sortedContacts.map((contact) => {
                   const conv = convByContact.get(contact.id);
                   const isOnline = isUserOnline(onlineUsers, contact.target_user_id);
-                  const isActive = selectedConversationId === conv?.id;
+                  const isActive = selectedContactId === contact.id || 
+                    (selectedContact && (
+                      (selectedContact.target_user_id && contact.target_user_id === selectedContact.target_user_id) ||
+                      (selectedContact.email && contact.email === selectedContact.email) ||
+                      (selectedContact.name && contact.name === selectedContact.name)
+                    ));
                   
                   return (
                     <button
