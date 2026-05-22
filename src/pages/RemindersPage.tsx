@@ -16,6 +16,7 @@ import { useContacts } from "@/hooks/useContacts";
 import { useAuth } from "@/hooks/useAuth";
 import { DbReminder } from "@/lib/api";
 import { format, isPast, isToday } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 function getGoogleCalendarUrl(title: string, date: Date, details: string) {
@@ -152,8 +153,41 @@ export default function RemindersPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="p-6 space-y-6 max-w-4xl mx-auto">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-36 rounded" />
+            <Skeleton className="h-4 w-48 rounded opacity-60" />
+          </div>
+          <Skeleton className="h-10 w-28 rounded-md" />
+        </div>
+
+        {/* Upcoming Reminders List Skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-20 rounded uppercase tracking-wider" />
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-card rounded-xl border border-primary/20 px-5 py-4 shadow-sm flex items-start justify-between gap-4"
+            >
+              <div className="flex-1 space-y-2 min-w-0">
+                <Skeleton className="h-5 w-1/3 rounded" />
+                <Skeleton className="h-4 w-2/3 rounded opacity-70" />
+                <div className="flex gap-3 pt-1">
+                  <Skeleton className="h-3 w-28 rounded opacity-40" />
+                  <Skeleton className="h-3 w-20 rounded opacity-40" />
+                </div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

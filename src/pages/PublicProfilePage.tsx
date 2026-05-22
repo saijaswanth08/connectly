@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { Mail, Phone, Linkedin, Instagram, UserPlus, Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PublicProfilePage() {
   const { id: profileId } = useParams();
@@ -28,8 +29,56 @@ export default function PublicProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 sm:py-12 font-sans">
+        <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-500">
+          {/* Card Header Skeleton */}
+          <div className="h-28 bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100" />
+          
+          <div className="px-6 pb-6 flex flex-col items-center text-center -mt-12">
+            {/* Avatar Skeleton */}
+            <Skeleton className="w-24 h-24 rounded-full border-4 border-white shadow-md bg-indigo-50 shrink-0" />
+            
+            {/* Name and Job Title Skeletons */}
+            <Skeleton className="h-7 w-36 rounded mt-4 mb-2" />
+            <Skeleton className="h-4 w-48 rounded mb-6 opacity-60" />
+            
+            <hr className="w-full border-slate-100 mb-6" />
+            
+            {/* Email & Phone Skeletons */}
+            <div className="w-full space-y-4 mb-6">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-5 h-5 rounded-full shrink-0" />
+                <Skeleton className="h-4 w-40 rounded" />
+              </div>
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-5 h-5 rounded-full shrink-0" />
+                <Skeleton className="h-4 w-32 rounded" />
+              </div>
+            </div>
+            
+            <hr className="w-full border-slate-100 mb-6" />
+            
+            {/* Social Link Buttons Skeletons */}
+            <div className="w-full space-y-3 mb-6">
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </div>
+            
+            <hr className="w-full border-slate-100 mb-6" />
+            
+            {/* Primary Action Buttons Skeletons */}
+            <div className="w-full space-y-3">
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Branding Footer Skeleton */}
+        <div className="mt-6 flex items-center justify-center gap-1">
+          <Skeleton className="h-3 w-16 rounded opacity-40" />
+          <Skeleton className="h-3.5 w-14 rounded opacity-50" />
+        </div>
       </div>
     );
   }

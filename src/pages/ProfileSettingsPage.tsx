@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Save, ImagePlus, Trash2, Mail, Phone,
   Linkedin, Instagram, Building2, Briefcase, X, QrCode, Download, Lock
@@ -405,8 +406,69 @@ export default function ProfileSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
-        Loading profile...
+      <div className="p-6 max-w-3xl mx-auto space-y-6 animate-in fade-in duration-500">
+        {/* Page Title Skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+
+        {/* Profile Header Card Skeleton */}
+        <div className="rounded-2xl border border-border/60 shadow-sm overflow-hidden bg-card">
+          <div className="h-24 bg-gradient-to-r from-indigo-500/10 via-indigo-400/5 to-transparent" />
+          <div className="px-6 pb-6 -mt-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div className="flex items-end gap-4">
+              <Skeleton className="h-20 w-20 rounded-full shrink-0 border-4 border-background shadow-md" />
+              <div className="space-y-2 mb-1 flex-1">
+                <Skeleton className="h-6 w-36" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+            </div>
+            <div className="flex gap-2 sm:mb-1 shrink-0">
+              <Skeleton className="h-9 w-28 rounded-md" />
+              <Skeleton className="h-9 w-20 rounded-md" />
+            </div>
+          </div>
+        </div>
+
+        {/* Details fields grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+          </div>
+        </div>
+
+        {/* Biography Block Skeleton */}
+        <div className="space-y-2 pt-4">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-24 w-full rounded-md" />
+        </div>
       </div>
     );
   }

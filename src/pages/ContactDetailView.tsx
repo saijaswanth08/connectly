@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ContactReminders } from "@/components/ContactReminders";
 import { ContactTimeline } from "@/components/ContactTimeline";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export default function ContactDetailView() {
@@ -26,7 +27,71 @@ export default function ContactDetailView() {
   const [form, setForm] = useState<Record<string, string>>({});
 
   if (isLoading) {
-    return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+    return (
+      <div className="p-6 max-w-3xl mx-auto space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+          <Skeleton className="h-14 w-14 rounded-full shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-7 w-48 rounded" />
+            <Skeleton className="h-4 w-24 rounded-full" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-14 rounded-md" />
+            <Skeleton className="h-9 w-10 rounded-md" />
+          </div>
+        </div>
+
+        {/* Info Card Skeleton */}
+        <div className="glass-card rounded-xl p-6 space-y-6">
+          <div className="flex flex-wrap gap-4">
+            <Skeleton className="h-4 w-40 rounded" />
+            <Skeleton className="h-4 w-48 rounded" />
+            <Skeleton className="h-4 w-32 rounded" />
+          </div>
+          <div className="space-y-2 pt-2">
+            <Skeleton className="h-4 w-16 rounded" />
+            <Skeleton className="h-4 w-full rounded" />
+            <Skeleton className="h-4 w-5/6 rounded" />
+          </div>
+          <Skeleton className="h-3.5 w-28 rounded" />
+        </div>
+
+        {/* Follow-Up Reminders Skeleton */}
+        <div className="glass-card rounded-xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-32 rounded" />
+            <Skeleton className="h-8 w-24 rounded-md" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-12 w-full rounded-lg" />
+            <Skeleton className="h-12 w-full rounded-lg" />
+          </div>
+        </div>
+
+        {/* Timeline Skeleton */}
+        <div className="glass-card rounded-xl p-6 space-y-4">
+          <Skeleton className="h-6 w-44 rounded" />
+          <div className="space-y-4 pt-2">
+            <div className="flex gap-3">
+              <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/3 rounded" />
+                <Skeleton className="h-3.5 w-full rounded" />
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/4 rounded" />
+                <Skeleton className="h-3.5 w-5/6 rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
   if (!contact) {
     return <div className="p-6 text-center text-muted-foreground">Contact not found. <Link to="/dashboard" className="text-primary">Go back</Link></div>;

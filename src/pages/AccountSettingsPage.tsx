@@ -171,7 +171,7 @@ export default function AccountSettingsPage() {
                 <ShieldCheck className="h-6 w-6 text-primary" />
               </div>
               <CardTitle className="font-display text-xl font-bold text-foreground">
-                Account Security
+                Access & Security
               </CardTitle>
               <CardDescription className="text-muted-foreground text-sm">
                 Enter your current password, then choose a secure new one.

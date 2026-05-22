@@ -55,7 +55,7 @@ export function ProfileDropdown() {
         </DropdownMenuItem>
         
         <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
-          <KeyRound className="mr-2 h-4 w-4" /> Account Security
+          <KeyRound className="mr-2 h-4 w-4" /> Access & Security
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />

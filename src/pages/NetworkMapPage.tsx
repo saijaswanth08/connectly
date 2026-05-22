@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { DbContact, DbContactConnection } from "@/lib/api";
 import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const PRIORITY_COLORS: Record<string, string> = {
   vip: "#d97706",    // Gorgeous Gold/Amber for VIPs
@@ -445,7 +446,7 @@ export default function NetworkMapPage() {
       cancelAnimationFrame(animRef.current);
       resizeObserver.disconnect();
     };
-  }, [filteredContacts.length, connections.length]);
+  }, [filteredContacts.length, connections.length, isLoading]);
 
   // Mouse handlers
   const getCanvasPos = useCallback((e: React.MouseEvent) => {
@@ -529,8 +530,69 @@ export default function NetworkMapPage() {
 
   if (isLoading && !isError) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="p-6 space-y-4 max-w-7xl mx-auto h-[calc(100vh-3.5rem)] flex flex-col">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between flex-wrap gap-3 shrink-0">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-44 rounded" />
+            <Skeleton className="h-4 w-72 rounded opacity-60" />
+          </div>
+          <Skeleton className="h-10 w-36 rounded-md" />
+        </div>
+
+        {/* Controls Skeleton */}
+        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+          <div className="relative flex-1">
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+          <Skeleton className="h-10 w-32 rounded-md" />
+        </div>
+
+        {/* Large Canvas Card Skeleton */}
+        <div className="flex-1 rounded-2xl border border-border/60 bg-card/50 shadow-inner relative overflow-hidden flex items-center justify-center p-6 min-h-[300px]">
+          {/* Faux network mesh floating backgrounds */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+            <div className="relative w-full h-full">
+              {/* Central hub skeleton */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 space-y-2 flex flex-col items-center">
+                <Skeleton className="h-16 w-16 rounded-full skeleton" />
+                <Skeleton className="h-3 w-20 rounded" />
+              </div>
+              
+              {/* Satellite nodes skeletons */}
+              <div className="absolute top-1/4 left-1/3 space-y-1 flex flex-col items-center">
+                <Skeleton className="h-12 w-12 rounded-full skeleton" />
+                <Skeleton className="h-2.5 w-16 rounded" />
+              </div>
+              <div className="absolute top-1/3 right-1/4 space-y-1 flex flex-col items-center">
+                <Skeleton className="h-12 w-12 rounded-full skeleton" />
+                <Skeleton className="h-2.5 w-14 rounded" />
+              </div>
+              <div className="absolute bottom-1/4 left-1/4 space-y-1 flex flex-col items-center">
+                <Skeleton className="h-10 w-10 rounded-full skeleton" />
+                <Skeleton className="h-2.5 w-12 rounded" />
+              </div>
+              <div className="absolute bottom-1/3 right-1/3 space-y-1 flex flex-col items-center">
+                <Skeleton className="h-12 w-12 rounded-full skeleton" />
+                <Skeleton className="h-2.5 w-16 rounded" />
+              </div>
+
+              {/* Simulated mesh lines connecting nodes */}
+              <svg className="absolute inset-0 w-full h-full stroke-muted/30 stroke-[2]">
+                <line x1="50%" y1="50%" x2="33%" y2="25%" strokeDasharray="4 4" />
+                <line x1="50%" y1="50%" x2="75%" y2="33%" strokeDasharray="4 4" />
+                <line x1="50%" y1="50%" x2="25%" y2="75%" strokeDasharray="4 4" />
+                <line x1="50%" y1="50%" x2="66%" y2="66%" strokeDasharray="4 4" />
+              </svg>
+            </div>
+          </div>
+          
+          <div className="relative z-10 flex flex-col items-center text-center max-w-xs space-y-3">
+            <Skeleton className="h-10 w-10 rounded-xl" />
+            <Skeleton className="h-5 w-40 rounded" />
+            <Skeleton className="h-3.5 w-56 rounded opacity-60" />
+          </div>
+        </div>
       </div>
     );
   }
