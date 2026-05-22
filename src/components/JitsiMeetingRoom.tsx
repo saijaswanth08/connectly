@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
 
 interface JitsiMeetingRoomProps {
   roomId: string;
@@ -23,6 +24,7 @@ export function JitsiMeetingRoom({ roomId, onLeave, title }: JitsiMeetingRoomPro
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const meetingUrl = `https://meet.jit.si/${roomId}`;
 
   const copyLink = () => {
@@ -41,6 +43,9 @@ export function JitsiMeetingRoom({ roomId, onLeave, title }: JitsiMeetingRoomPro
     }
   };
 
+  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || "User";
+  const email = user?.email || "";
+
   const jitsiConfig = [
     "config.prejoinConfig.enabled=false",
     "config.startWithVideoMuted=false",
@@ -50,6 +55,8 @@ export function JitsiMeetingRoom({ roomId, onLeave, title }: JitsiMeetingRoomPro
     "interfaceConfig.SHOW_JITSI_WATERMARK=false",
     "interfaceConfig.DEFAULT_BACKGROUND=#0F172A",
     "interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS=false",
+    `userInfo.displayName="${displayName}"`,
+    ...(email ? [`userInfo.email="${email}"`] : []),
   ].join("&");
 
   return (
