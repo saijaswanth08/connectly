@@ -23,6 +23,12 @@ function removeGlobalChannel() {
     cleanupTimeout = null;
   }
   if (globalChannel) {
+    // Explicitly call untrack to broadcast immediate presence leave to other users
+    try {
+      globalChannel.untrack();
+    } catch (e) {
+      console.warn("[removeGlobalChannel] Error untracking channel:", e);
+    }
     supabase.removeChannel(globalChannel);
     globalChannel = null;
   }
@@ -127,12 +133,7 @@ export function usePresence() {
     if (!user) return;
 
     const handleInstantUnload = () => {
-      if (globalChannel) {
-        // Synchronously call untrack and cleanly remove the channel
-        // to immediately close the websocket scope and trigger a leave broadcast
-        globalChannel.untrack();
-        removeGlobalChannel();
-      }
+      removeGlobalChannel();
     };
 
     // Use multiple lifecycle hooks to guarantee firing across modern desktop & mobile browsers
