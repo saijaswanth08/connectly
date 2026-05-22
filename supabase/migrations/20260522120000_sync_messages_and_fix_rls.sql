@@ -43,27 +43,35 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    -- C. Locate the recipient's contact record pointing back to the sender
-    SELECT id INTO v_recipient_contact_id
-    FROM public.contacts
-    WHERE user_id = v_recipient_user_id AND target_user_id = v_sender_id
-    LIMIT 1;
+    -- Fetch the sender's email and name from profiles
+    DECLARE
+        v_sender_name TEXT := 'Unknown';
+        v_sender_email TEXT := '';
+    BEGIN
+        SELECT name, email INTO v_sender_name, v_sender_email
+        FROM public.profiles
+        WHERE id = v_sender_id;
 
-    -- If the recipient doesn't have the sender in their contacts, auto-create it!
-    IF v_recipient_contact_id IS NULL THEN
-        DECLARE
-            v_sender_name TEXT := 'Unknown';
-            v_sender_email TEXT := '';
-        BEGIN
-            SELECT name, email INTO v_sender_name, v_sender_email
-            FROM public.profiles
-            WHERE id = v_sender_id;
+        -- C. Locate the recipient's contact record pointing back to the sender
+        -- Match by target_user_id OR by email matching
+        SELECT id INTO v_recipient_contact_id
+        FROM public.contacts
+        WHERE user_id = v_recipient_user_id 
+          AND (target_user_id = v_sender_id OR (email IS NOT NULL AND email <> '' AND LOWER(email) = LOWER(v_sender_email)))
+        LIMIT 1;
 
+        -- If contact exists but has NULL target_user_id, update it!
+        IF v_recipient_contact_id IS NOT NULL THEN
+            UPDATE public.contacts
+            SET target_user_id = v_sender_id
+            WHERE id = v_recipient_contact_id AND target_user_id IS NULL;
+        ELSE
+            -- If the recipient doesn't have the sender in their contacts, auto-create it!
             INSERT INTO public.contacts (user_id, name, email, target_user_id, priority)
             VALUES (v_recipient_user_id, v_sender_name, v_sender_email, v_sender_id, 'medium')
             RETURNING id INTO v_recipient_contact_id;
-        END;
-    END IF;
+        END IF;
+    END;
 
     -- D. Find or create the recipient's conversation record with the sender
     SELECT id INTO v_recipient_conv_id
