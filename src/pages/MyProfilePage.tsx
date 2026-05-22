@@ -427,14 +427,14 @@ export default function MyProfilePage() {
           <div className="flex items-center gap-4">
             {/* Clickable avatar */}
             <div
-              className="relative group cursor-pointer"
+              className="relative group cursor-pointer shrink-0"
               onClick={() => fileInputRef.current?.click()}
               title="Click to upload photo"
             >
               {profile?.avatar_url ? (
-                <img src={profile.avatar_url} className="rounded-full w-20 h-20 object-cover border-4 border-card shadow-md ring-2 ring-indigo-500/20" />
+                <img src={profile.avatar_url} className="rounded-full w-20 h-20 object-cover border-4 border-card shadow-md ring-2 ring-indigo-500/20 shrink-0" />
               ) : (
-                <div className="rounded-full w-20 h-20 flex items-center justify-center bg-indigo-100 text-indigo-700 text-2xl font-bold border-4 border-card shadow-md ring-2 ring-indigo-500/20">
+                <div className="rounded-full w-20 h-20 flex items-center justify-center bg-indigo-100 text-indigo-700 text-2xl font-bold border-4 border-card shadow-md ring-2 ring-indigo-500/20 shrink-0">
                   {profile?.name?.charAt(0) || "U"}
                 </div>
               )}
