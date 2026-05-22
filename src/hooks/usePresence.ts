@@ -11,6 +11,7 @@ export interface PresenceState {
 
 // Module-level singleton state to keep exactly one shared subscription active
 let globalChannel: any = null;
+let globalChannelUserId: string | null = null;
 let globalOnlineUsers: Set<string> = new Set();
 const listeners = new Set<(users: Set<string>) => void>();
 let cleanupTimeout: any = null;
@@ -20,11 +21,24 @@ export function usePresence() {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(globalOnlineUsers);
 
   useEffect(() => {
-    if (!user) {
-      // Clear local and global presence state when the user is logged out
+    if (!user?.id) {
+      // Clear local and global presence state and unsubscribe the channel when the user is logged out
+      if (globalChannel) {
+        supabase.removeChannel(globalChannel);
+        globalChannel = null;
+        globalChannelUserId = null;
+      }
       globalOnlineUsers = new Set();
       setOnlineUsers(globalOnlineUsers);
       return;
+    }
+
+    // If the logged-in user changed, cleanly remove the existing channel first to recreate it
+    if (globalChannel && globalChannelUserId !== user.id) {
+      supabase.removeChannel(globalChannel);
+      globalChannel = null;
+      globalChannelUserId = null;
+      globalOnlineUsers = new Set();
     }
 
     // Add this hook instance's state updater to our shared listeners set
@@ -41,6 +55,7 @@ export function usePresence() {
 
     // Initialize the shared presence channel if it doesn't exist
     if (!globalChannel) {
+      globalChannelUserId = user.id;
       const channel = supabase.channel('global-presence', {
         config: {
           presence: {
@@ -85,6 +100,7 @@ export function usePresence() {
           if (globalChannel) {
             supabase.removeChannel(globalChannel);
             globalChannel = null;
+            globalChannelUserId = null;
             globalOnlineUsers = new Set();
           }
         }, 3000);
