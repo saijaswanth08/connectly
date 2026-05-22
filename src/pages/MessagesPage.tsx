@@ -101,12 +101,17 @@ export default function MessagesPage() {
   const siblingContacts = useMemo(() => {
     if (!selectedContact) return [];
     const targetId = selectedContact.target_user_id;
-    const email = selectedContact.email;
-    const name = selectedContact.name;
+    const email = selectedContact.email ? selectedContact.email.toLowerCase().trim() : "";
+    const name = selectedContact.name ? selectedContact.name.toLowerCase().trim() : "";
     return contacts.filter((c) => {
       if (targetId && c.target_user_id === targetId) return true;
-      if (email && c.email === email) return true;
-      if (name && c.name === name) return true;
+      
+      const cEmail = c.email ? c.email.toLowerCase().trim() : "";
+      if (email && cEmail === email) return true;
+      
+      const cName = c.name ? c.name.toLowerCase().trim() : "";
+      if (name && cName === name) return true;
+      
       return false;
     });
   }, [selectedContact, contacts]);
@@ -201,16 +206,62 @@ export default function MessagesPage() {
       return (a.name || "").localeCompare(b.name || "");
     });
 
-    // De-duplicate sorted contacts by partner identity
-    const seen = new Set<string>();
+    // De-duplicate sorted contacts by partner identity using robust case-insensitive field matching
+    const seenTargetIds = new Set<string>();
+    const seenEmails = new Set<string>();
+    const seenNames = new Set<string>();
+
     return sorted.filter((c) => {
-      const key = (c.target_user_id || c.email || c.name || "").toLowerCase().trim();
-      if (!key) return true;
-      if (seen.has(key)) return false;
-      seen.add(key);
+      const targetId = c.target_user_id;
+      const email = c.email ? c.email.toLowerCase().trim() : "";
+      const name = c.name ? c.name.toLowerCase().trim() : "";
+
+      const hasSeen =
+        (targetId && seenTargetIds.has(targetId)) ||
+        (email && seenEmails.has(email)) ||
+        (name && seenNames.has(name));
+
+      if (hasSeen) {
+        return false;
+      }
+
+      if (targetId) seenTargetIds.add(targetId);
+      if (email) seenEmails.add(email);
+      if (name) seenNames.add(name);
+
       return true;
     });
   }, [filteredContacts, convByContact]);
+
+  // De-duplicated list of contacts sorted alphabetically for the "New Message" dialog
+  const uniqueContactsAlphabetical = useMemo(() => {
+    const sorted = [...contacts].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const seenTargetIds = new Set<string>();
+    const seenEmails = new Set<string>();
+    const seenNames = new Set<string>();
+
+    return sorted.filter((c) => {
+      const targetId = c.target_user_id;
+      const email = c.email ? c.email.toLowerCase().trim() : "";
+      const name = c.name ? c.name.toLowerCase().trim() : "";
+
+      const hasSeen =
+        (targetId && seenTargetIds.has(targetId)) ||
+        (email && seenEmails.has(email)) ||
+        (name && seenNames.has(name));
+
+      if (hasSeen) {
+        return false;
+      }
+
+      if (targetId) seenTargetIds.add(targetId);
+      if (email) seenEmails.add(email);
+      if (name) seenNames.add(name);
+
+      return true;
+    });
+  }, [contacts]);
+
 
   // Scroll to bottom helper with layout-safe execution
   const scrollToBottom = (behavior: "auto" | "smooth" = "smooth") => {
@@ -557,11 +608,7 @@ export default function MessagesPage() {
                   const conv = convByContact.get(contact.id);
                   const isOnline = isUserOnline(onlineUsers, contact.target_user_id);
                   const isActive = selectedContactId === contact.id || 
-                    (selectedContact && (
-                      (selectedContact.target_user_id && contact.target_user_id === selectedContact.target_user_id) ||
-                      (selectedContact.email && contact.email === selectedContact.email) ||
-                      (selectedContact.name && contact.name === selectedContact.name)
-                    ));
+                    siblingContacts.some((sc) => sc.id === contact.id);
                   
                   return (
                     <button
@@ -983,7 +1030,7 @@ export default function MessagesPage() {
             
             <ScrollArea className="h-80">
               <div className="p-3 space-y-1">
-                {contacts
+                {uniqueContactsAlphabetical
                   .filter((c) => (c.name || "").toLowerCase().includes(pickerSearch.toLowerCase()))
                   .map((contact) => (
                     <button
@@ -1001,7 +1048,7 @@ export default function MessagesPage() {
                       </div>
                     </button>
                   ))}
-                {contacts.filter((c) => (c.name || "").toLowerCase().includes(pickerSearch.toLowerCase())).length === 0 && (
+                {uniqueContactsAlphabetical.filter((c) => (c.name || "").toLowerCase().includes(pickerSearch.toLowerCase())).length === 0 && (
                   <div className="py-20 text-center space-y-2">
                     <Users className="h-10 w-10 text-muted-foreground/20 mx-auto" />
                     <p className="text-sm text-muted-foreground">No contacts found</p>
