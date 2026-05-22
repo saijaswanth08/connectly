@@ -340,18 +340,17 @@ export function NotificationBell() {
                       <p className="text-sm font-medium text-foreground truncate">{req.sender_name}</p>
                       <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
                         <MessageSquare className="h-2.5 w-2.5" />
-                        <span>Wants to connect</span>
+                        <span className="truncate">{req.content}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1 truncate italic">"{req.content}"</p>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100" onClick={() => respondToMsgRequest(req.id, 'accept')}>
-                        <Check className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => respondToMsgRequest(req.id, 'reject')}>
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 shrink-0" 
+                      onClick={() => respondToMsgRequest(req.id, 'accept')}
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
               ))}
