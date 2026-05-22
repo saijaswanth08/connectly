@@ -13,10 +13,11 @@ import { AppLayout } from "@/components/AppLayout";
 
 // Normalize important imports for performance & faster initial load
 import LandingPage from "@/pages/LandingPage";
+import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
+import DashboardPage from "@/pages/DashboardPage";
 
 // Lazy load secondary public subpages for extremely fast initial page load
-const LoginPage = lazy(() => import("@/pages/LoginPage"));
-const SignupPage = lazy(() => import("@/pages/SignupPage"));
 const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 const PublicProfilePage = lazy(() => import("@/pages/PublicProfilePage"));
@@ -30,7 +31,6 @@ const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy load heavy/secondary pages
-const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ContactDetailView = lazy(() => import("@/pages/ContactDetailView"));
 const InteractionsPage = lazy(() => import("@/pages/InteractionsPage"));
 const VideoMeetingsPage = lazy(() => import("@/pages/VideoMeetingsPage"));
@@ -98,16 +98,8 @@ const App = () => (
               {/* Public/Auth Routes - Dynamic lazy-loaded routes with Suspense */}
               <Route element={<PublicAppLayout />}>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <LoginPage />
-                  </Suspense>
-                } />
-                <Route path="/signup" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <SignupPage />
-                  </Suspense>
-                } />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
                 <Route path="/forgot-password" element={
                   <Suspense fallback={<PageLoader />}>
                     <ForgotPasswordPage />
@@ -158,11 +150,7 @@ const App = () => (
 
               {/* Protected Routes - Heavy pages safely lazy loaded with per-route Suspense */}
               <Route element={<ProtectedAppLayout />}>
-                <Route path="/dashboard" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <DashboardPage />
-                  </Suspense>
-                } />
+                <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/dashboard/contacts/:id" element={
                   <Suspense fallback={<PageLoader />}>
                     <ContactDetailView />

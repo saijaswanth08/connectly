@@ -43,10 +43,19 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['lucide-react', 'framer-motion'],
-          'vendor-utils': ['@tanstack/react-query', 'qrcode.react'],
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            // Group heavy 3D, particle, and chart libraries separately so they don't block the main app load
+            if (
+              id.includes("three") ||
+              id.includes("@react-three") ||
+              id.includes("ogl") ||
+              id.includes("recharts")
+            ) {
+              return "vendor-visuals";
+            }
+            return "vendor";
+          }
         }
       }
     }
