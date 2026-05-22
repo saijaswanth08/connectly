@@ -423,8 +423,8 @@ export default function MyProfilePage() {
       {/* Profile Header Card */}
       <div className="rounded-2xl bg-card border border-border/60 shadow-sm overflow-hidden">
         <div className="h-24 bg-gradient-to-r from-indigo-500/20 via-indigo-400/10 to-transparent" />
-        <div className="px-6 pb-6 -mt-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div className="flex items-end gap-4">
+        <div className="px-6 pb-6 -mt-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
             {/* Clickable avatar */}
             <div
               className="relative group cursor-pointer"
@@ -458,7 +458,7 @@ export default function MyProfilePage() {
           </div>
 
           {/* Upload / Remove / Logout */}
-          <div className="flex gap-2 sm:mb-1 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-start sm:justify-end sm:mb-1">
             <input
               ref={fileInputRef}
               type="file"
@@ -471,13 +471,13 @@ export default function MyProfilePage() {
                 }
               }}
             />
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs"
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs flex-1 sm:flex-initial justify-center"
               onClick={() => fileInputRef.current?.click()} disabled={uploading}>
               <ImagePlus className="h-3.5 w-3.5" />
               {uploading ? "Uploading..." : "Upload Photo"}
             </Button>
             <Button variant="outline" size="sm"
-              className="gap-1.5 text-xs text-destructive hover:text-destructive"
+              className="gap-1.5 text-xs text-destructive hover:text-destructive flex-1 sm:flex-initial justify-center"
               onClick={handleRemovePhoto} disabled={!profile?.avatar_url || uploading}>
               <Trash2 className="h-3.5 w-3.5" />
               Remove
@@ -485,7 +485,7 @@ export default function MyProfilePage() {
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 text-xs ml-auto"
+              className="gap-1.5 text-xs w-full sm:w-auto sm:ml-auto justify-center"
               onClick={() => {
                 supabase.auth.signOut().finally(() => {
                   window.location.replace("/");
@@ -617,12 +617,12 @@ export default function MyProfilePage() {
         )}
 
         {/* QR Buttons */}
-        <div className="flex items-center gap-3">
-          <Button onClick={handleGenerateQr} variant="outline" className="gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <Button onClick={handleGenerateQr} variant="outline" className="gap-2 w-full sm:w-auto justify-center">
             <QrCode className="h-4 w-4" />
             Generate QR Code
           </Button>
-          <Button onClick={() => handleDownloadQr(qrRef)} disabled={!qrValue} className="gap-2">
+          <Button onClick={() => handleDownloadQr(qrRef)} disabled={!qrValue} className="gap-2 w-full sm:w-auto justify-center">
             <Download className="h-4 w-4" />
             Download QR Code
           </Button>

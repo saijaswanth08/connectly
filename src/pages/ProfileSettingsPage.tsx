@@ -726,12 +726,12 @@ export default function ProfileSettingsPage() {
           )}
 
           {/* QR Buttons */}
-          <div className="flex items-center gap-3">
-            <Button onClick={handleGenerateQr} variant="outline" className="gap-2" disabled={!isQrUnlocked}>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <Button onClick={handleGenerateQr} variant="outline" className="gap-2 w-full sm:w-auto justify-center" disabled={!isQrUnlocked}>
               <QrCode className="h-4 w-4" />
               Generate QR Code
             </Button>
-            <Button onClick={() => handleDownloadQr(qrRef)} disabled={!qrValue || !isQrUnlocked} className="gap-2">
+            <Button onClick={() => handleDownloadQr(qrRef)} disabled={!qrValue || !isQrUnlocked} className="gap-2 w-full sm:w-auto justify-center">
               <Download className="h-4 w-4" />
               Download QR Code
             </Button>
