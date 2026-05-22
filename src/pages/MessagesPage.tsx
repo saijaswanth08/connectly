@@ -900,7 +900,7 @@ export default function MessagesPage() {
                                     </div>
                                   </div>
                                 ) : (
-                                  <p className="text-[14.5px] leading-snug whitespace-pre-wrap font-medium text-left w-full pr-1">{msg.content}</p>
+                                  <p className="text-[14.5px] leading-snug whitespace-pre-wrap break-words font-medium text-left w-full pr-1">{msg.content}</p>
                                 )}
                                 
                                 <span className={cn(
