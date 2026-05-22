@@ -63,30 +63,56 @@ export function useRealtimeMessages(conversationId: string | string[] | null) {
     const ids = Array.isArray(conversationId) ? conversationId : [conversationId];
     if (ids.length === 0) return;
 
-    const channels = ids.map((id) => {
-      return supabase
-        .channel(`messages-${id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*", // Listen to INSERT, UPDATE, and DELETE events!
-            schema: "public",
-            table: "messages",
-            filter: `conversation_id=eq.${id}`,
-          },
-          () => {
+    // Use a stable channel name based on sorted IDs
+    const channelName = `messages-watch-${ids.slice().sort().join("-")}`;
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          // No filter — receive ALL inserts then check membership.
+          // Filtered subscriptions miss trigger-inserted rows (SECURITY DEFINER bypasses RLS checks
+          // that Supabase uses to determine realtime delivery eligibility).
+        },
+        (payload) => {
+          const msgConvId = (payload.new as { conversation_id?: string })?.conversation_id;
+          if (msgConvId && ids.includes(msgConvId)) {
             qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+            qc.invalidateQueries({ queryKey: ["conversations"] });
           }
-        )
-        .subscribe();
-    });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+        },
+        (payload) => {
+          const msgConvId = (payload.old as { conversation_id?: string })?.conversation_id;
+          if (msgConvId && ids.includes(msgConvId)) {
+            qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+            qc.invalidateQueries({ queryKey: ["conversations"] });
+          }
+        }
+      )
+      .subscribe();
+
+    // Safety-net polling every 10s in case realtime misses any messages
+    const pollInterval = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+    }, 10000);
 
     return () => {
-      channels.forEach((channel) => {
-        supabase.removeChannel(channel);
-      });
+      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
-  }, [conversationId, qc]);
+  }, [JSON.stringify(Array.isArray(conversationId) ? [...conversationId].sort() : conversationId), qc]);
 }
 
 export function useDeleteMessage() {
@@ -114,8 +140,13 @@ export function useRealtimeConversations() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "conversations" },
-        () => {
+        (payload) => {
           qc.invalidateQueries({ queryKey: ["conversations"] });
+          // When a conversation is updated (new message arrives via trigger),
+          // also refresh messages so desktop sees new messages immediately
+          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            qc.invalidateQueries({ queryKey: ["messages"] });
+          }
         }
       )
       .subscribe();
