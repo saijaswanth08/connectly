@@ -375,7 +375,7 @@ export default function MessagesPage() {
   function isVideoUrl(url: string) {
     try {
       if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
-      return url.match(/\.(mp4|mov|webm|ogg|avi|mkv|m4v)(\?|$)/i) !== null;
+      return url.match(/\.(mp4|mov|webm|ogg|ogv|avi|mkv|m4v|3gp|3gpp)(\?|$)/i) !== null;
     } catch {
       return false;
     }
@@ -479,32 +479,90 @@ export default function MessagesPage() {
     });
   }
 
+  // Map MIME type to file extension so URLs always have a detectable extension
+  function getExtensionFromMime(mimeType: string): string {
+    const map: Record<string, string> = {
+      "image/jpeg": ".jpg",
+      "image/jpg": ".jpg",
+      "image/png": ".png",
+      "image/gif": ".gif",
+      "image/webp": ".webp",
+      "image/svg+xml": ".svg",
+      "image/bmp": ".bmp",
+      "video/mp4": ".mp4",
+      "video/quicktime": ".mov",
+      "video/webm": ".webm",
+      "video/ogg": ".ogv",
+      "video/x-msvideo": ".avi",
+      "video/x-matroska": ".mkv",
+      "video/x-m4v": ".m4v",
+      "video/3gpp": ".3gp",
+      "application/pdf": ".pdf",
+      "application/msword": ".doc",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+      "application/vnd.ms-excel": ".xls",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+      "text/plain": ".txt",
+    };
+    return map[mimeType] ?? "";
+  }
+
+  // Ensure file name has the correct extension based on its MIME type
+  function normalizeFileName(file: File): string {
+    const ext = getExtensionFromMime(file.type);
+    const baseName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "file";
+    // Already has correct extension
+    if (ext && baseName.toLowerCase().endsWith(ext)) return baseName;
+    // Has some extension but wrong — replace it, or append correct one
+    if (ext) return baseName.replace(/\.[^.]+$/, "") + ext;
+    return baseName;
+  }
+
+  // Read file into ArrayBuffer via FileReader.
+  // This is critical for Google Drive / content:// URI files on Android Chrome
+  // where direct streaming upload fails with "Failed to fetch".
+  function readFileAsBuffer(file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = () =>
+        reject(
+          new Error(
+            "Could not read this file. If selecting from Google Drive, please download it to your device first, then try again."
+          )
+        );
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
   async function handleAttachmentUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !selectedContactId) return;
 
     setUploadingAttachment(true);
-    
-    // Create an optimistic local preview URL (blob:) instantly for images
+
     const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
     const localPreviewUrl = isImage ? URL.createObjectURL(file) : "";
     const tempId = `optimistic-${Date.now()}`;
-    
+
     if (isImage) {
-      const optimisticMsg = {
-        id: tempId,
-        conversation_id: selectedConversationId || "temp",
-        user_id: user?.id || "user",
-        sender_type: "user",
-        content: localPreviewUrl,
-        created_at: new Date().toISOString(),
-        isOptimistic: true,
-      };
-      setOptimisticMessages((prev) => [...prev, optimisticMsg]);
+      setOptimisticMessages((prev) => [
+        ...prev,
+        {
+          id: tempId,
+          conversation_id: selectedConversationId || "temp",
+          user_id: user?.id || "user",
+          sender_type: "user",
+          content: localPreviewUrl,
+          created_at: new Date().toISOString(),
+          isOptimistic: true,
+        },
+      ]);
     } else {
       toast({
-        title: "Uploading file...",
-        description: `Sending ${file.name} to ${selectedContact?.name.split(' ')[0]}`,
+        title: isVideo ? "Uploading video..." : "Uploading file...",
+        description: `Sending ${file.name} to ${selectedContact?.name.split(" ")[0]}`,
       });
     }
 
@@ -521,24 +579,26 @@ export default function MessagesPage() {
         return;
       }
 
-      let convId = selectedConversationId;
+      // Read into ArrayBuffer first — fixes Google Drive / content:// URI failures on Android
+      const buffer = await readFileAsBuffer(isImage ? await compressImage(file) : file);
+      const safeFileName = normalizeFileName(file);
+      const uploadBlob = new Blob([buffer], { type: file.type });
 
+      let convId = selectedConversationId;
       if (!convId) {
         const conv = await getOrCreateConv.mutateAsync(selectedContactId);
         convId = conv.id;
         setSelectedConversationId(conv.id);
       }
 
-      // Client-side image compression to make uploads 10x-20x faster!
-      let fileToUpload = file;
-      if (isImage) {
-        fileToUpload = await compressImage(file);
-      }
+      const filePath = `${user?.id || "anon"}/chat-attachments/${Date.now()}-${safeFileName}`;
 
-      const filePath = `${user?.id || 'anon'}/chat-attachments/${Date.now()}-${fileToUpload.name}`;
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, fileToUpload, { upsert: true });
+        .upload(filePath, uploadBlob, {
+          contentType: file.type,
+          upsert: true,
+        });
 
       if (uploadError) throw uploadError;
 
@@ -552,7 +612,7 @@ export default function MessagesPage() {
 
       if (!isImage) {
         toast({
-          title: "File sent! 📎",
+          title: isVideo ? "Video sent! 🎥" : "File sent! 📎",
         });
       }
     } catch (err: any) {
@@ -560,16 +620,20 @@ export default function MessagesPage() {
       if (isImage) {
         setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempId));
       }
+      const isNetworkError =
+        err.message?.includes("Failed to fetch") ||
+        err.message?.includes("NetworkError") ||
+        err.message?.includes("network");
       toast({
         title: "Failed to send attachment",
-        description: err.message || "Unknown error occurred.",
+        description: isNetworkError
+          ? "Network error. If selecting from Google Drive, please download the file to your device first, then try again."
+          : err.message || "Unknown error occurred.",
         variant: "destructive",
       });
     } finally {
       setUploadingAttachment(false);
       if (attachmentInputRef.current) attachmentInputRef.current.value = "";
-      
-      // Revoke the optimistic object URL to free memory after 1.5s
       setTimeout(() => {
         if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
         setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempId));
