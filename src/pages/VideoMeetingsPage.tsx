@@ -57,7 +57,7 @@ export default function VideoMeetingsPage() {
       {
         user_id: user.id,
         title: "Instant Meeting",
-        meeting_link: `https://meet.ffmuc.net/${roomId}`,
+        meeting_link: `https://konferenz.netzbegruenung.de/${roomId}`,
         meeting_type: "video_call",
         location: "Online",
         meeting_time: new Date().toISOString(),
@@ -87,7 +87,9 @@ export default function VideoMeetingsPage() {
     const code = joinCode.trim();
     if (!code) return;
     // Support full URL or just room code
-    const roomId = code.includes("meet.ffmuc.net/")
+    const roomId = code.includes("konferenz.netzbegruenung.de/")
+      ? code.split("konferenz.netzbegruenung.de/")[1]?.split(/[#?]/)[0]
+      : code.includes("meet.ffmuc.net/")
       ? code.split("meet.ffmuc.net/")[1]?.split(/[#?]/)[0]
       : code.includes("meet.jit.si/")
       ? code.split("meet.jit.si/")[1]?.split(/[#?]/)[0]
@@ -110,7 +112,7 @@ export default function VideoMeetingsPage() {
       {
         user_id: user.id,
         title: form.title,
-        meeting_link: `https://meet.ffmuc.net/${roomId}`,
+        meeting_link: `https://konferenz.netzbegruenung.de/${roomId}`,
         meeting_type: form.meetingType,
         location: "Online",
         meeting_time: meetingTime.toISOString(),
@@ -146,7 +148,9 @@ export default function VideoMeetingsPage() {
   };
 
   const joinFromHistory = (link: string) => {
-    const roomId = link.includes("meet.ffmuc.net/")
+    const roomId = link.includes("konferenz.netzbegruenung.de/")
+      ? link.split("konferenz.netzbegruenung.de/")[1]?.split(/[#?]/)[0]
+      : link.includes("meet.ffmuc.net/")
       ? link.split("meet.ffmuc.net/")[1]?.split(/[#?]/)[0]
       : link.includes("meet.jit.si/")
       ? link.split("meet.jit.si/")[1]?.split(/[#?]/)[0]
