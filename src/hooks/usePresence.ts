@@ -15,46 +15,42 @@ let globalChannelUserId: string | null = null;
 let globalOnlineUsers: Set<string> = new Set();
 const listeners = new Set<(users: Set<string>) => void>();
 let cleanupTimeout: any = null;
-let visibilityListener: (() => void) | null = null;
 
-// Handle tab switching or window minimizing/focusing
-const handleVisibilityChange = async () => {
-  if (!globalChannel || !globalChannelUserId) return;
-
-  if (document.visibilityState === "hidden") {
-    // Mark offline immediately by untracking
-    await globalChannel.untrack();
-  } else if (document.visibilityState === "visible") {
-    // Re-register presence when switching back to the tab
-    await globalChannel.track({
-      user_id: globalChannelUserId,
-      online_at: new Date().toISOString(),
-    });
-  }
-};
-
-// Clean helper to remove/destroy the global channel and its event listeners cleanly
+// Clean helper to remove/destroy the global channel and cancel pending timeouts cleanly
 function removeGlobalChannel() {
+  if (cleanupTimeout) {
+    clearTimeout(cleanupTimeout);
+    cleanupTimeout = null;
+  }
   if (globalChannel) {
     supabase.removeChannel(globalChannel);
     globalChannel = null;
   }
   globalChannelUserId = null;
   globalOnlineUsers = new Set();
-
-  if (visibilityListener) {
-    document.removeEventListener("visibilitychange", visibilityListener);
-    visibilityListener = null;
-  }
+  // Broadcast empty online users list since we are offline
+  listeners.forEach((l) => l(globalOnlineUsers));
 }
 
 export function usePresence() {
   const { user } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(globalOnlineUsers);
+  const [isTabVisible, setIsTabVisible] = useState(document.visibilityState === 'visible');
+
+  // Track tab visibility changes reactively
+  useEffect(() => {
+    const handleVisibility = () => {
+      setIsTabVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
 
   useEffect(() => {
-    if (!user?.id) {
-      // Clear local and global presence state and unsubscribe the channel when the user is logged out
+    if (!user?.id || !isTabVisible) {
+      // Clear presence state and close connection immediately when logged out or tab is hidden
       removeGlobalChannel();
       return;
     }
@@ -98,24 +94,15 @@ export function usePresence() {
         .on('presence', { event: 'sync' }, syncState)
         .subscribe(async (status) => {
           if (status === 'SUBSCRIBED') {
-            // Track presence only if the tab is visible
-            if (document.visibilityState === 'visible') {
-              await channel.track({
-                user_id: user.id,
-                online_at: new Date().toISOString(),
-              });
-            }
+            await channel.track({
+              user_id: user.id,
+              online_at: new Date().toISOString(),
+            });
             syncState(); // Immediately synchronize the state after subscription
           }
         });
 
       globalChannel = channel;
-
-      // Register the visibility change listener
-      if (!visibilityListener) {
-        visibilityListener = handleVisibilityChange;
-        document.addEventListener('visibilitychange', visibilityListener);
-      }
     } else {
       // If the channel is already active, immediately initialize the caller state
       listener(globalOnlineUsers);
@@ -133,7 +120,7 @@ export function usePresence() {
         }, 3000);
       }
     };
-  }, [user?.id]);
+  }, [user?.id, isTabVisible]);
 
   // Handle instant browser close and tab unload events (mobile & desktop)
   useEffect(() => {
