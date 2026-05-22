@@ -25,7 +25,7 @@ export function JitsiMeetingRoom({ roomId, onLeave, title }: JitsiMeetingRoomPro
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const meetingUrl = `https://meet.jit.si/${roomId}`;
+  const meetingUrl = `https://meet.ffmuc.net/${roomId}`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(meetingUrl);
