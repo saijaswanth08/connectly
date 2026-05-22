@@ -15,6 +15,38 @@ let globalChannelUserId: string | null = null;
 let globalOnlineUsers: Set<string> = new Set();
 const listeners = new Set<(users: Set<string>) => void>();
 let cleanupTimeout: any = null;
+let visibilityListener: (() => void) | null = null;
+
+// Handle tab switching or window minimizing/focusing
+const handleVisibilityChange = async () => {
+  if (!globalChannel || !globalChannelUserId) return;
+
+  if (document.visibilityState === "hidden") {
+    // Mark offline immediately by untracking
+    await globalChannel.untrack();
+  } else if (document.visibilityState === "visible") {
+    // Re-register presence when switching back to the tab
+    await globalChannel.track({
+      user_id: globalChannelUserId,
+      online_at: new Date().toISOString(),
+    });
+  }
+};
+
+// Clean helper to remove/destroy the global channel and its event listeners cleanly
+function removeGlobalChannel() {
+  if (globalChannel) {
+    supabase.removeChannel(globalChannel);
+    globalChannel = null;
+  }
+  globalChannelUserId = null;
+  globalOnlineUsers = new Set();
+
+  if (visibilityListener) {
+    document.removeEventListener("visibilitychange", visibilityListener);
+    visibilityListener = null;
+  }
+}
 
 export function usePresence() {
   const { user } = useAuth();
@@ -23,22 +55,13 @@ export function usePresence() {
   useEffect(() => {
     if (!user?.id) {
       // Clear local and global presence state and unsubscribe the channel when the user is logged out
-      if (globalChannel) {
-        supabase.removeChannel(globalChannel);
-        globalChannel = null;
-        globalChannelUserId = null;
-      }
-      globalOnlineUsers = new Set();
-      setOnlineUsers(globalOnlineUsers);
+      removeGlobalChannel();
       return;
     }
 
     // If the logged-in user changed, cleanly remove the existing channel first to recreate it
     if (globalChannel && globalChannelUserId !== user.id) {
-      supabase.removeChannel(globalChannel);
-      globalChannel = null;
-      globalChannelUserId = null;
-      globalOnlineUsers = new Set();
+      removeGlobalChannel();
     }
 
     // Add this hook instance's state updater to our shared listeners set
@@ -75,15 +98,24 @@ export function usePresence() {
         .on('presence', { event: 'sync' }, syncState)
         .subscribe(async (status) => {
           if (status === 'SUBSCRIBED') {
-            await channel.track({
-              user_id: user.id,
-              online_at: new Date().toISOString(),
-            });
+            // Track presence only if the tab is visible
+            if (document.visibilityState === 'visible') {
+              await channel.track({
+                user_id: user.id,
+                online_at: new Date().toISOString(),
+              });
+            }
             syncState(); // Immediately synchronize the state after subscription
           }
         });
 
       globalChannel = channel;
+
+      // Register the visibility change listener
+      if (!visibilityListener) {
+        visibilityListener = handleVisibilityChange;
+        document.addEventListener('visibilitychange', visibilityListener);
+      }
     } else {
       // If the channel is already active, immediately initialize the caller state
       listener(globalOnlineUsers);
@@ -97,12 +129,7 @@ export function usePresence() {
       // This 3-second buffer prevents unnecessary disconnects and reconnects during page transitions.
       if (listeners.size === 0 && globalChannel) {
         cleanupTimeout = setTimeout(() => {
-          if (globalChannel) {
-            supabase.removeChannel(globalChannel);
-            globalChannel = null;
-            globalChannelUserId = null;
-            globalOnlineUsers = new Set();
-          }
+          removeGlobalChannel();
         }, 3000);
       }
     };
@@ -117,7 +144,7 @@ export function usePresence() {
         // Synchronously call untrack and cleanly remove the channel
         // to immediately close the websocket scope and trigger a leave broadcast
         globalChannel.untrack();
-        supabase.removeChannel(globalChannel);
+        removeGlobalChannel();
       }
     };
 
