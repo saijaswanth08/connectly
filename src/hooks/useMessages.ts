@@ -55,64 +55,105 @@ export function useMessages(conversationId: string | string[] | null) {
   });
 }
 
+/**
+ * Broadcast-based realtime message delivery.
+ * 
+ * postgres_changes events are unreliable when rows are inserted by SECURITY DEFINER
+ * triggers (the sync trigger). Instead we use Supabase Broadcast which is peer-to-peer
+ * and independent of DB events. Each user subscribes to a channel named after their
+ * own user ID. When someone sends them a message, the sender broadcasts a signal
+ * to the recipient's channel. The recipient hears it and re-fetches messages instantly.
+ * 
+ * A 3-second polling interval is also running as a bulletproof fallback.
+ */
+
+// Global broadcast channel reference (singleton per user session)
+let _broadcastChannel: ReturnType<typeof supabase.channel> | null = null;
+let _broadcastUserId: string | null = null;
+
 export function useRealtimeMessages(conversationId: string | string[] | null) {
   const qc = useQueryClient();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (!conversationId) return;
-    const ids = Array.isArray(conversationId) ? conversationId : [conversationId];
-    if (ids.length === 0) return;
+    if (!user?.id) return;
 
-    // Use a stable channel name based on sorted IDs
-    const channelName = `messages-watch-${ids.slice().sort().join("-")}`;
+    // Set up the user's personal broadcast listener (singleton)
+    if (_broadcastUserId !== user.id) {
+      // Clean up old channel if user changed
+      if (_broadcastChannel) {
+        supabase.removeChannel(_broadcastChannel);
+        _broadcastChannel = null;
+      }
+      _broadcastUserId = user.id;
 
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          // No filter — receive ALL inserts then check membership.
-          // Filtered subscriptions miss trigger-inserted rows (SECURITY DEFINER bypasses RLS checks
-          // that Supabase uses to determine realtime delivery eligibility).
-        },
-        (payload) => {
-          const msgConvId = (payload.new as { conversation_id?: string })?.conversation_id;
-          if (msgConvId && ids.includes(msgConvId)) {
+      _broadcastChannel = supabase
+        .channel(`user-inbox-${user.id}`)
+        .on("broadcast", { event: "new-message" }, () => {
+          // Someone sent us a message — refresh everything
+          qc.invalidateQueries({ queryKey: ["messages"] });
+          qc.invalidateQueries({ queryKey: ["conversations"] });
+        })
+        .on("broadcast", { event: "message-deleted" }, () => {
+          qc.invalidateQueries({ queryKey: ["messages"] });
+          qc.invalidateQueries({ queryKey: ["conversations"] });
+        })
+        .subscribe();
+    }
+
+    // Also keep postgres_changes as secondary signal (works for self-sent messages)
+    const ids = conversationId
+      ? Array.isArray(conversationId)
+        ? conversationId
+        : [conversationId]
+      : [];
+
+    let pgChannel: ReturnType<typeof supabase.channel> | null = null;
+    if (ids.length > 0) {
+      pgChannel = supabase
+        .channel(`pg-messages-${ids.slice().sort().join("-")}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "messages" },
+          () => {
             qc.invalidateQueries({ queryKey: ["messages", conversationId] });
             qc.invalidateQueries({ queryKey: ["conversations"] });
           }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "messages",
-        },
-        (payload) => {
-          const msgConvId = (payload.old as { conversation_id?: string })?.conversation_id;
-          if (msgConvId && ids.includes(msgConvId)) {
-            qc.invalidateQueries({ queryKey: ["messages", conversationId] });
-            qc.invalidateQueries({ queryKey: ["conversations"] });
-          }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    }
 
-    // Safety-net polling every 10s in case realtime misses any messages
+    // Bulletproof polling fallback — 3 seconds
     const pollInterval = setInterval(() => {
       qc.invalidateQueries({ queryKey: ["messages", conversationId] });
-    }, 10000);
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+    }, 3000);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (pgChannel) supabase.removeChannel(pgChannel);
       clearInterval(pollInterval);
+      // NOTE: We do NOT remove _broadcastChannel here — it's a singleton for the user session
     };
-  }, [JSON.stringify(Array.isArray(conversationId) ? [...conversationId].sort() : conversationId), qc]);
+  }, [
+    user?.id,
+    JSON.stringify(
+      Array.isArray(conversationId) ? [...conversationId].sort() : conversationId
+    ),
+    qc,
+  ]);
+}
+
+// Helper: broadcast a "new message" signal to a target user's inbox channel
+async function broadcastToUser(targetUserId: string, event: string) {
+  try {
+    const ch = supabase.channel(`user-inbox-${targetUserId}`);
+    await ch.subscribe();
+    await ch.send({ type: "broadcast", event, payload: {} });
+    // Small delay then clean up the sender-side channel
+    setTimeout(() => supabase.removeChannel(ch), 500);
+  } catch (e) {
+    console.warn("Broadcast failed (non-critical):", e);
+  }
 }
 
 export function useDeleteMessage() {
@@ -140,13 +181,9 @@ export function useRealtimeConversations() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "conversations" },
-        (payload) => {
+        () => {
           qc.invalidateQueries({ queryKey: ["conversations"] });
-          // When a conversation is updated (new message arrives via trigger),
-          // also refresh messages so desktop sees new messages immediately
-          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
-            qc.invalidateQueries({ queryKey: ["messages"] });
-          }
+          qc.invalidateQueries({ queryKey: ["messages"] });
         }
       )
       .subscribe();
@@ -189,6 +226,26 @@ export function useSendMessage() {
         })
         .eq("id", conversationId);
       if (convError) throw convError;
+
+      // Broadcast to the recipient so they see it instantly
+      // Look up who the conversation is with
+      const { data: conv } = await supabase
+        .from("conversations")
+        .select("contact_id")
+        .eq("id", conversationId)
+        .single();
+
+      if (conv?.contact_id) {
+        const { data: contact } = await supabase
+          .from("contacts")
+          .select("target_user_id")
+          .eq("id", conv.contact_id)
+          .single();
+
+        if (contact?.target_user_id) {
+          broadcastToUser(contact.target_user_id, "new-message");
+        }
+      }
     },
     onMutate: async (newMessage) => {
       await qc.cancelQueries({ queryKey: ["messages", newMessage.conversationId] });
@@ -219,6 +276,7 @@ export function useSendMessage() {
     },
   });
 }
+
 
 export function useClearConversation() {
   const qc = useQueryClient();
