@@ -833,7 +833,7 @@ export default function MessagesPage() {
                             <div className={cn("flex flex-col max-w-[85%] lg:max-w-[75%] p-0 m-0", isUser ? "items-end" : "items-start")}>
                               <div
                                 className={cn(
-                                  "px-4 py-2.5 transition-all duration-200 relative group m-0 border-0 shadow-sm rounded-2xl flex flex-col min-w-[90px] gap-1",
+                                  "px-4 py-2.5 transition-all duration-200 relative m-0 border-0 shadow-sm rounded-2xl flex flex-col min-w-[90px] gap-1",
                                   isUser
                                     ? "bg-indigo-600 text-white"
                                     : "bg-card border border-border/40 text-foreground"
