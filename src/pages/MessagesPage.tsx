@@ -53,9 +53,12 @@ function formatMessageTime(dateStr: string) {
 function formatLastMessagePreview(content: string | null) {
   if (!content) return "";
   if (content.startsWith("blob:") || content.includes("chat-attachments") || content.includes("/storage/v1/object/public/")) {
-    const isImg = content.match(/\.(jpeg|jpg|gif|png|webp|svg|bmp)$/i) !== null || content.includes(".jpg?") || content.includes(".png?") || content.startsWith("blob:");
+    const isImg = content.match(/\.(jpeg|jpg|gif|png|webp|svg|bmp)(\?|$)/i) !== null || content.startsWith("blob:");
+    const isVid = content.match(/\.(mp4|mov|webm|ogg|avi|mkv|m4v)(\?|$)/i) !== null;
     if (isImg) {
       return "📷 Photo";
+    } else if (isVid) {
+      return "🎥 Video";
     } else {
       return "📎 File";
     }
@@ -360,10 +363,19 @@ export default function MessagesPage() {
 
   function isImageUrl(url: string) {
     try {
-      if (url.startsWith("blob:")) return true; // optimistic preview
+      if (url.startsWith("blob:") && !url.includes("video")) return true; // optimistic preview
       if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
       // Strictly match image extensions only
-      return url.match(/\.(jpeg|jpg|gif|png|webp|svg|bmp)$/i) !== null || url.includes(".jpg?") || url.includes(".png?");
+      return url.match(/\.(jpeg|jpg|gif|png|webp|svg|bmp)(\?|$)/i) !== null;
+    } catch {
+      return false;
+    }
+  }
+
+  function isVideoUrl(url: string) {
+    try {
+      if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
+      return url.match(/\.(mp4|mov|webm|ogg|avi|mkv|m4v)(\?|$)/i) !== null;
     } catch {
       return false;
     }
@@ -372,7 +384,9 @@ export default function MessagesPage() {
   function isAttachmentUrl(url: string) {
     try {
       if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
-      return url.includes("chat-attachments") || url.includes("/storage/v1/object/public/");
+      // Attachment if it's in our storage but NOT an image or video (those render natively)
+      const isStorage = url.includes("chat-attachments") || url.includes("/storage/v1/object/public/");
+      return isStorage && !isImageUrl(url) && !isVideoUrl(url);
     } catch {
       return false;
     }
@@ -495,7 +509,20 @@ export default function MessagesPage() {
     }
 
     try {
+      // File size check: 50MB limit
+      if (file.size > 50 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please choose a file under 50MB.",
+          variant: "destructive",
+        });
+        setUploadingAttachment(false);
+        if (attachmentInputRef.current) attachmentInputRef.current.value = "";
+        return;
+      }
+
       let convId = selectedConversationId;
+
       if (!convId) {
         const conv = await getOrCreateConv.mutateAsync(selectedContactId);
         convId = conv.id;
@@ -508,7 +535,7 @@ export default function MessagesPage() {
         fileToUpload = await compressImage(file);
       }
 
-      const filePath = `chat-attachments/${user?.id || 'anon'}/${Date.now()}-${fileToUpload.name}`;
+      const filePath = `${user?.id || 'anon'}/chat-attachments/${Date.now()}-${fileToUpload.name}`;
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, fileToUpload, { upsert: true });
@@ -856,6 +883,17 @@ export default function MessagesPage() {
                                       </div>
                                     )}
                                   </div>
+                                ) : isVideoUrl(msg.content) ? (
+                                  <div className="relative rounded-xl overflow-hidden max-w-xs sm:max-w-sm md:max-w-md my-0.5">
+                                    <video
+                                      src={msg.content}
+                                      controls
+                                      playsInline
+                                      preload="metadata"
+                                      className="max-h-72 w-full rounded-xl border border-border/10 bg-black"
+                                      style={{ maxWidth: "280px" }}
+                                    />
+                                  </div>
                                 ) : isAttachmentUrl(msg.content) ? (
                                   <div 
                                     onClick={() => window.open(msg.content, "_blank")}
@@ -870,7 +908,7 @@ export default function MessagesPage() {
                                       "h-10 w-10 shrink-0 rounded-lg flex items-center justify-center shadow-inner",
                                       isUser ? "bg-white/15 text-white" : "bg-primary/10 text-primary"
                                     )}>
-                                      <FileText className="h-5 w-5 animate-pulse" />
+                                      <FileText className="h-5 w-5" />
                                     </div>
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                       <p className="text-xs font-bold truncate leading-tight">
@@ -894,7 +932,7 @@ export default function MessagesPage() {
                                           ? "border-white/10 bg-white/5 hover:bg-white/10 text-white" 
                                           : "border-border/65 bg-background hover:bg-muted text-muted-foreground hover:text-foreground"
                                       )}
-                                      title="Download document"
+                                      title="Download file"
                                     >
                                       <Download className="h-4 w-4" />
                                     </div>
@@ -945,7 +983,7 @@ export default function MessagesPage() {
                       ref={attachmentInputRef}
                       type="file"
                       className="hidden"
-                      accept="image/*,application/pdf"
+                      accept="image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
                       onChange={handleAttachmentUpload}
                     />
                     <textarea
