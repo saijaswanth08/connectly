@@ -36,16 +36,24 @@ export function NotificationBell() {
   const { data: incomingMessages = [], refetch: refetchIncoming } = useQuery({
     queryKey: ["notification-messages"],
     queryFn: async () => {
-      const { data: convs } = await supabase
+      const { data: convs, error: convError } = await supabase
         .from("conversations")
         .select("id, contact_id");
       
+      if (convError) {
+        console.error("[NotificationBell] Error fetching conversations:", convError.message);
+        return [];
+      }
+      
       if (!convs || convs.length === 0) return [];
+      
+      const convIds = convs.map((c) => c.id);
       
       const { data: msgs, error } = await supabase
         .from("messages")
         .select("*")
         .eq("sender_type", "contact")
+        .in("conversation_id", convIds)
         .order("created_at", { ascending: false })
         .limit(10);
       
@@ -163,7 +171,17 @@ export function NotificationBell() {
     .sort((a, b) => new Date(a.reminder_date).getTime() - new Date(b.reminder_date).getTime());
 
   const count = pending.length + messageRequests.length + incomingContactReqs.length + acceptedOutgoing.length + unreadMessages.length;
-  const getContactName = (id: string | null) => contacts.find((c) => c.id === id)?.name ?? null;
+  const getContactName = (contactId: string | null, senderUserId?: string | null) => {
+    if (contactId) {
+      const byId = contacts.find((c) => c.id === contactId);
+      if (byId) return byId.name;
+    }
+    if (senderUserId) {
+      const byUserId = contacts.find((c) => c.target_user_id === senderUserId);
+      if (byUserId) return byUserId.name;
+    }
+    return null;
+  };
 
   async function markDone(id: string) {
     await updateReminder.mutateAsync({ id, updates: { completed: true } });
@@ -347,7 +365,7 @@ export function NotificationBell() {
                 New Messages
               </div>
               {unreadMessages.map((m) => {
-                const name = getContactName(m.contact_id) || "Someone";
+                const name = getContactName(m.contact_id, m.user_id) || "Someone";
                 return (
                   <div key={m.id} className="px-3 py-2.5 border-b border-border/50 bg-primary/5 hover:bg-primary/10 transition-colors">
                     <div className="flex items-start justify-between gap-2">
