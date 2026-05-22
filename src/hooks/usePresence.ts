@@ -9,41 +9,111 @@ export interface PresenceState {
   }>;
 }
 
+// Module-level singleton state to keep exactly one shared subscription active
+let globalChannel: any = null;
+let globalOnlineUsers: Set<string> = new Set();
+const listeners = new Set<(users: Set<string>) => void>();
+let cleanupTimeout: any = null;
+
 export function usePresence() {
   const { user } = useAuth();
-  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(globalOnlineUsers);
 
+  useEffect(() => {
+    if (!user) {
+      // Clear local and global presence state when the user is logged out
+      globalOnlineUsers = new Set();
+      setOnlineUsers(globalOnlineUsers);
+      return;
+    }
+
+    // Add this hook instance's state updater to our shared listeners set
+    const listener = (users: Set<string>) => {
+      setOnlineUsers(new Set(users));
+    };
+    listeners.add(listener);
+
+    // Cancel any pending unmount cleanup timeouts
+    if (cleanupTimeout) {
+      clearTimeout(cleanupTimeout);
+      cleanupTimeout = null;
+    }
+
+    // Initialize the shared presence channel if it doesn't exist
+    if (!globalChannel) {
+      const channel = supabase.channel('global-presence', {
+        config: {
+          presence: {
+            key: user.id,
+          },
+        },
+      });
+
+      const syncState = () => {
+        const state = channel.presenceState();
+        globalOnlineUsers = new Set<string>(Object.keys(state));
+        // Broadcast the updated online users set to all active hook listeners
+        listeners.forEach((l) => l(globalOnlineUsers));
+      };
+
+      channel
+        .on('presence', { event: 'sync' }, syncState)
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await channel.track({
+              user_id: user.id,
+              online_at: new Date().toISOString(),
+            });
+            syncState(); // Immediately synchronize the state after subscription
+          }
+        });
+
+      globalChannel = channel;
+    } else {
+      // If the channel is already active, immediately initialize the caller state
+      listener(globalOnlineUsers);
+    }
+
+    // Cleanup when this specific hook instance unmounts
+    return () => {
+      listeners.delete(listener);
+
+      // If no other components are active, wait a brief moment before removing the channel.
+      // This 3-second buffer prevents unnecessary disconnects and reconnects during page transitions.
+      if (listeners.size === 0 && globalChannel) {
+        cleanupTimeout = setTimeout(() => {
+          if (globalChannel) {
+            supabase.removeChannel(globalChannel);
+            globalChannel = null;
+            globalOnlineUsers = new Set();
+          }
+        }, 3000);
+      }
+    };
+  }, [user?.id]);
+
+  // Handle instant browser close and tab unload events (mobile & desktop)
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase.channel('global-presence', {
-      config: {
-        presence: {
-          key: user.id,
-        },
-      },
-    });
-
-    const syncState = () => {
-      const state = channel.presenceState();
-      const onlineIds = new Set<string>(Object.keys(state));
-      setOnlineUsers(onlineIds);
+    const handleInstantUnload = () => {
+      if (globalChannel) {
+        // Synchronously call untrack and cleanly remove the channel
+        // to immediately close the websocket scope and trigger a leave broadcast
+        globalChannel.untrack();
+        supabase.removeChannel(globalChannel);
+      }
     };
 
-    channel
-      .on('presence', { event: 'sync' }, syncState)
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({
-            user_id: user.id,
-            online_at: new Date().toISOString(),
-          });
-          syncState(); // Initial sync immediately after subscription
-        }
-      });
+    // Use multiple lifecycle hooks to guarantee firing across modern desktop & mobile browsers
+    window.addEventListener('beforeunload', handleInstantUnload);
+    window.addEventListener('pagehide', handleInstantUnload);
+    window.addEventListener('unload', handleInstantUnload);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('beforeunload', handleInstantUnload);
+      window.removeEventListener('pagehide', handleInstantUnload);
+      window.removeEventListener('unload', handleInstantUnload);
     };
   }, [user?.id]);
 
