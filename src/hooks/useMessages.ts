@@ -92,15 +92,14 @@ export function useRealtimeMessages(conversationId: string | string[] | null) {
 export function useDeleteMessage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ messageId, conversationId }: { messageId: string; conversationId: string }) => {
-      const { error } = await supabase
-        .from("messages")
-        .delete()
-        .eq("id", messageId);
+    mutationFn: async ({ messageId }: { messageId: string; conversationId: string }) => {
+      const { error } = await supabase.rpc("unsend_message", {
+        p_message_id: messageId,
+      });
       if (error) throw error;
     },
-    onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ["messages", variables.conversationId] });
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["messages"] });
       qc.invalidateQueries({ queryKey: ["conversations"] });
     },
   });

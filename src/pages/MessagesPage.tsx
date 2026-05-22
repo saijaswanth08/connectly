@@ -130,9 +130,13 @@ export default function MessagesPage() {
   const clearChat = useClearConversation();
   const deleteMessage = useDeleteMessage();
   const getOrCreateConv = useGetOrCreateConversation();
+  const [deletedMessageIds, setDeletedMessageIds] = useState<string[]>([]);
 
   async function handleDeleteMessage(messageId: string) {
     if (!selectedConversationId) return;
+
+    // Optimistically hide the message in the UI immediately
+    setDeletedMessageIds((prev) => [...prev, messageId]);
 
     // Optimistically filter out if present locally
     setOptimisticMessages((prev) => prev.filter((m) => m.id !== messageId));
@@ -147,6 +151,8 @@ export default function MessagesPage() {
       });
     } catch (error: any) {
       console.error("Error deleting message:", error);
+      // Revert optimistic deletion in the UI
+      setDeletedMessageIds((prev) => prev.filter((id) => id !== messageId));
       toast({
         title: "Failed to delete message",
         description: error.message || "An unknown database error occurred.",
@@ -162,8 +168,9 @@ export default function MessagesPage() {
   const allMessages = useMemo(() => {
     const realContentSet = new Set(messages.map((m) => m.content));
     const filteredOptimistic = optimisticMessages.filter((om) => !realContentSet.has(om.content));
-    return [...messages, ...filteredOptimistic];
-  }, [messages, optimisticMessages]);
+    const combined = [...messages, ...filteredOptimistic];
+    return combined.filter((m) => !deletedMessageIds.includes(m.id));
+  }, [messages, optimisticMessages, deletedMessageIds]);
 
   useRealtimeMessages(siblingConversationIds.length > 0 ? siblingConversationIds : selectedConversationId);
   useRealtimeConversations();
@@ -795,7 +802,7 @@ export default function MessagesPage() {
                   ) : (
                     <div className="flex flex-col">
                       {allMessages.map((msg, idx) => {
-                        const isUser = msg.sender_type === "user";
+                        const isUser = msg.sender_type === "user" || msg.user_id === user?.id;
                         const prevMsg = allMessages[idx - 1];
                         const nextMsg = allMessages[idx + 1];
                         
@@ -915,7 +922,7 @@ export default function MessagesPage() {
                                     handleDeleteMessage(msg.id);
                                   }
                                 }}
-                                className="h-8 w-8 rounded-full text-muted-foreground/35 hover:text-destructive hover:bg-destructive/5 opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0 mb-1.5 self-end"
+                                className="h-8 w-8 rounded-full text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 shrink-0 mb-1.5 self-end opacity-100 md:opacity-0 group-hover:opacity-100"
                                 title="Unsend message"
                               >
                                 <Trash2 className="h-4 w-4" />
