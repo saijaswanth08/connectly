@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function SidebarUserMenu() {
   const { signOut } = useAuth();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
 
@@ -29,6 +29,13 @@ export function SidebarUserMenu() {
 
   const displayName = profile?.name || "User";
   const displayEmail = profile?.email || "";
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -75,15 +82,15 @@ export function SidebarUserMenu() {
         className="w-[220px] mb-1"
         sideOffset={8}
       >
-        <DropdownMenuItem onClick={() => navigate("/help")}>
+        <DropdownMenuItem onClick={() => handleNavigate("/help")}>
           <BookOpen className="mr-2 h-4 w-4" />
           Help Center
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/report-issue")}>
+        <DropdownMenuItem onClick={() => handleNavigate("/report-issue")}>
           <Bug className="mr-2 h-4 w-4" />
           Report a Bug
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/support")}>
+        <DropdownMenuItem onClick={() => handleNavigate("/support")}>
           <HelpCircle className="mr-2 h-4 w-4" />
           Get Help
         </DropdownMenuItem>

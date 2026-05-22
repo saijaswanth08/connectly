@@ -23,10 +23,16 @@ const widgetItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50 dark:bg-slate-900 dark:border-slate-800">
@@ -52,6 +58,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild isActive={active}>
                       <Link
                         to={item.url}
+                        onClick={handleLinkClick}
                         className={cn(
                           "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800 dark:hover:bg-slate-800",
                           active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium dark:text-gray-400"
@@ -71,6 +78,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild isActive={active}>
                       <Link
                         to={item.url}
+                        onClick={handleLinkClick}
                         className={cn(
                           "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-slate-800 dark:hover:bg-slate-800",
                           active ? "bg-indigo-600 text-white font-medium" : "text-sm text-slate-300 font-medium dark:text-gray-400"
