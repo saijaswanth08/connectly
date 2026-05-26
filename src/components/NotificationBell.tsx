@@ -14,6 +14,49 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
+function renderMessageContent(content: string | null) {
+  if (!content) return "";
+  const trimmed = content.trim();
+  const isAttachment = trimmed.startsWith("blob:") || trimmed.includes("chat-attachments") || trimmed.includes("/storage/v1/object/public/");
+  
+  if (isAttachment) {
+    const isImg = trimmed.match(/\.(jpeg|jpg|gif|png|webp|svg|bmp)(\?|$)/i) !== null || trimmed.startsWith("blob:");
+    const isVid = trimmed.match(/\.(mp4|mov|webm|ogg|avi|mkv|m4v)(\?|$)/i) !== null;
+    
+    if (isImg) {
+      return (
+        <div className="flex flex-col gap-1.5 mt-1.5">
+          <div className="flex items-center gap-1.5 text-xs text-foreground/80 font-medium">
+            <span role="img" aria-label="photo">📷</span>
+            <span>Photo</span>
+          </div>
+          <img 
+            src={trimmed} 
+            alt="Attachment" 
+            className="w-14 h-14 rounded-lg object-cover border border-border/80 shadow-sm hover:scale-[1.05] active:scale-[0.98] transition-all duration-300 pointer-events-auto" 
+          />
+        </div>
+      );
+    } else if (isVid) {
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-foreground/80 font-medium mt-1">
+          <span role="img" aria-label="video">🎥</span>
+          <span>Video</span>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-foreground/80 font-medium mt-1">
+          <span role="img" aria-label="file">📎</span>
+          <span>File</span>
+        </div>
+      );
+    }
+  }
+  
+  return <span className="truncate block">{content}</span>;
+}
+
 export function NotificationBell() {
   const { user } = useAuth();
   const location = useLocation();
@@ -338,9 +381,11 @@ export function NotificationBell() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-foreground truncate">{req.sender_name}</p>
-                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
-                        <MessageSquare className="h-2.5 w-2.5" />
-                        <span className="truncate">{req.content}</span>
+                      <div className="flex items-start gap-1.5 text-[11px] text-muted-foreground mt-1">
+                        <MessageSquare className="h-3 w-3 shrink-0 mt-0.5" />
+                        <div className="min-w-0 flex-1">
+                          {renderMessageContent(req.content)}
+                        </div>
                       </div>
                     </div>
                     <Button 
@@ -377,9 +422,11 @@ export function NotificationBell() {
                         }}
                       >
                         <p className="text-sm font-medium text-foreground truncate">{name}</p>
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
-                          <MessageSquare className="h-2.5 w-2.5" />
-                          <span className="truncate">{m.content}</span>
+                        <div className="flex items-start gap-1.5 text-[11px] text-muted-foreground mt-1">
+                          <MessageSquare className="h-3 w-3 shrink-0 mt-0.5" />
+                          <div className="min-w-0 flex-1">
+                            {renderMessageContent(m.content)}
+                          </div>
                         </div>
                       </Link>
                       <Button 
