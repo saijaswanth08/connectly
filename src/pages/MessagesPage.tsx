@@ -704,7 +704,7 @@ export default function MessagesPage() {
               <div className="space-y-1">
                 {sortedContacts.map((contact) => {
                   const conv = convByContact.get(contact.id);
-                  const isOnline = isUserOnline(onlineUsers, contact.target_user_id);
+                  const isOnline = isUserOnline(onlineUsers, contact.target_user_id) && contact.target_user_id !== user?.id;
                   const isActive = selectedContactId === contact.id || 
                     siblingContacts.some((sc) => sc.id === contact.id);
                   
@@ -801,7 +801,7 @@ export default function MessagesPage() {
                     <div>
                       <h2 className="text-base font-bold text-foreground leading-tight tracking-tight hover:text-primary transition-colors">{selectedContact.name}</h2>
                       <div className="flex items-center mt-1">
-                        {isUserOnline(onlineUsers, selectedContact.target_user_id) ? (
+                        {isUserOnline(onlineUsers, selectedContact.target_user_id) && selectedContact.target_user_id !== user?.id ? (
                           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/10 transition-all duration-300">
                             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                             <span className="text-[10px] font-bold tracking-wide uppercase">Online</span>
