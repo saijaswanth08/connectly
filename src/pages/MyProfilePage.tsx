@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Mail, Phone, Building2, Briefcase, Save,
-  ImagePlus, Trash2, Linkedin, Instagram, QrCode, Download, LogOut,
+  ImagePlus, Trash2, Linkedin, Instagram, QrCode, Download,
 } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -481,19 +481,6 @@ export default function MyProfilePage() {
               onClick={handleRemovePhoto} disabled={!profile?.avatar_url || uploading}>
               <Trash2 className="h-3.5 w-3.5" />
               Remove
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs w-full sm:w-auto sm:ml-auto justify-center"
-              onClick={() => {
-                supabase.auth.signOut().finally(() => {
-                  window.location.replace("/");
-                });
-              }}
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Sign Out
             </Button>
           </div>
         </div>
