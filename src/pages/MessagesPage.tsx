@@ -1337,16 +1337,29 @@ export default function MessagesPage() {
                                       <Reply className="h-3.5 w-3.5" />
                                       Reply
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem 
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(bodyText);
-                                        toast({ title: "Copied to clipboard! 📋" });
-                                      }}
-                                      className="gap-2 cursor-pointer text-xs"
-                                    >
-                                      <Copy className="h-3.5 w-3.5" />
-                                      Copy Text
-                                    </DropdownMenuItem>
+                                    {(isImg || isVid || isAud || isDoc) ? (
+                                      <DropdownMenuItem 
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(bodyText);
+                                          toast({ title: "Link copied! 🔗" });
+                                        }}
+                                        className="gap-2 cursor-pointer text-xs"
+                                      >
+                                        <Copy className="h-3.5 w-3.5" />
+                                        Copy Link
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem 
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(bodyText);
+                                          toast({ title: "Copied to clipboard! 📋" });
+                                        }}
+                                        className="gap-2 cursor-pointer text-xs"
+                                      >
+                                        <Copy className="h-3.5 w-3.5" />
+                                        Copy Text
+                                      </DropdownMenuItem>
+                                    )}
                                     <DropdownMenuItem 
                                       onClick={() => {
                                         setForwardingMessage(msg);
