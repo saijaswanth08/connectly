@@ -127,12 +127,29 @@ export default function MessagesPage() {
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSearch, setPickerSearch] = useState("");
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const [pastedMediaUrl, setPastedMediaUrl] = useState<string | null>(null);
   
   // Premium feature states
   const [replyingTo, setReplyingTo] = useState<any | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [forwardingMessage, setForwardingMessage] = useState<any | null>(null);
+
+  // Reset message text and preview when active contact changes
+  useEffect(() => {
+    setMessageText("");
+    setPastedMediaUrl(null);
+    setReplyingTo(null);
+  }, [selectedContactId]);
+
+  // Intercept pasted media URLs to clear them from textarea and show clean preview banner
+  useEffect(() => {
+    const trimmed = messageText.trim();
+    if (isImageUrl(trimmed) || isVideoUrl(trimmed) || isAudioUrl(trimmed)) {
+      setPastedMediaUrl(trimmed);
+      setMessageText("");
+    }
+  }, [messageText]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
@@ -518,7 +535,7 @@ export default function MessagesPage() {
   }
 
   async function handleSend() {
-    if (!messageText.trim()) {
+    if (!messageText.trim() && !pastedMediaUrl) {
       toast({
         title: "Validation error ⚠️",
         description: "Cannot send an empty message.",
@@ -529,29 +546,49 @@ export default function MessagesPage() {
     if (!selectedContactId) return;
 
     let textToSend = messageText.trim();
-    if (replyingTo) {
-      // Inline reply serialization block
-      const cleanReplied = replyingTo.content.startsWith("> 📝 Replying to:")
-        ? replyingTo.content.split("\n\n").slice(1).join("\n\n")
-        : replyingTo.content;
-      textToSend = `> 📝 Replying to: ${cleanReplied}\n\n${textToSend}`;
-    }
+    let mediaToSend = pastedMediaUrl;
 
     setMessageText("");
+    setPastedMediaUrl(null);
     setReplyingTo(null);
 
-    const tempId = `optimistic-${Date.now()}`;
-    const optimisticMsg = {
-      id: tempId,
-      conversation_id: selectedConversationId || "temp",
-      user_id: user?.id || "user",
-      sender_type: "user",
-      content: textToSend,
-      created_at: new Date().toISOString(),
-      isOptimistic: true,
-    };
+    const tempMediaId = `optimistic-media-${Date.now()}`;
+    const tempTextId = `optimistic-text-${Date.now() + 1}`;
 
-    setOptimisticMessages((prev) => [...prev, optimisticMsg]);
+    if (mediaToSend) {
+      const optimisticMsg = {
+        id: tempMediaId,
+        conversation_id: selectedConversationId || "temp",
+        user_id: user?.id || "user",
+        sender_type: "user",
+        content: mediaToSend,
+        created_at: new Date().toISOString(),
+        isOptimistic: true,
+      };
+      setOptimisticMessages((prev) => [...prev, optimisticMsg]);
+    }
+
+    if (textToSend) {
+      let preparedText = textToSend;
+      if (replyingTo) {
+        // Inline reply serialization block
+        const cleanReplied = replyingTo.content.startsWith("> 📝 Replying to:")
+          ? replyingTo.content.split("\n\n").slice(1).join("\n\n")
+          : replyingTo.content;
+        preparedText = `> 📝 Replying to: ${cleanReplied}\n\n${preparedText}`;
+      }
+
+      const optimisticMsg = {
+        id: tempTextId,
+        conversation_id: selectedConversationId || "temp",
+        user_id: user?.id || "user",
+        sender_type: "user",
+        content: preparedText,
+        created_at: new Date(Date.now() + 50).toISOString(),
+        isOptimistic: true,
+      };
+      setOptimisticMessages((prev) => [...prev, optimisticMsg]);
+    }
 
     try {
       let convId = selectedConversationId;
@@ -561,14 +598,31 @@ export default function MessagesPage() {
         setSelectedConversationId(conv.id);
       }
 
-      await sendMessage.mutateAsync({
-        conversationId: convId,
-        content: textToSend,
-      });
+      if (mediaToSend) {
+        await sendMessage.mutateAsync({
+          conversationId: convId,
+          content: mediaToSend,
+        });
+      }
+
+      if (textToSend) {
+        let preparedText = textToSend;
+        if (replyingTo) {
+          const cleanReplied = replyingTo.content.startsWith("> 📝 Replying to:")
+            ? replyingTo.content.split("\n\n").slice(1).join("\n\n")
+            : replyingTo.content;
+          preparedText = `> 📝 Replying to: ${cleanReplied}\n\n${preparedText}`;
+        }
+        await sendMessage.mutateAsync({
+          conversationId: convId,
+          content: preparedText,
+        });
+      }
     } catch (error: any) {
       console.error("Message send error:", error);
-      setMessageText(messageText); // restore original text
-      setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempId));
+      if (textToSend) setMessageText(textToSend);
+      if (mediaToSend) setPastedMediaUrl(mediaToSend);
+      setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempMediaId && m.id !== tempTextId));
       toast({
         title: "Failed to send message",
         description: error.message || "An unknown database error occurred.",
@@ -576,7 +630,7 @@ export default function MessagesPage() {
       });
     } finally {
       setTimeout(() => {
-        setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempId));
+        setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempMediaId && m.id !== tempTextId));
       }, 1500);
     }
   }
@@ -1434,6 +1488,40 @@ export default function MessagesPage() {
                   </div>
                 )}
 
+                {/* Media URL preview banner when user pastes a media link */}
+                {pastedMediaUrl && (() => {
+                  const isPastedImg = isImageUrl(pastedMediaUrl);
+                  const isPastedVid = isVideoUrl(pastedMediaUrl);
+                  const isPastedAud = isAudioUrl(pastedMediaUrl);
+                  return (
+                    <div className="max-w-4xl mx-auto flex items-center gap-3 px-3 py-2.5 mb-3 rounded-xl bg-primary/5 border border-primary/10 animate-in slide-in-from-bottom-2 duration-200">
+                      {isPastedVid ? (
+                        <video src={pastedMediaUrl} className="h-14 w-20 rounded-lg object-cover bg-black" muted preload="metadata" />
+                      ) : isPastedImg ? (
+                        <img src={pastedMediaUrl} className="h-14 w-20 rounded-lg object-cover" alt="Preview" />
+                      ) : (
+                        <div className="h-14 w-20 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Music className="h-5 w-5 text-primary" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="text-xs font-bold text-primary">
+                          {isPastedVid ? "🎥 Video" : isPastedImg ? "📷 Photo" : "🎵 Audio"} will be sent as media
+                        </p>
+                        <p className="text-[10px] text-muted-foreground truncate">{getFileNameFromUrl(pastedMediaUrl)}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setPastedMediaUrl(null)}
+                        className="h-6 w-6 rounded-full shrink-0"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  );
+                })()}
+
                 <div className="max-w-4xl mx-auto flex items-end gap-3">
                   <div className="flex-1 relative group bg-background/50 rounded-[28px] border border-border/60 focus-within:border-primary/30 focus-within:bg-background focus-within:shadow-[0_0_20px_rgba(var(--primary-rgb),0.05)] transition-all duration-500">
                     <input
@@ -1443,53 +1531,14 @@ export default function MessagesPage() {
                       accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
                       onChange={handleAttachmentUpload}
                     />
-                    {/* Media URL preview banner when user pastes a media link */}
-                    {(() => {
-                      const trimmed = messageText.trim();
-                      const isPastedImg = isImageUrl(trimmed);
-                      const isPastedVid = isVideoUrl(trimmed);
-                      const isPastedAud = isAudioUrl(trimmed);
-                      const isPastedMedia = isPastedImg || isPastedVid || isPastedAud;
-                      if (isPastedMedia) {
-                        return (
-                          <div className="mx-4 my-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 border border-primary/10">
-                            {isPastedVid ? (
-                              <video src={trimmed} className="h-14 w-20 rounded-lg object-cover bg-black" muted preload="metadata" />
-                            ) : isPastedImg ? (
-                              <img src={trimmed} className="h-14 w-20 rounded-lg object-cover" alt="Preview" />
-                            ) : (
-                              <div className="h-14 w-20 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <Music className="h-5 w-5 text-primary" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold text-primary">
-                                {isPastedVid ? "🎥 Video" : isPastedImg ? "📷 Photo" : "🎵 Audio"} will be sent as media
-                              </p>
-                              <p className="text-[10px] text-muted-foreground truncate">{getFileNameFromUrl(trimmed)}</p>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setMessageText("")}
-                              className="h-6 w-6 rounded-full shrink-0"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        );
-                      }
-                      return (
-                        <textarea
-                          placeholder="Type a message..."
-                          rows={1}
-                          value={messageText}
-                          onChange={(e) => setMessageText(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          className="w-full bg-transparent border-0 ring-0 focus:ring-0 px-6 py-4 text-[15px] max-h-32 resize-none placeholder:text-muted-foreground/40 transition-all scrollbar-none outline-none appearance-none text-left"
-                        />
-                      );
-                    })()}
+                    <textarea
+                      placeholder={pastedMediaUrl ? "Add a caption..." : "Type a message..."}
+                      rows={1}
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="w-full bg-transparent border-0 ring-0 focus:ring-0 px-6 py-4 text-[15px] max-h-32 resize-none placeholder:text-muted-foreground/40 transition-all scrollbar-none outline-none appearance-none text-left"
+                    />
                     <div className="absolute right-4 bottom-3 flex items-center gap-2">
                       <Button
                         type="button"
@@ -1509,18 +1558,18 @@ export default function MessagesPage() {
                   </div>
                   <Button
                     onClick={handleSend}
-                    disabled={!messageText.trim() || sendMessage.isPending}
+                    disabled={(!messageText.trim() && !pastedMediaUrl) || sendMessage.isPending}
                     size="icon"
                     className={cn(
                       "h-14 w-14 shrink-0 rounded-full shadow-xl transition-all duration-500",
-                      messageText.trim() 
+                      (messageText.trim() || pastedMediaUrl)
                         ? "bg-primary text-white scale-100 shadow-primary/20 rotate-0" 
                         : "bg-muted text-muted-foreground scale-90 rotate-[-15deg] opacity-50"
                     )}
                   >
                     <Send className={cn(
                       "h-6 w-6 transition-transform duration-300",
-                      messageText.trim() ? "translate-x-0.5 -translate-y-0.5" : "translate-x-0"
+                      (messageText.trim() || pastedMediaUrl) ? "translate-x-0.5 -translate-y-0.5" : "translate-x-0"
                     )} />
                   </Button>
                 </div>
