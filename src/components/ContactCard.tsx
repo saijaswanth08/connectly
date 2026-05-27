@@ -32,14 +32,20 @@ export function ContactCard({ contact, index = 0 }: { contact: DbContact; index?
               </h3>
               <ImportanceBadge level={contact.priority || "medium"} />
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Building2 className="h-3 w-3 shrink-0" />
-              <span className="truncate">{contact.job_title} at {contact.company}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Mail className="h-3 w-3 shrink-0" />
-              <span className="truncate">{contact.email}</span>
-            </div>
+            {((contact.job_title && contact.job_title.trim()) || (contact.company && contact.company.trim())) && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Building2 className="h-3 w-3 shrink-0" />
+                <span className="truncate">
+                  {contact.job_title || "No Title"} {contact.company ? `at ${contact.company}` : ""}
+                </span>
+              </div>
+            )}
+            {contact.email && contact.email.trim() && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Mail className="h-3 w-3 shrink-0" />
+                <span className="truncate">{contact.email}</span>
+              </div>
+            )}
           </div>
         </div>
       </Link>

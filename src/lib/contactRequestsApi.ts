@@ -14,10 +14,10 @@ export async function lookupProfileByEmail(email: string) {
   if (!email) return null;
   const { data } = await supabase
     .from('profiles')
-    .select('id, name, email, avatar_url, company, job_title')
+    .select('id, name, email, avatar_url, company, job_title, linkedin')
     .eq('email', email.toLowerCase().trim())
     .maybeSingle();
-  return data as { id: string; name: string; email: string; avatar_url: string | null; company: string; job_title: string } | null;
+  return data as { id: string; name: string; email: string; avatar_url: string | null; company: string; job_title: string; linkedin: string | null } | null;
 }
 
 export async function fetchIncomingContactRequests(): Promise<DbContactRequest[]> {
@@ -84,7 +84,7 @@ export async function acceptContactRequest(requestId: string, fromUserId: string
         phone: p.phone || '',
         company: p.company || '',
         job_title: p.job_title || '',
-        linkedin: p.linkedin_url || '',
+        linkedin: p.linkedin || '',
         instagram: p.instagram || '',
         notes: 'Connected via Connectly',
         priority: 'medium',
@@ -131,7 +131,7 @@ export async function addContactFromAcceptedRequest(requestId: string, toUserId:
         phone: p.phone || '',
         company: p.company || '',
         job_title: p.job_title || '',
-        linkedin: p.linkedin_url || '',
+        linkedin: p.linkedin || '',
         instagram: p.instagram || '',
         notes: 'Connected via Connectly',
         priority: 'medium',
