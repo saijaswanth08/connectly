@@ -109,7 +109,19 @@ export default function MessagesPage() {
     console.log("MessagesPage loaded");
   }, []);
 
-  const isMobile = useIsMobile();
+  const isMobileQuery = useIsMobile();
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 1024 : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024 || isMobileQuery);
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isMobileQuery]);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [search, setSearch] = useState("");

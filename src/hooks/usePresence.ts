@@ -43,14 +43,27 @@ export function usePresence() {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(globalOnlineUsers);
   const [isTabVisible, setIsTabVisible] = useState(document.visibilityState === 'visible');
 
-  // Track tab visibility changes reactively
+  // Track tab visibility changes reactively with a small delay to prevent aggressive disconnects on mobile
   useEffect(() => {
+    let timeoutId: any = null;
     const handleVisibility = () => {
-      setIsTabVisible(document.visibilityState === 'visible');
+      if (document.visibilityState === 'visible') {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        setIsTabVisible(true);
+      } else {
+        // Wait 3 seconds before marking as invisible (aggression guard for mobile browsers)
+        timeoutId = setTimeout(() => {
+          setIsTabVisible(false);
+        }, 3000);
+      }
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 
@@ -127,26 +140,6 @@ export function usePresence() {
       }
     };
   }, [user?.id, isTabVisible]);
-
-  // Handle instant browser close and tab unload events (mobile & desktop)
-  useEffect(() => {
-    if (!user) return;
-
-    const handleInstantUnload = () => {
-      removeGlobalChannel();
-    };
-
-    // Use multiple lifecycle hooks to guarantee firing across modern desktop & mobile browsers
-    window.addEventListener('beforeunload', handleInstantUnload);
-    window.addEventListener('pagehide', handleInstantUnload);
-    window.addEventListener('unload', handleInstantUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleInstantUnload);
-      window.removeEventListener('pagehide', handleInstantUnload);
-      window.removeEventListener('unload', handleInstantUnload);
-    };
-  }, [user?.id]);
 
   return { onlineUsers };
 }
