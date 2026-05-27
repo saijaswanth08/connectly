@@ -1148,10 +1148,12 @@ export default function MessagesPage() {
                           }
                         }
 
-                        const isImg = isImageUrl(bodyText);
-                        const isVid = isVideoUrl(bodyText);
-                        const isAud = isAudioUrl(bodyText);
-                        const isDoc = isAttachmentUrl(bodyText);
+                        // Trim bodyText for accurate URL detection (pasted URLs may have whitespace)
+                        const trimmedBody = bodyText.trim();
+                        const isImg = isImageUrl(trimmedBody);
+                        const isVid = isVideoUrl(trimmedBody);
+                        const isAud = isAudioUrl(trimmedBody);
+                        const isDoc = isAttachmentUrl(trimmedBody);
 
                         return (
                           <div
@@ -1225,13 +1227,13 @@ export default function MessagesPage() {
                                 ) : isImg ? (
                                   <div className="relative rounded-xl overflow-hidden max-w-xs sm:max-w-sm md:max-w-md cursor-zoom-in hover:brightness-95 transition-all my-0.5">
                                     <img 
-                                      src={bodyText} 
+                                      src={trimmedBody} 
                                       alt="Attachment" 
                                       className={cn(
                                         "max-h-60 w-full object-cover rounded-xl border border-border/10",
                                         msg.isOptimistic && "blur-[2px] opacity-70"
                                       )}
-                                      onClick={() => !msg.isOptimistic && window.open(bodyText, "_blank")}
+                                      onClick={() => !msg.isOptimistic && window.open(trimmedBody, "_blank")}
                                     />
                                     {msg.isOptimistic && (
                                       <div className="absolute inset-0 flex items-center justify-center bg-black/25 rounded-xl">
@@ -1242,7 +1244,7 @@ export default function MessagesPage() {
                                 ) : isVid ? (
                                   <div className="relative rounded-xl overflow-hidden max-w-xs sm:max-w-sm md:max-w-md my-0.5">
                                     <video
-                                      src={bodyText}
+                                      src={trimmedBody}
                                       controls
                                       playsInline
                                       preload="metadata"
@@ -1254,17 +1256,17 @@ export default function MessagesPage() {
                                   <div className="my-1 min-w-[260px]">
                                     <div className="flex items-center gap-2 mb-1.5 opacity-90">
                                       <Music className={cn("h-4 w-4 shrink-0", isUser ? "text-white" : "text-primary")} />
-                                      <span className="text-xs font-bold truncate">{getFileNameFromUrl(bodyText)}</span>
+                                      <span className="text-xs font-bold truncate">{getFileNameFromUrl(trimmedBody)}</span>
                                     </div>
                                     <audio
-                                      src={bodyText}
+                                      src={trimmedBody}
                                       controls
                                       className="w-full h-8 rounded bg-transparent opacity-95 filter invert dark:invert-0"
                                     />
                                   </div>
                                 ) : isDoc ? (
                                   <div 
-                                    onClick={() => window.open(bodyText, "_blank")}
+                                    onClick={() => window.open(trimmedBody, "_blank")}
                                     className={cn(
                                       "flex items-center gap-3.5 p-3 rounded-xl border transition-all duration-200 cursor-pointer select-none max-w-xs w-[260px] my-0.5 shadow-sm",
                                       isUser
@@ -1280,19 +1282,19 @@ export default function MessagesPage() {
                                     </div>
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                       <p className="text-xs font-bold truncate leading-tight">
-                                        {getFileNameFromUrl(bodyText)}
+                                        {getFileNameFromUrl(trimmedBody)}
                                       </p>
                                       <p className={cn(
                                         "text-[9px] font-bold tracking-wide uppercase leading-none opacity-60",
                                         isUser ? "text-white" : "text-foreground"
                                       )}>
-                                        {bodyText.split('.').pop()?.split('?')[0].toUpperCase() || "FILE"} DOCUMENT
+                                        {trimmedBody.split('.').pop()?.split('?')[0].toUpperCase() || "FILE"} DOCUMENT
                                       </p>
                                     </div>
                                     <div 
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        downloadFile(bodyText, getFileNameFromUrl(bodyText));
+                                        downloadFile(trimmedBody, getFileNameFromUrl(trimmedBody));
                                       }}
                                       className={cn(
                                         "h-8 w-8 shrink-0 rounded-full flex items-center justify-center border transition-all cursor-pointer",
@@ -1441,6 +1443,43 @@ export default function MessagesPage() {
                       accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
                       onChange={handleAttachmentUpload}
                     />
+                    {/* Media URL preview banner when user pastes a media link */}
+                    {(() => {
+                      const trimmed = messageText.trim();
+                      const isPastedImg = isImageUrl(trimmed);
+                      const isPastedVid = isVideoUrl(trimmed);
+                      const isPastedAud = isAudioUrl(trimmed);
+                      if (isPastedImg || isPastedVid || isPastedAud) {
+                        return (
+                          <div className="mx-4 mt-3 mb-1 flex items-center gap-3 px-3 py-2 rounded-xl bg-primary/5 border border-primary/10">
+                            {isPastedVid ? (
+                              <video src={trimmed} className="h-12 w-16 rounded-lg object-cover bg-black" muted preload="metadata" />
+                            ) : isPastedImg ? (
+                              <img src={trimmed} className="h-12 w-16 rounded-lg object-cover" alt="Preview" />
+                            ) : (
+                              <div className="h-12 w-16 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Music className="h-5 w-5 text-primary" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-primary">
+                                {isPastedVid ? "🎥 Video" : isPastedImg ? "📷 Photo" : "🎵 Audio"} will be sent as media
+                              </p>
+                              <p className="text-[10px] text-muted-foreground truncate">{getFileNameFromUrl(trimmed)}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setMessageText("")}
+                              className="h-6 w-6 rounded-full shrink-0"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                     <textarea
                       placeholder="Type a message..."
                       rows={1}
