@@ -143,29 +143,43 @@ export function useRealtimeMessages(conversationId: string | string[] | null) {
   ]);
 }
 
-// Helper: broadcast a "new message" signal to a target user's inbox channel
-async function broadcastToUser(targetUserId: string, event: string) {
-  try {
-    const ch = supabase.channel(`user-inbox-${targetUserId}`);
-    await ch.subscribe();
-    await ch.send({ type: "broadcast", event, payload: {} });
-    // Small delay then clean up the sender-side channel
-    setTimeout(() => supabase.removeChannel(ch), 500);
-  } catch (e) {
-    console.warn("Broadcast failed (non-critical):", e);
-  }
+// Helper: broadcast a signal to a target user's inbox channel robustly
+function broadcastToUser(targetUserId: string, event: string): Promise<void> {
+  return new Promise<void>((resolve) => {
+    try {
+      const ch = supabase.channel(`user-inbox-${targetUserId}`);
+      ch.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          ch.send({ type: "broadcast", event, payload: {} })
+            .then(() => {
+              setTimeout(() => {
+                supabase.removeChannel(ch);
+              }, 1000);
+              resolve();
+            })
+            .catch((err) => {
+              console.warn("Broadcast send error:", err);
+              supabase.removeChannel(ch);
+              resolve(); // resolve anyway to avoid blocking
+            });
+        } else if (status === "TIMED_OUT" || status === "CLOSED") {
+          supabase.removeChannel(ch);
+          resolve(); // resolve anyway to avoid blocking
+        }
+      });
+    } catch (e) {
+      console.warn("Broadcast channel error:", e);
+      resolve();
+    }
+  });
 }
 
 export function useDeleteMessage() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ messageId, conversationId }: { messageId: string; conversationId: string }) => {
-      const { error } = await supabase.rpc("unsend_message", {
-        p_message_id: messageId,
-      });
-      if (error) throw error;
-
-      // Broadcast message deletion to the recipient instantly
+      // 1. Find the target recipient user ID before deleting
+      let targetUserId: string | null = null;
       try {
         const { data: conv } = await supabase
           .from("conversations")
@@ -181,11 +195,22 @@ export function useDeleteMessage() {
             .single();
 
           if (contact?.target_user_id) {
-            await broadcastToUser(contact.target_user_id, "message-deleted");
+            targetUserId = contact.target_user_id;
           }
         }
       } catch (e) {
-        console.warn("Failed to broadcast message deletion:", e);
+        console.warn("Failed to find target recipient user:", e);
+      }
+
+      // 2. Call the RPC to delete the message atomically on both sides
+      const { error } = await supabase.rpc("unsend_message", {
+        p_message_id: messageId,
+      });
+      if (error) throw error;
+
+      // 3. Broadcast the "message-deleted" event robustly to the target recipient
+      if (targetUserId) {
+        await broadcastToUser(targetUserId, "message-deleted");
       }
     },
     onSuccess: () => {

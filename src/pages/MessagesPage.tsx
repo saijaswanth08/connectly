@@ -266,8 +266,9 @@ export default function MessagesPage() {
   const getOrCreateConv = useGetOrCreateConversation();
   const [deletedMessageIds, setDeletedMessageIds] = useState<string[]>([]);
 
-  async function handleDeleteMessage(messageId: string) {
-    if (!selectedConversationId) return;
+  async function handleDeleteMessage(messageId: string, conversationId?: string) {
+    const targetConvId = conversationId || selectedConversationId;
+    if (!targetConvId) return;
 
     // Optimistically hide the message in the UI immediately
     setDeletedMessageIds((prev) => [...prev, messageId]);
@@ -276,7 +277,7 @@ export default function MessagesPage() {
     try {
       await deleteMessage.mutateAsync({
         messageId,
-        conversationId: selectedConversationId,
+        conversationId: targetConvId,
       });
       toast({
         title: "Message unsent 🗑️",
@@ -1373,7 +1374,7 @@ export default function MessagesPage() {
                                         <DropdownMenuItem 
                                           onClick={() => {
                                             if (confirm("Unsend this message? This will delete it for both participants.")) {
-                                              handleDeleteMessage(msg.id);
+                                              handleDeleteMessage(msg.id, msg.conversation_id);
                                             }
                                           }}
                                           className="gap-2 cursor-pointer text-xs text-destructive focus:text-destructive"
