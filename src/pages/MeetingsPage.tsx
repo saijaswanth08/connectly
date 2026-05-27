@@ -1,10 +1,10 @@
-import { useContactsStore } from "@/lib/contacts-store";
+import { useMeetings, useContacts } from "@/hooks/useContacts";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, MessageSquare } from "lucide-react";
 
 export default function MeetingsPage() {
-  const meetings = useContactsStore((s) => s.meetings);
-  const contacts = useContactsStore((s) => s.contacts);
+  const { data: meetings = [] } = useMeetings();
+  const { data: contacts = [] } = useContacts();
 
   return (
     <div className="p-6 space-y-5 max-w-5xl mx-auto">

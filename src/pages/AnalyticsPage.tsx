@@ -1,11 +1,11 @@
-import { useContactsStore } from "@/lib/contacts-store";
+import { useContacts, useMeetings } from "@/hooks/useContacts";
 import { monthlyContactsData, meetingTypesData, tagDistribution } from "@/lib/mock-data";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar } from "recharts";
 
 export default function AnalyticsPage() {
-  const contacts = useContactsStore((s) => s.contacts);
-  const meetings = useContactsStore((s) => s.meetings);
+  const { data: contacts = [] } = useContacts();
+  const { data: meetings = [] } = useMeetings();
 
   const priorityData = [
     { name: "VIP", value: contacts.filter((c) => c.priority === "vip").length, fill: "hsl(var(--vip))" },

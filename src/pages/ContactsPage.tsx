@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { useContactsStore } from "@/lib/contacts-store";
+import { useState, useMemo } from "react";
+import { useContacts } from "@/hooks/useContacts";
 import { useAuth } from "@/hooks/useAuth";
 import { ContactCard } from "@/components/ContactCard";
 import { Input } from "@/components/ui/input";
@@ -10,15 +10,9 @@ import { motion } from "framer-motion";
 export default function ContactsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
-  const { contacts: allContacts, fetchContacts } = useContactsStore();
+  const { data: allContacts = [], isLoading: queryLoading } = useContacts();
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchContacts(user.id);
-    }
-  }, [user?.id, fetchContacts]);
-
-  const isLoading = allContacts.length === 0 && searchQuery === "";
+  const isLoading = queryLoading && searchQuery === "";
 
   // Filter contacts locally based on search query and de-duplicate by partner identity
   const contacts = useMemo(() => {

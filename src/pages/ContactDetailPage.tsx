@@ -1,6 +1,5 @@
-import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useContactsStore } from "@/lib/contacts-store";
+import { useContacts } from "@/hooks/useContacts";
 import { useAuth } from "@/hooks/useAuth";
 import { ImportanceBadge } from "@/components/ImportanceBadge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -10,14 +9,7 @@ import { motion } from "framer-motion";
 export default function ContactDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const contacts = useContactsStore((s) => s.contacts);
-  const fetchContacts = useContactsStore((s) => s.fetchContacts);
-
-  useEffect(() => {
-    if (user?.id && contacts.length === 0) {
-      fetchContacts(user.id);
-    }
-  }, [user?.id, contacts.length, fetchContacts]);
+  const { data: contacts = [] } = useContacts();
 
   const contact = contacts.find((c) => c.id === id);
   if (!contact) {
