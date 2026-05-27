@@ -24,7 +24,7 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
 
   const [email, setEmail] = useState('');
   const [checkState, setCheckState] = useState<CheckState>('idle');
-  const [foundProfile, setFoundProfile] = useState<{ id: string; name: string; email: string; company: string; job_title: string } | null>(null);
+  const [foundProfile, setFoundProfile] = useState<{ id: string; name: string; email: string; company: string; job_title: string; avatar_url: string | null } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -138,6 +138,7 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
           priority: 'medium',
           company: foundProfile.company || '',
           job_title: foundProfile.job_title || '',
+          avatar_url: foundProfile.avatar_url,
           notes: 'Connected instantly via reciprocal save',
           tags: [],
         });
