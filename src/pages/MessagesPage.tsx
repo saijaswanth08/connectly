@@ -1522,7 +1522,9 @@ export default function MessagesPage() {
                         <p className="text-xs font-bold text-primary">
                           {isPastedVid ? "🎥 Video" : isPastedImg ? "📷 Photo" : "🎵 Audio"} will be sent as media
                         </p>
-                        <p className="text-[10px] text-muted-foreground truncate">{getFileNameFromUrl(pastedMediaUrl)}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          {isPastedVid ? "Video Link" : isPastedImg ? "Photo Link" : "Audio Link"}
+                        </p>
                       </div>
                       <Button
                         variant="ghost"
@@ -1713,11 +1715,11 @@ export default function MessagesPage() {
 
           {/* Bottom Title / File Info bar */}
           <div 
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md max-w-[90vw] text-center"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md max-w-[90vw] text-center animate-in fade-in slide-in-from-bottom-2 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-xs text-white/90 font-medium truncate max-w-[280px] md:max-w-md">
-              {getFileNameFromUrl(activeImageUrl)}
+            <p className="text-xs text-white/90 font-medium tracking-wide">
+              Photo
             </p>
           </div>
         </div>
