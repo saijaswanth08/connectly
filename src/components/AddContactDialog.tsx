@@ -8,13 +8,14 @@ import { lookupProfileByEmail } from "@/lib/contactRequestsApi";
 import { useSendContactRequest } from "@/hooks/useContactRequests";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 interface AddContactDialogProps {
   open?: boolean;
   onClose?: () => void;
 }
 
-type CheckState = 'idle' | 'checking' | 'found' | 'not_found' | 'is_self';
+type CheckState = 'idle' | 'checking' | 'found' | 'not_found' | 'is_self' | 'already_connected';
 
 export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDialogProps = {}) {
   const isControlled = controlledOpen !== undefined;
@@ -57,9 +58,21 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
       setCheckState('checking');
       try {
         const profile = await lookupProfileByEmail(val);
-        if (profile && profile.id !== user?.id) {
-          setFoundProfile(profile);
-          setCheckState('found');
+        if (profile && user?.id && profile.id !== user.id) {
+          // Check if they are already in the user's contacts
+          const { data: existingContact } = await supabase
+            .from('contacts')
+            .select('id')
+            .eq('user_id', user.id)
+            .or(`target_user_id.eq.${profile.id},email.eq.${profile.email}`)
+            .limit(1);
+
+          if (existingContact && existingContact.length > 0) {
+            setCheckState('already_connected');
+          } else {
+            setFoundProfile(profile);
+            setCheckState('found');
+          }
         } else if (profile && profile.id === user?.id) {
           setCheckState('is_self'); // Can't add yourself
         } else {
@@ -130,6 +143,18 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
                     {foundProfile.job_title && foundProfile.company && (
                       <p className="text-xs text-emerald-600 dark:text-emerald-400">{foundProfile.job_title} at {foundProfile.company}</p>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {checkState === 'already_connected' && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 dark:bg-primary/10 dark:border-primary/80 p-3 animate-in fade-in duration-200">
+                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-primary">Already in contacts</p>
+                    <p className="text-xs text-muted-foreground">
+                      This user is already in your contact list. You can chat with them directly!
+                    </p>
                   </div>
                 </div>
               )}
