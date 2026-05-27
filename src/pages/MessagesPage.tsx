@@ -316,12 +316,35 @@ export default function MessagesPage() {
 
   const [optimisticMessages, setOptimisticMessages] = useState<any[]>([]);
 
-  // Merge database messages with unsynced optimistic local messages
+  // Merge database messages with unsynced optimistic local messages, and robustly de-duplicate sibling conversation triggers
   const allMessages = useMemo(() => {
     const realContentSet = new Set(messages.map((m) => m.content));
     const filteredOptimistic = optimisticMessages.filter((om) => !realContentSet.has(om.content));
     const combined = [...messages, ...filteredOptimistic];
-    return combined.filter((m) => !deletedMessageIds.includes(m.id));
+    const unique = combined.filter((m) => !deletedMessageIds.includes(m.id));
+
+    // De-duplicate messages that are clones of each other (same content & very close timestamp)
+    const result: any[] = [];
+    for (const msg of unique) {
+      const duplicateIdx = result.findIndex((existing) => {
+        const contentMatch = existing.content === msg.content;
+        const timeDiff = Math.abs(new Date(existing.created_at).getTime() - new Date(msg.created_at).getTime());
+        return contentMatch && timeDiff < 5000; // within 5 seconds
+      });
+
+      if (duplicateIdx !== -1) {
+        // We found a duplicate! Prefer the "user" sender type if available
+        const existing = result[duplicateIdx];
+        if (msg.sender_type === "user" && existing.sender_type !== "user") {
+          result[duplicateIdx] = msg; // override with the user-sent copy
+        }
+        // otherwise, discard the duplicate copy
+      } else {
+        result.push(msg);
+      }
+    }
+
+    return result;
   }, [messages, optimisticMessages, deletedMessageIds]);
 
   useRealtimeMessages(siblingConversationIds.length > 0 ? siblingConversationIds : selectedConversationId);
