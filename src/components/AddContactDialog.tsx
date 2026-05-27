@@ -14,7 +14,7 @@ interface AddContactDialogProps {
   onClose?: () => void;
 }
 
-type CheckState = 'idle' | 'checking' | 'found' | 'not_found';
+type CheckState = 'idle' | 'checking' | 'found' | 'not_found' | 'is_self';
 
 export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDialogProps = {}) {
   const isControlled = controlledOpen !== undefined;
@@ -61,7 +61,7 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
           setFoundProfile(profile);
           setCheckState('found');
         } else if (profile && profile.id === user?.id) {
-          setCheckState('not_found'); // Can't add yourself
+          setCheckState('is_self'); // Can't add yourself
         } else {
           setCheckState('not_found');
         }
@@ -134,8 +134,20 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
                 </div>
               )}
 
+              {checkState === 'is_self' && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3 animate-in fade-in duration-200">
+                  <XCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">This is you!</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      This is your own email address. You cannot add yourself as a contact.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {checkState === 'not_found' && (
-                <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3">
+                <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3 animate-in fade-in duration-200">
                   <XCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Not on Connectly</p>
