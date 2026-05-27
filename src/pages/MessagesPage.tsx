@@ -160,6 +160,28 @@ export default function MessagesPage() {
     });
   };
 
+  // Helper to resolve the duplicate contact record that has a non-null target_user_id
+  const getValidContact = (c: DbContact) => {
+    if (!c) return c;
+    if (c.target_user_id) return c;
+    
+    const name = c.name ? c.name.toLowerCase().trim() : "";
+    const email = c.email ? c.email.toLowerCase().trim() : "";
+    
+    const validSibling = contacts.find((other) => {
+      if (other.id === c.id) return false;
+      if (other.target_user_id === user?.id) return false;
+      if (!other.target_user_id) return false;
+      
+      const nameMatch = name && other.name && other.name.toLowerCase().trim() === name;
+      const emailMatch = email && other.email && other.email.toLowerCase().trim() === email;
+      
+      return nameMatch || emailMatch;
+    });
+    
+    return validSibling || c;
+  };
+
   // Build a map of contact_id -> conversation
   const convByContact = useMemo(() => 
     new Map(conversations.map((c) => [c.contact_id, c])),
@@ -289,8 +311,9 @@ export default function MessagesPage() {
     if (contactIdParam && contacts.length > 0) {
       const matchedContact = contacts.find((c) => c.id === contactIdParam);
       if (matchedContact) {
-        setSelectedContactId(matchedContact.id);
-        const conv = convByContact.get(matchedContact.id);
+        const validContact = getValidContact(matchedContact);
+        setSelectedContactId(validContact.id);
+        const conv = convByContact.get(validContact.id);
         if (conv) {
           setSelectedConversationId(conv.id);
         } else {
@@ -408,13 +431,14 @@ export default function MessagesPage() {
   }, [allMessages.length]);
 
   async function handleSelectContact(contact: DbContact) {
+    const validContact = getValidContact(contact);
     if (forwardingMessage) {
       // Forward mode execution
       try {
-        let conv = convByContact.get(contact.id);
+        let conv = convByContact.get(validContact.id);
         let convId = conv?.id;
         if (!convId) {
-          const newConv = await getOrCreateConv.mutateAsync(contact.id);
+          const newConv = await getOrCreateConv.mutateAsync(validContact.id);
           convId = newConv.id;
         }
         await sendMessage.mutateAsync({
@@ -423,11 +447,11 @@ export default function MessagesPage() {
         });
         toast({
           title: "Message forwarded! 🚀",
-          description: `Successfully sent to ${contact.name}`,
+          description: `Successfully sent to ${validContact.name}`,
         });
-        setSelectedContactId(contact.id);
+        setSelectedContactId(validContact.id);
         setSelectedConversationId(convId);
-        setSearchParams({ contactId: contact.id });
+        setSearchParams({ contactId: validContact.id });
       } catch (e: any) {
         toast({
           title: "Failed to forward message",
@@ -441,7 +465,7 @@ export default function MessagesPage() {
       return;
     }
 
-    setSearchParams({ contactId: contact.id });
+    setSearchParams({ contactId: validContact.id });
     setShowPicker(false);
     setPickerSearch("");
   }
