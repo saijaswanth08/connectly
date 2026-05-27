@@ -159,11 +159,34 @@ async function broadcastToUser(targetUserId: string, event: string) {
 export function useDeleteMessage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ messageId }: { messageId: string; conversationId: string }) => {
+    mutationFn: async ({ messageId, conversationId }: { messageId: string; conversationId: string }) => {
       const { error } = await supabase.rpc("unsend_message", {
         p_message_id: messageId,
       });
       if (error) throw error;
+
+      // Broadcast message deletion to the recipient instantly
+      try {
+        const { data: conv } = await supabase
+          .from("conversations")
+          .select("contact_id")
+          .eq("id", conversationId)
+          .single();
+
+        if (conv?.contact_id) {
+          const { data: contact } = await supabase
+            .from("contacts")
+            .select("target_user_id")
+            .eq("id", conv.contact_id)
+            .single();
+
+          if (contact?.target_user_id) {
+            await broadcastToUser(contact.target_user_id, "message-deleted");
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to broadcast message deletion:", e);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["messages"] });
