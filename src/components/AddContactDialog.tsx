@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle2, XCircle, UserPlus } from "lucide-react";
 import { lookupProfileByEmail } from "@/lib/contactRequestsApi";
-import { useSendContactRequest } from "@/hooks/useContactRequests";
+import { useSendContactRequest, useAcceptContactRequest } from "@/hooks/useContactRequests";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
@@ -16,7 +16,7 @@ interface AddContactDialogProps {
   onClose?: () => void;
 }
 
-type CheckState = 'idle' | 'checking' | 'found' | 'not_found' | 'is_self' | 'already_connected' | 'request_pending' | 'one_way_contact' | 'has_me_saved';
+type CheckState = 'idle' | 'checking' | 'found' | 'not_found' | 'is_self' | 'already_connected' | 'request_pending' | 'incoming_pending' | 'one_way_contact' | 'has_me_saved';
 
 export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDialogProps = {}) {
   const isControlled = controlledOpen !== undefined;
@@ -26,12 +26,14 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
   const [email, setEmail] = useState('');
   const [checkState, setCheckState] = useState<CheckState>('idle');
   const [foundProfile, setFoundProfile] = useState<{ id: string; name: string; email: string; company: string; job_title: string; avatar_url: string | null; linkedin: string | null } | null>(null);
+  const [incomingRequestId, setIncomingRequestId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { user } = useAuth();
   const { toast } = useToast();
   const sendRequest = useSendContactRequest();
+  const acceptRequest = useAcceptContactRequest();
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
       setEmail('');
       setCheckState('idle');
       setFoundProfile(null);
+      setIncomingRequestId(null);
     }
   }, [dialogOpen]);
 
@@ -64,26 +67,28 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
           // 1. Check if a connection request already exists between these users
           const { data: outgoingReq } = await supabase
             .from('contact_requests')
-            .select('status')
+            .select('id, status')
             .eq('from_user_id', user.id)
             .eq('to_user_id', profile.id)
             .maybeSingle();
 
           const { data: incomingReq } = await supabase
             .from('contact_requests')
-            .select('status')
+            .select('id, status')
             .eq('from_user_id', profile.id)
             .eq('to_user_id', user.id)
             .maybeSingle();
 
-          const existingRequest = outgoingReq || incomingReq;
-
-          if (existingRequest?.status === 'accepted') {
+          if (outgoingReq?.status === 'accepted' || incomingReq?.status === 'accepted') {
             setFoundProfile(profile);
             setCheckState('already_connected');
-          } else if (existingRequest?.status === 'pending') {
+          } else if (outgoingReq?.status === 'pending') {
             setFoundProfile(profile);
             setCheckState('request_pending');
+          } else if (incomingReq?.status === 'pending') {
+            setFoundProfile(profile);
+            setIncomingRequestId(incomingReq.id);
+            setCheckState('incoming_pending');
           } else {
             // 2. Check if this profile already has the current logged-in user saved in their contacts
             const { data: hasMeSaved } = await supabase
@@ -154,6 +159,14 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
         toast({
           title: "Contact added instantly! 🎉",
           description: `${foundProfile.name} was successfully added to your contacts list.`,
+          className: "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800",
+        });
+      } else if (checkState === 'incoming_pending' && incomingRequestId) {
+        // Accept incoming request directly
+        await acceptRequest.mutateAsync({ requestId: incomingRequestId, fromUserId: foundProfile.id });
+        toast({
+          title: "Contact request accepted! 🎉",
+          description: `You are now connected with ${foundProfile.name}.`,
           className: "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800",
         });
       } else {
@@ -253,6 +266,18 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
                 </div>
               )}
 
+              {checkState === 'incoming_pending' && foundProfile && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-indigo-200 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-800 p-3 animate-in fade-in duration-200">
+                  <CheckCircle2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-300">Incoming request available! 🎉</p>
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400">
+                      {foundProfile.name} has already sent you a contact request. You can accept it and connect instantly!
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {checkState === 'has_me_saved' && foundProfile && (
                 <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 p-3 animate-in fade-in duration-200">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
@@ -297,13 +322,15 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
             </Button>
             <Button 
               type="submit" 
-              disabled={!(checkState === 'found' || checkState === 'one_way_contact' || checkState === 'has_me_saved') || submitting} 
+              disabled={!(checkState === 'found' || checkState === 'one_way_contact' || checkState === 'has_me_saved' || checkState === 'incoming_pending') || submitting} 
               className="gap-2"
             >
               {submitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Processing…</>
               ) : checkState === 'has_me_saved' ? (
                 <><CheckCircle2 className="h-4 w-4" /> Add Instantly</>
+              ) : checkState === 'incoming_pending' ? (
+                <><CheckCircle2 className="h-4 w-4" /> Accept & Connect</>
               ) : (
                 <><UserPlus className="h-4 w-4" /> Send Request</>
               )}
