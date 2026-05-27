@@ -14,16 +14,10 @@ let globalChannel: any = null;
 let globalChannelUserId: string | null = null;
 let globalOnlineUsers: Set<string> = new Set();
 const listeners = new Set<(users: Set<string>) => void>();
-let cleanupTimeout: any = null;
 
-// Clean helper to remove/destroy the global channel and cancel pending timeouts cleanly
+// Clean helper to remove/destroy the global channel immediately
 function removeGlobalChannel() {
-  if (cleanupTimeout) {
-    clearTimeout(cleanupTimeout);
-    cleanupTimeout = null;
-  }
   if (globalChannel) {
-    // Explicitly call untrack to broadcast immediate presence leave to other users
     try {
       globalChannel.untrack();
     } catch (e) {
@@ -41,29 +35,18 @@ function removeGlobalChannel() {
 export function usePresence() {
   const { user } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(globalOnlineUsers);
-  const [isTabVisible, setIsTabVisible] = useState(document.visibilityState === 'visible');
+  const [isTabVisible, setIsTabVisible] = useState(
+    typeof document !== "undefined" ? document.visibilityState === 'visible' : true
+  );
 
-  // Track tab visibility changes reactively with a small delay to prevent aggressive disconnects on mobile
+  // Track tab visibility changes reactively and immediately
   useEffect(() => {
-    let timeoutId: any = null;
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          timeoutId = null;
-        }
-        setIsTabVisible(true);
-      } else {
-        // Wait 3 seconds before marking as invisible (aggression guard for mobile browsers)
-        timeoutId = setTimeout(() => {
-          setIsTabVisible(false);
-        }, 3000);
-      }
+      setIsTabVisible(document.visibilityState === 'visible');
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
-      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 
@@ -85,13 +68,7 @@ export function usePresence() {
     };
     listeners.add(listener);
 
-    // Cancel any pending unmount cleanup timeouts
-    if (cleanupTimeout) {
-      clearTimeout(cleanupTimeout);
-      cleanupTimeout = null;
-    }
-
-    // Initialize the shared presence channel if it doesn't exist
+    // Initialize the shared presence channel immediately if it doesn't exist
     if (!globalChannel) {
       globalChannelUserId = user.id;
       const channel = supabase.channel('global-presence', {
@@ -131,15 +108,36 @@ export function usePresence() {
     return () => {
       listeners.delete(listener);
 
-      // If no other components are active, wait a brief moment before removing the channel.
-      // This 3-second buffer prevents unnecessary disconnects and reconnects during page transitions.
-      if (listeners.size === 0 && globalChannel) {
-        cleanupTimeout = setTimeout(() => {
-          removeGlobalChannel();
-        }, 3000);
+      // Immediately teardown global channel if no more listeners exist
+      if (listeners.size === 0) {
+        removeGlobalChannel();
       }
     };
   }, [user?.id, isTabVisible]);
+
+  // Handle instant browser close or tab unload immediately (mobile & desktop)
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const handleInstantUnload = () => {
+      if (globalChannel) {
+        try {
+          globalChannel.untrack();
+        } catch (e) {}
+        supabase.removeChannel(globalChannel);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleInstantUnload);
+    window.addEventListener('unload', handleInstantUnload);
+    window.addEventListener('pagehide', handleInstantUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleInstantUnload);
+      window.removeEventListener('unload', handleInstantUnload);
+      window.removeEventListener('pagehide', handleInstantUnload);
+    };
+  }, [user?.id]);
 
   return { onlineUsers };
 }
