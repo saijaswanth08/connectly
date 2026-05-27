@@ -1449,15 +1449,16 @@ export default function MessagesPage() {
                       const isPastedImg = isImageUrl(trimmed);
                       const isPastedVid = isVideoUrl(trimmed);
                       const isPastedAud = isAudioUrl(trimmed);
-                      if (isPastedImg || isPastedVid || isPastedAud) {
+                      const isPastedMedia = isPastedImg || isPastedVid || isPastedAud;
+                      if (isPastedMedia) {
                         return (
-                          <div className="mx-4 mt-3 mb-1 flex items-center gap-3 px-3 py-2 rounded-xl bg-primary/5 border border-primary/10">
+                          <div className="mx-4 my-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/5 border border-primary/10">
                             {isPastedVid ? (
-                              <video src={trimmed} className="h-12 w-16 rounded-lg object-cover bg-black" muted preload="metadata" />
+                              <video src={trimmed} className="h-14 w-20 rounded-lg object-cover bg-black" muted preload="metadata" />
                             ) : isPastedImg ? (
-                              <img src={trimmed} className="h-12 w-16 rounded-lg object-cover" alt="Preview" />
+                              <img src={trimmed} className="h-14 w-20 rounded-lg object-cover" alt="Preview" />
                             ) : (
-                              <div className="h-12 w-16 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <div className="h-14 w-20 rounded-lg bg-primary/10 flex items-center justify-center">
                                 <Music className="h-5 w-5 text-primary" />
                               </div>
                             )}
@@ -1478,16 +1479,17 @@ export default function MessagesPage() {
                           </div>
                         );
                       }
-                      return null;
+                      return (
+                        <textarea
+                          placeholder="Type a message..."
+                          rows={1}
+                          value={messageText}
+                          onChange={(e) => setMessageText(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          className="w-full bg-transparent border-0 ring-0 focus:ring-0 px-6 py-4 text-[15px] max-h-32 resize-none placeholder:text-muted-foreground/40 transition-all scrollbar-none outline-none appearance-none text-left"
+                        />
+                      );
                     })()}
-                    <textarea
-                      placeholder="Type a message..."
-                      rows={1}
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="w-full bg-transparent border-0 ring-0 focus:ring-0 px-6 py-4 text-[15px] max-h-32 resize-none placeholder:text-muted-foreground/40 transition-all scrollbar-none outline-none appearance-none text-left"
-                    />
                     <div className="absolute right-4 bottom-3 flex items-center gap-2">
                       <Button
                         type="button"
