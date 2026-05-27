@@ -177,29 +177,72 @@ function broadcastToUser(targetUserId: string, event: string): Promise<void> {
 export function useDeleteMessage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ messageId, conversationId }: { messageId: string; conversationId: string }) => {
-      // 1. Find the target recipient user ID before deleting
-      let targetUserId: string | null = null;
-      try {
-        const { data: conv } = await supabase
-          .from("conversations")
-          .select("contact_id")
-          .eq("id", conversationId)
-          .single();
+    mutationFn: async ({
+      messageId,
+      conversationId,
+      targetUserId: clientTargetUserId,
+    }: {
+      messageId: string;
+      conversationId: string;
+      targetUserId?: string | null;
+    }) => {
+      // 1. Resolve the target recipient user ID
+      let targetUserId = clientTargetUserId || null;
 
-        if (conv?.contact_id) {
-          const { data: contact } = await supabase
-            .from("contacts")
-            .select("target_user_id")
-            .eq("id", conv.contact_id)
+      if (!targetUserId) {
+        try {
+          const { data: conv } = await supabase
+            .from("conversations")
+            .select("contact_id")
+            .eq("id", conversationId)
             .single();
 
-          if (contact?.target_user_id) {
-            targetUserId = contact.target_user_id;
+          if (conv?.contact_id) {
+            const { data: contact } = await supabase
+              .from("contacts")
+              .select("target_user_id, email, name")
+              .eq("id", conv.contact_id)
+              .single();
+
+            if (contact?.target_user_id) {
+              targetUserId = contact.target_user_id;
+            } else {
+              // Fallback 1: Resolve via profiles email lookup
+              if (contact?.email) {
+                const { data: profile } = await supabase
+                  .from("profiles")
+                  .select("id")
+                  .eq("email", contact.email)
+                  .maybeSingle();
+
+                if (profile?.id) {
+                  targetUserId = profile.id;
+                }
+              }
+
+              // Fallback 2: Resolve via sibling contacts lookup
+              if (!targetUserId) {
+                const filterOr = [];
+                if (contact?.email) filterOr.push(`email.eq.${contact.email}`);
+                if (contact?.name) filterOr.push(`name.eq.${contact.name}`);
+
+                if (filterOr.length > 0) {
+                  const { data: siblingContacts } = await supabase
+                    .from("contacts")
+                    .select("target_user_id")
+                    .or(filterOr.join(","))
+                    .not("target_user_id", "is", null);
+
+                  if (siblingContacts && siblingContacts.length > 0) {
+                    targetUserId = siblingContacts[0].target_user_id;
+                  }
+                }
+              }
+            }
           }
+        } catch (e) {
+          console.warn("Failed to find target recipient user:", e);
         }
-      } catch (e) {
-        console.warn("Failed to find target recipient user:", e);
       }
 
       // 2. Call the RPC to delete the message atomically on both sides

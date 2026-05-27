@@ -278,6 +278,7 @@ export default function MessagesPage() {
       await deleteMessage.mutateAsync({
         messageId,
         conversationId: targetConvId,
+        targetUserId: selectedContact ? getValidContact(selectedContact)?.target_user_id : null,
       });
       toast({
         title: "Message unsent 🗑️",
