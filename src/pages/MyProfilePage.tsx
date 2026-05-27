@@ -346,7 +346,7 @@ export default function MyProfilePage() {
   const handleRemovePhoto = async () => {
     if (!user?.id) return;
     try {
-      await supabase.from("profiles").upsert({ id: user.id, avatar_url: null }, { onConflict: "id" });
+      await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast({ title: "Profile photo removed" });
     } catch (err) {
