@@ -128,6 +128,7 @@ export default function MessagesPage() {
   const [pickerSearch, setPickerSearch] = useState("");
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [pastedMediaUrl, setPastedMediaUrl] = useState<string | null>(null);
+  const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
   
   // Premium feature states
   const [replyingTo, setReplyingTo] = useState<any | null>(null);
@@ -140,7 +141,20 @@ export default function MessagesPage() {
     setMessageText("");
     setPastedMediaUrl(null);
     setReplyingTo(null);
+    setActiveImageUrl(null);
   }, [selectedContactId]);
+
+  // Listen to keyboard Escape key to close image lightbox
+  useEffect(() => {
+    if (!activeImageUrl) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActiveImageUrl(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeImageUrl]);
 
   // Intercept pasted media URLs to clear them from textarea and show clean preview banner
   useEffect(() => {
@@ -1287,7 +1301,7 @@ export default function MessagesPage() {
                                         "max-h-60 w-full object-cover rounded-xl border border-border/10",
                                         msg.isOptimistic && "blur-[2px] opacity-70"
                                       )}
-                                      onClick={() => !msg.isOptimistic && window.open(trimmedBody, "_blank")}
+                                      onClick={() => !msg.isOptimistic && setActiveImageUrl(trimmedBody)}
                                     />
                                     {msg.isOptimistic && (
                                       <div className="absolute inset-0 flex items-center justify-center bg-black/25 rounded-xl">
@@ -1649,6 +1663,63 @@ export default function MessagesPage() {
               </div>
             </ScrollArea>
           </motion.div>
+        </div>
+      )}
+      {/* Photo Lightbox Overlay */}
+      {activeImageUrl && (
+        <div 
+          className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in duration-300 select-none"
+          onClick={() => setActiveImageUrl(null)}
+        >
+          {/* Top panel buttons */}
+          <div className="absolute top-4 right-4 flex items-center gap-3 z-[160]">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all"
+              onClick={(e) => {
+                e.stopPropagation();
+                downloadFile(activeImageUrl, getFileNameFromUrl(activeImageUrl));
+              }}
+              title="Download image"
+            >
+              <Download className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImageUrl(null);
+              }}
+              title="Close viewer"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+
+          {/* Image Container with zoom in effect */}
+          <div 
+            className="relative flex items-center justify-center max-w-full max-h-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={activeImageUrl}
+              alt="View Attachment"
+              className="max-w-[95vw] max-h-[85vh] md:max-w-[85vw] md:max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/5 animate-in zoom-in-95 duration-200"
+            />
+          </div>
+
+          {/* Bottom Title / File Info bar */}
+          <div 
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md max-w-[90vw] text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-xs text-white/90 font-medium truncate max-w-[280px] md:max-w-md">
+              {getFileNameFromUrl(activeImageUrl)}
+            </p>
+          </div>
         </div>
       )}
     </div>
