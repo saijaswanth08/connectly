@@ -15,7 +15,7 @@ interface AddContactDialogProps {
   onClose?: () => void;
 }
 
-type CheckState = 'idle' | 'checking' | 'found' | 'not_found' | 'is_self' | 'already_connected';
+type CheckState = 'idle' | 'checking' | 'found' | 'not_found' | 'is_self' | 'already_connected' | 'request_pending' | 'one_way_contact';
 
 export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDialogProps = {}) {
   const isControlled = controlledOpen !== undefined;
@@ -59,19 +59,44 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
       try {
         const profile = await lookupProfileByEmail(val);
         if (profile && user?.id && profile.id !== user.id) {
-          // Check if they are already in the user's contacts
-          const { data: existingContact } = await supabase
-            .from('contacts')
-            .select('id')
-            .eq('user_id', user.id)
-            .or(`target_user_id.eq.${profile.id},email.eq.${profile.email}`)
-            .limit(1);
+          // 1. Check if a connection request already exists between these users
+          const { data: outgoingReq } = await supabase
+            .from('contact_requests')
+            .select('status')
+            .eq('from_user_id', user.id)
+            .eq('to_user_id', profile.id)
+            .maybeSingle();
 
-          if (existingContact && existingContact.length > 0) {
-            setCheckState('already_connected');
-          } else {
+          const { data: incomingReq } = await supabase
+            .from('contact_requests')
+            .select('status')
+            .eq('from_user_id', profile.id)
+            .eq('to_user_id', user.id)
+            .maybeSingle();
+
+          const existingRequest = outgoingReq || incomingReq;
+
+          if (existingRequest?.status === 'accepted') {
             setFoundProfile(profile);
-            setCheckState('found');
+            setCheckState('already_connected');
+          } else if (existingRequest?.status === 'pending') {
+            setFoundProfile(profile);
+            setCheckState('request_pending');
+          } else {
+            // 2. Check if User B has User A saved as a contact (one-way connection check)
+            const { data: existingContact } = await supabase
+              .from('contacts')
+              .select('id')
+              .eq('user_id', user.id)
+              .or(`target_user_id.eq.${profile.id},email.eq.${profile.email}`)
+              .limit(1);
+
+            setFoundProfile(profile);
+            if (existingContact && existingContact.length > 0) {
+              setCheckState('one_way_contact');
+            } else {
+              setCheckState('found');
+            }
           }
         } else if (profile && profile.id === user?.id) {
           setCheckState('is_self'); // Can't add yourself
@@ -148,12 +173,36 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
               )}
 
               {checkState === 'already_connected' && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 p-3 animate-in fade-in duration-200">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Already connected</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                      You are already fully connected with this user on Connectly.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {checkState === 'request_pending' && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3 animate-in fade-in duration-200">
+                  <Loader2 className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 animate-spin" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Request Pending</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      A contact request is already pending between you two. Please check your notifications!
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {checkState === 'one_way_contact' && foundProfile && (
                 <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 dark:bg-primary/10 dark:border-primary/80 p-3 animate-in fade-in duration-200">
                   <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-primary">Already in contacts</p>
+                    <p className="text-sm font-semibold text-primary">Saved in contacts (one-way)</p>
                     <p className="text-xs text-muted-foreground">
-                      This user is already in your contact list. You can chat with them directly!
+                      {foundProfile.name} is in your contacts list, but you aren't connected on Connectly. Send a request to connect both ways!
                     </p>
                   </div>
                 </div>
@@ -189,7 +238,11 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
             <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={checkState !== 'found' || submitting} className="gap-2">
+            <Button 
+              type="submit" 
+              disabled={!(checkState === 'found' || checkState === 'one_way_contact') || submitting} 
+              className="gap-2"
+            >
               {submitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</>
               ) : (
