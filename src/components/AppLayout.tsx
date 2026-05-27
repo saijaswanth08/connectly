@@ -10,6 +10,7 @@ import { FloatingQuickAdd } from "@/components/FloatingQuickAdd";
 import { useKeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimeContactRequests } from "@/hooks/useRealtimeContactRequests";
+import { useRealtimeContacts } from "@/hooks/useRealtimeContacts";
 import { usePresence } from "@/hooks/usePresence";
 import { useEffect } from "react";
 import { IncompleteProfileBanner } from "@/components/IncompleteProfileBanner";
@@ -21,6 +22,7 @@ export function AppLayout() {
   const location = useLocation();
   const { user } = useAuth();
   useRealtimeContactRequests(user?.id);
+  useRealtimeContacts(user?.id);
   usePresence(); // Enable global presence tracking while in dashboard
   
   const { data: profile, isLoading } = useProfile();

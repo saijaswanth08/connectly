@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
   const { user } = useAuth();
   const { toast } = useToast();
   const sendRequest = useSendContactRequest();
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!dialogOpen) {
@@ -144,6 +146,9 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
         });
 
         if (error) throw error;
+
+        // Invalidate contacts cache to instantly update UI!
+        qc.invalidateQueries({ queryKey: ["contacts"] });
 
         toast({
           title: "Contact added instantly! 🎉",
