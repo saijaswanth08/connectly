@@ -15,7 +15,7 @@ interface AddContactDialogProps {
   onClose?: () => void;
 }
 
-type CheckState = 'idle' | 'checking' | 'found' | 'not_found' | 'is_self' | 'already_connected' | 'request_pending' | 'one_way_contact';
+type CheckState = 'idle' | 'checking' | 'found' | 'not_found' | 'is_self' | 'already_connected' | 'request_pending' | 'one_way_contact' | 'has_me_saved';
 
 export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDialogProps = {}) {
   const isControlled = controlledOpen !== undefined;
@@ -83,19 +83,33 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
             setFoundProfile(profile);
             setCheckState('request_pending');
           } else {
-            // 2. Check if User B has User A saved as a contact (one-way connection check)
-            const { data: existingContact } = await supabase
+            // 2. Check if this profile already has the current logged-in user saved in their contacts
+            const { data: hasMeSaved } = await supabase
               .from('contacts')
               .select('id')
-              .eq('user_id', user.id)
-              .or(`target_user_id.eq.${profile.id},email.eq.${profile.email}`)
-              .limit(1);
+              .eq('user_id', profile.id)
+              .eq('target_user_id', user.id)
+              .limit(1)
+              .maybeSingle();
 
             setFoundProfile(profile);
-            if (existingContact && existingContact.length > 0) {
-              setCheckState('one_way_contact');
+
+            if (hasMeSaved) {
+              setCheckState('has_me_saved');
             } else {
-              setCheckState('found');
+              // 3. Check if User B is in User A's contacts list (one-way connection check)
+              const { data: existingContact } = await supabase
+                .from('contacts')
+                .select('id')
+                .eq('user_id', user.id)
+                .or(`target_user_id.eq.${profile.id},email.eq.${profile.email}`)
+                .limit(1);
+
+              if (existingContact && existingContact.length > 0) {
+                setCheckState('one_way_contact');
+              } else {
+                setCheckState('found');
+              }
             }
           }
         } else if (profile && profile.id === user?.id) {
@@ -114,15 +128,39 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
     if (!foundProfile || !user) return;
     setSubmitting(true);
     try {
-      await sendRequest.mutateAsync(foundProfile.id);
-      toast({
-        title: "Contact request sent!",
-        description: `${foundProfile.name} will be notified in-app.`,
-        className: "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800",
-      });
+      if (checkState === 'has_me_saved') {
+        // Direct/instant connection path: Insert contact record directly on current user's side
+        const { error } = await supabase.from('contacts').insert({
+          user_id: user.id,
+          name: foundProfile.name,
+          email: foundProfile.email,
+          target_user_id: foundProfile.id,
+          priority: 'medium',
+          company: foundProfile.company || '',
+          job_title: foundProfile.job_title || '',
+          notes: 'Connected instantly via reciprocal save',
+          tags: [],
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Contact added instantly! 🎉",
+          description: `${foundProfile.name} was successfully added to your contacts list.`,
+          className: "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800",
+        });
+      } else {
+        // Standard pending request path
+        await sendRequest.mutateAsync(foundProfile.id);
+        toast({
+          title: "Contact request sent!",
+          description: `${foundProfile.name} will be notified in-app.`,
+          className: "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:border-emerald-800",
+        });
+      }
       handleOpenChange(false);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to send request.";
+      const msg = err instanceof Error ? err.message : "Failed to process request.";
       toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setSubmitting(false);
@@ -208,6 +246,18 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
                 </div>
               )}
 
+              {checkState === 'has_me_saved' && foundProfile && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 p-3 animate-in fade-in duration-200">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Instant connection available! 🎉</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                      {foundProfile.name} already has you saved in their contacts. You can connect with them instantly without sending a request!
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {checkState === 'is_self' && (
                 <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3 animate-in fade-in duration-200">
                   <XCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
@@ -240,11 +290,13 @@ export function AddContactDialog({ open: controlledOpen, onClose }: AddContactDi
             </Button>
             <Button 
               type="submit" 
-              disabled={!(checkState === 'found' || checkState === 'one_way_contact') || submitting} 
+              disabled={!(checkState === 'found' || checkState === 'one_way_contact' || checkState === 'has_me_saved') || submitting} 
               className="gap-2"
             >
               {submitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Processing…</>
+              ) : checkState === 'has_me_saved' ? (
+                <><CheckCircle2 className="h-4 w-4" /> Add Instantly</>
               ) : (
                 <><UserPlus className="h-4 w-4" /> Send Request</>
               )}
