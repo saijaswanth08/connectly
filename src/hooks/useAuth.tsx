@@ -112,7 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    // Step 1: Immediately clear all Supabase tokens from storage.
+    // Step 1: Clear all Supabase tokens from storage immediately.
+    // This ensures getSession() returns null on the next page load.
     Object.keys(localStorage)
       .filter((k) => k.startsWith("sb-"))
       .forEach((k) => localStorage.removeItem(k));
@@ -120,21 +121,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .filter((k) => k.startsWith("sb-"))
       .forEach((k) => sessionStorage.removeItem(k));
 
-    // Step 2: Clear React state immediately
-    setUser(null);
-    setSession(null);
+    // Step 2: Fire server-side revocation in the background.
+    // Do NOT await — and do NOT call setUser/setSession(null) before the
+    // redirect. Updating React state here causes ProtectedRoute to see
+    // user=null and flash the /login page for a frame before the redirect.
+    supabase.auth.signOut({ scope: "global" }).catch((err) => {
+      console.error("[signOut] Supabase signOut error:", err);
+    });
 
-    // Step 3: Tell Supabase to sign out globally (revokes server-side session too)
-    // so that on next page load, getSession() returns null and PublicRoute
-    // won't redirect back to /dashboard.
-    try {
-      await supabase.auth.signOut({ scope: "global" });
-    } catch (err) {
-      console.error("[signOut] Supabase signOut error (non-blocking):", err);
-    }
-
-    // Step 4: Hard redirect to landing page. Using href forces a full page reload
-    // so all React state, query cache, and Supabase client memory is cleared.
+    // Step 3: Immediately hard-redirect to landing page. The full page reload
+    // wipes all React state, query cache, and Supabase client memory cleanly.
     window.location.href = "/";
   };
 
