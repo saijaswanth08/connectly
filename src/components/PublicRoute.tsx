@@ -20,10 +20,14 @@ export function PublicRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (user) {
+  // Only redirect away from /login and /signup when already logged in.
+  // The landing page "/" is always accessible (including right after sign out).
+  const authOnlyPaths = ["/login", "/signup", "/forgot-password"];
+  if (user && authOnlyPaths.includes(location.pathname)) {
     const redirectTo = new URLSearchParams(location.search).get("redirect") || "/dashboard";
     return <Navigate to={redirectTo} replace />;
   }
 
   return <>{children}</>;
 }
+

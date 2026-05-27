@@ -113,8 +113,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     // Step 1: Immediately clear all Supabase tokens from storage.
-    // This is the most important step — do it first so the redirect
-    // to /login won't bounce back to /dashboard even if the API call fails.
     Object.keys(localStorage)
       .filter((k) => k.startsWith("sb-"))
       .forEach((k) => localStorage.removeItem(k));
@@ -126,13 +124,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
 
-    // Step 3: Tell Supabase to sign out locally (scope:'local' = no network needed).
-    // Fire-and-forget — we don't wait for this so the redirect is instant.
-    supabase.auth.signOut({ scope: "local" }).catch((err) => {
+    // Step 3: Tell Supabase to sign out globally (revokes server-side session too)
+    // so that on next page load, getSession() returns null and PublicRoute
+    // won't redirect back to /dashboard.
+    try {
+      await supabase.auth.signOut({ scope: "global" });
+    } catch (err) {
       console.error("[signOut] Supabase signOut error (non-blocking):", err);
-    });
+    }
 
-    // Step 4: Hard redirect to landing page. Using href to force a full page reload
+    // Step 4: Hard redirect to landing page. Using href forces a full page reload
     // so all React state, query cache, and Supabase client memory is cleared.
     window.location.href = "/";
   };
