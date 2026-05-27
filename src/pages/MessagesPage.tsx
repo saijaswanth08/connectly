@@ -182,11 +182,28 @@ export default function MessagesPage() {
     return validSibling || c;
   };
 
-  // Build a map of contact_id -> conversation
-  const convByContact = useMemo(() => 
-    new Map(conversations.map((c) => [c.contact_id, c])),
-    [conversations]
-  );
+  // Build a map of contact_id -> conversation[] to support duplicate conversations
+  const convsByContact = useMemo(() => {
+    const map = new Map<string, any[]>();
+    for (const c of conversations) {
+      const list = map.get(c.contact_id) || [];
+      list.push(c);
+      map.set(c.contact_id, list);
+    }
+    return map;
+  }, [conversations]);
+
+  // Helper to get the most recent conversation for a contact ID
+  const getLatestConv = (contactId: string) => {
+    const list = convsByContact.get(contactId) || [];
+    if (list.length === 0) return undefined;
+    return list.reduce((latest, current) => {
+      if (!latest) return current;
+      return new Date(current.last_message_at).getTime() > new Date(latest.last_message_at).getTime()
+        ? current
+        : latest;
+    }, undefined as any);
+  };
 
   const selectedContact = useMemo(() => {
     return contacts.find((c) => c.id === selectedContactId);
@@ -226,12 +243,17 @@ export default function MessagesPage() {
     });
   }, [selectedContact, contacts, user]);
 
-  // Find all conversation IDs for these sibling contacts
+  // Find all conversation IDs for these sibling contacts across all duplicate threads
   const siblingConversationIds = useMemo(() => {
-    return siblingContacts
-      .map((c) => convByContact.get(c.id)?.id)
-      .filter((id): id is string => !!id);
-  }, [siblingContacts, convByContact]);
+    const ids: string[] = [];
+    for (const c of siblingContacts) {
+      const list = convsByContact.get(c.id) || [];
+      for (const conv of list) {
+        ids.push(conv.id);
+      }
+    }
+    return ids;
+  }, [siblingContacts, convsByContact]);
 
   const { data: messages = [], isLoading: isLoadingMessages } = useMessages(
     siblingConversationIds.length > 0 ? siblingConversationIds : selectedConversationId
@@ -313,7 +335,7 @@ export default function MessagesPage() {
       if (matchedContact) {
         const validContact = getValidContact(matchedContact);
         setSelectedContactId(validContact.id);
-        const conv = convByContact.get(validContact.id);
+        const conv = getLatestConv(validContact.id);
         if (conv) {
           setSelectedConversationId(conv.id);
         } else {
@@ -321,7 +343,7 @@ export default function MessagesPage() {
         }
       }
     }
-  }, [contactIdParam, contacts, convByContact]);
+  }, [contactIdParam, contacts, convsByContact]);
 
   // Filter: show active conversations by default, or all matching contacts if searching
   const filteredContacts = useMemo(() => {
@@ -329,14 +351,14 @@ export default function MessagesPage() {
     if (term) {
       return contacts.filter((c) => c.name.toLowerCase().includes(term));
     }
-    return contacts.filter((c) => convByContact.has(c.id));
-  }, [contacts, search, convByContact]);
+    return contacts.filter((c) => convsByContact.has(c.id));
+  }, [contacts, search, convsByContact]);
 
   // Sort: contacts with conversations first (by last_message_at), then others
   const sortedContacts = useMemo(() => {
     const sorted = [...filteredContacts].sort((a, b) => {
-      const convA = convByContact.get(a.id);
-      const convB = convByContact.get(b.id);
+      const convA = getLatestConv(a.id);
+      const convB = getLatestConv(b.id);
       if (convA && convB) return new Date(convB.last_message_at).getTime() - new Date(convA.last_message_at).getTime();
       if (convA) return -1;
       if (convB) return 1;
@@ -372,7 +394,7 @@ export default function MessagesPage() {
 
       return true;
     });
-  }, [filteredContacts, convByContact, user]);
+  }, [filteredContacts, convsByContact, user]);
 
   const uniqueContactsAlphabetical = useMemo(() => {
     const sorted = [...contacts].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
@@ -435,7 +457,7 @@ export default function MessagesPage() {
     if (forwardingMessage) {
       // Forward mode execution
       try {
-        let conv = convByContact.get(validContact.id);
+        let conv = getLatestConv(validContact.id);
         let convId = conv?.id;
         if (!convId) {
           const newConv = await getOrCreateConv.mutateAsync(validContact.id);
@@ -891,7 +913,7 @@ export default function MessagesPage() {
             ) : (
               <div className="space-y-1">
                 {sortedContacts.map((contact) => {
-                  const conv = convByContact.get(contact.id);
+                  const conv = getLatestConv(contact.id);
                   const isOnline = getContactOnlineStatus(contact);
                   const isActive = selectedContactId === contact.id || 
                     siblingContacts.some((sc) => sc.id === contact.id);
