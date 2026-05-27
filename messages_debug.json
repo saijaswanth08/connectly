@@ -1,0 +1,77 @@
+{
+  "currentUserId": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+  "currentUserEmail": "saijashuunallamaru@gmail.com",
+  "selectedContact": "Chinne Bittu",
+  "selectedContactTargetId": "07ec7325-edb0-4a3b-bd61-b796e886e3da",
+  "contacts": [
+    {
+      "id": "c98c91de-ef3f-4bd7-91e0-a1b7ba299d79",
+      "name": "saii",
+      "email": "",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "target_user_id": null
+    },
+    {
+      "id": "30a5a466-d6f9-4e1c-b226-6a6bedf243c1",
+      "name": "saii",
+      "email": "saijaswanthnalamaru@gmail.com",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "target_user_id": "a9df434c-5a95-4ffe-9f58-c1bfbd13cb78"
+    },
+    {
+      "id": "7d258b5e-d6f4-403b-aeb5-213044252b9e",
+      "name": "Chinne Bittu",
+      "email": "bittuchinne@gmail.com",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "target_user_id": "07ec7325-edb0-4a3b-bd61-b796e886e3da"
+    },
+    {
+      "id": "1aaeed8c-471c-45c1-bdb3-6f1acdb677ac",
+      "name": "Vani",
+      "email": "vani@gmail.com",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "target_user_id": null
+    }
+  ],
+  "conversations": [
+    {
+      "id": "279c1b03-8fb2-46e9-a60f-aaf97206d023",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "contact_id": "c98c91de-ef3f-4bd7-91e0-a1b7ba299d79",
+      "last_message": ""
+    },
+    {
+      "id": "ee25fb0a-6adb-48f5-bd04-5d58d394f43c",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "contact_id": "30a5a466-d6f9-4e1c-b226-6a6bedf243c1",
+      "last_message": "Hii"
+    },
+    {
+      "id": "f6b13844-d3a0-4b10-ad1f-9833baa55719",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "contact_id": "30a5a466-d6f9-4e1c-b226-6a6bedf243c1",
+      "last_message": "https://kumbgwxwfoyjwpomeryb.supabase.co/storage/v1/object/public/avatars/a9df434c-5a95-4ffe-9f58-c1bfbd13cb78/chat-attachments/1779814766683-MOA1__2_.pdf"
+    },
+    {
+      "id": "9afe817f-5dc4-41db-8ed4-9f10aa73cd3b",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "contact_id": "30a5a466-d6f9-4e1c-b226-6a6bedf243c1",
+      "last_message": "https://kumbgwxwfoyjwpomeryb.supabase.co/storage/v1/object/public/avatars/80e5600c-62c3-43c9-8a20-99cc09f921aa/chat-attachments/1779449923250-VID_20260121_073631_183.mp4"
+    },
+    {
+      "id": "ff6fa84d-1ee1-4de9-a4b0-fa568e083b6d",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "contact_id": "7d258b5e-d6f4-403b-aeb5-213044252b9e",
+      "last_message": "Hii"
+    }
+  ],
+  "messages": [
+    {
+      "id": "ba972062-5c49-4eee-b471-769036cfbf86",
+      "content": "Hii",
+      "sender_type": "contact",
+      "user_id": "80e5600c-62c3-43c9-8a20-99cc09f921aa",
+      "isUserCalculated": true
+    }
+  ]
+}

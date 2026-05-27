@@ -302,6 +302,23 @@ export function useClearConversation() {
   });
 }
 
+export function useEditMessage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ messageId, content }: { messageId: string; content: string }) => {
+      const { error } = await supabase
+        .from("messages")
+        .update({ content })
+        .eq("id", messageId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["messages"] });
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+}
+
 export function useGetOrCreateConversation() {
   const qc = useQueryClient();
   const { user } = useAuth();

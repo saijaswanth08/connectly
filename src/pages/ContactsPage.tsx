@@ -20,16 +20,45 @@ export default function ContactsPage() {
 
   const isLoading = allContacts.length === 0 && searchQuery === "";
 
-  // Filter contacts locally based on search query
+  // Filter contacts locally based on search query and de-duplicate by partner identity
   const contacts = useMemo(() => {
-    if (!searchQuery.trim()) return allContacts;
-    const q = searchQuery.toLowerCase();
-    return allContacts.filter(c => 
-      c.name.toLowerCase().includes(q) ||
-      c.company.toLowerCase().includes(q) ||
-      c.email.toLowerCase().includes(q)
+    const list = !searchQuery.trim() ? allContacts : allContacts.filter(c => 
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.company && c.company.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (c.email && c.email.toLowerCase().includes(searchQuery.toLowerCase()))
     );
-  }, [allContacts, searchQuery]);
+
+    // De-duplicate contacts by partner identity using robust case-insensitive field matching
+    const seenTargetIds = new Set<string>();
+    const seenEmails = new Set<string>();
+    const seenNames = new Set<string>();
+
+    return list.filter((c) => {
+      const targetId = c.target_user_id;
+      const email = c.email ? c.email.toLowerCase().trim() : "";
+      const name = c.name ? c.name.toLowerCase().trim() : "";
+
+      const isSelf =
+        targetId === user?.id ||
+        (user?.email && email && email === user.email.toLowerCase().trim());
+
+      const hasSeen =
+        !isSelf &&
+        ((targetId && seenTargetIds.has(targetId)) ||
+          (email && seenEmails.has(email)) ||
+          (name && seenNames.has(name)));
+
+      if (hasSeen) {
+        return false;
+      }
+
+      if (targetId) seenTargetIds.add(targetId);
+      if (email) seenEmails.add(email);
+      if (name) seenNames.add(name);
+
+      return true;
+    });
+  }, [allContacts, searchQuery, user]);
 
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto">

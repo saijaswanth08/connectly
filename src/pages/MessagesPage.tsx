@@ -12,6 +12,7 @@ import {
   useRealtimeConversations,
   useClearConversation,
   useDeleteMessage,
+  useEditMessage,
 } from "@/hooks/useMessages";
 import { usePresence, isUserOnline } from "@/hooks/usePresence";
 import { DbContact } from "@/lib/api";
@@ -20,7 +21,27 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Send, ArrowLeft, MessageSquare, Plus, X, Phone, Video, Info, Smile, Users, MoreVertical, ShieldAlert, Ban, Trash2, FileText, Download } from "lucide-react";
+import {
+  Search,
+  Send,
+  ArrowLeft,
+  MessageSquare,
+  Plus,
+  X,
+  MoreVertical,
+  ShieldAlert,
+  Ban,
+  Trash2,
+  FileText,
+  Download,
+  Copy,
+  Reply,
+  Forward,
+  Edit3,
+  Check,
+  CheckCheck,
+  Music,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +54,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 function getInitials(name: string) {
   return name
@@ -52,13 +74,22 @@ function formatMessageTime(dateStr: string) {
 
 function formatLastMessagePreview(content: string | null) {
   if (!content) return "";
+  if (content.startsWith("> 📝 Replying to:")) {
+    const parts = content.split("\n\n");
+    if (parts.length > 1) {
+      return parts.slice(1).join("\n\n");
+    }
+  }
   if (content.startsWith("blob:") || content.includes("chat-attachments") || content.includes("/storage/v1/object/public/")) {
     const isImg = content.match(/\.(jpeg|jpg|gif|png|webp|svg|bmp)(\?|$)/i) !== null || content.startsWith("blob:");
     const isVid = content.match(/\.(mp4|mov|webm|ogg|avi|mkv|m4v)(\?|$)/i) !== null;
+    const isAud = content.match(/\.(mp3|wav|m4a|ogg|aac|flac|opus)(\?|$)/i) !== null;
     if (isImg) {
       return "📷 Photo";
     } else if (isVid) {
       return "🎥 Video";
+    } else if (isAud) {
+      return "🎵 Audio";
     } else {
       return "📎 File";
     }
@@ -66,16 +97,18 @@ function formatLastMessagePreview(content: string | null) {
   return content;
 }
 
-import { useToast } from "@/hooks/use-toast";
-
 export default function MessagesPage() {
+  const { user } = useAuth();
+  const { onlineUsers } = usePresence();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const contactIdParam = searchParams.get("contactId");
+
   useEffect(() => {
     console.log("MessagesPage loaded");
   }, []);
+
   const isMobile = useIsMobile();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -84,6 +117,13 @@ export default function MessagesPage() {
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSearch, setPickerSearch] = useState("");
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  
+  // Premium feature states
+  const [replyingTo, setReplyingTo] = useState<any | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [forwardingMessage, setForwardingMessage] = useState<any | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,10 +143,25 @@ export default function MessagesPage() {
   // Find all sibling contacts that represent the same person
   const siblingContacts = useMemo(() => {
     if (!selectedContact) return [];
+
+    const selectedIsSelf =
+      selectedContact.target_user_id === user?.id ||
+      (user?.email &&
+        selectedContact.email &&
+        selectedContact.email.toLowerCase().trim() === user.email.toLowerCase().trim());
+
     const targetId = selectedContact.target_user_id;
     const email = selectedContact.email ? selectedContact.email.toLowerCase().trim() : "";
     const name = selectedContact.name ? selectedContact.name.toLowerCase().trim() : "";
+
     return contacts.filter((c) => {
+      const cIsSelf =
+        c.target_user_id === user?.id ||
+        (user?.email &&
+          c.email &&
+          c.email.toLowerCase().trim() === user.email.toLowerCase().trim());
+
+      if (selectedIsSelf !== cIsSelf) return false;
       if (targetId && c.target_user_id === targetId) return true;
       
       const cEmail = c.email ? c.email.toLowerCase().trim() : "";
@@ -117,7 +172,7 @@ export default function MessagesPage() {
       
       return false;
     });
-  }, [selectedContact, contacts]);
+  }, [selectedContact, contacts, user]);
 
   // Find all conversation IDs for these sibling contacts
   const siblingConversationIds = useMemo(() => {
@@ -129,7 +184,9 @@ export default function MessagesPage() {
   const { data: messages = [], isLoading: isLoadingMessages } = useMessages(
     siblingConversationIds.length > 0 ? siblingConversationIds : selectedConversationId
   );
+  
   const sendMessage = useSendMessage();
+  const editMessage = useEditMessage();
   const clearChat = useClearConversation();
   const deleteMessage = useDeleteMessage();
   const getOrCreateConv = useGetOrCreateConversation();
@@ -140,8 +197,6 @@ export default function MessagesPage() {
 
     // Optimistically hide the message in the UI immediately
     setDeletedMessageIds((prev) => [...prev, messageId]);
-
-    // Optimistically filter out if present locally
     setOptimisticMessages((prev) => prev.filter((m) => m.id !== messageId));
 
     try {
@@ -154,7 +209,6 @@ export default function MessagesPage() {
       });
     } catch (error: any) {
       console.error("Error deleting message:", error);
-      // Revert optimistic deletion in the UI
       setDeletedMessageIds((prev) => prev.filter((id) => id !== messageId));
       toast({
         title: "Failed to delete message",
@@ -163,8 +217,29 @@ export default function MessagesPage() {
       });
     }
   }
-  const { onlineUsers } = usePresence();
-  const { user } = useAuth();
+
+  async function handleSaveEdit(messageId: string) {
+    if (!editingText.trim()) return;
+    try {
+      await editMessage.mutateAsync({
+        messageId,
+        content: editingText.trim(),
+      });
+      toast({
+        title: "Message edited ✅",
+      });
+      setEditingMessageId(null);
+      setEditingText("");
+    } catch (error: any) {
+      console.error("Error editing message:", error);
+      toast({
+        title: "Failed to edit message",
+        description: error.message || "An unknown database error occurred.",
+        variant: "destructive",
+      });
+    }
+  }
+
   const [optimisticMessages, setOptimisticMessages] = useState<any[]>([]);
 
   // Merge database messages with unsynced optimistic local messages
@@ -201,7 +276,6 @@ export default function MessagesPage() {
     if (term) {
       return contacts.filter((c) => c.name.toLowerCase().includes(term));
     }
-    // Only show contacts who have an existing conversation
     return contacts.filter((c) => convByContact.has(c.id));
   }, [contacts, search, convByContact]);
 
@@ -216,7 +290,6 @@ export default function MessagesPage() {
       return (a.name || "").localeCompare(b.name || "");
     });
 
-    // De-duplicate sorted contacts by partner identity using robust case-insensitive field matching
     const seenTargetIds = new Set<string>();
     const seenEmails = new Set<string>();
     const seenNames = new Set<string>();
@@ -226,10 +299,15 @@ export default function MessagesPage() {
       const email = c.email ? c.email.toLowerCase().trim() : "";
       const name = c.name ? c.name.toLowerCase().trim() : "";
 
+      const isSelf =
+        targetId === user?.id ||
+        (user?.email && email && email === user.email.toLowerCase().trim());
+
       const hasSeen =
-        (targetId && seenTargetIds.has(targetId)) ||
-        (email && seenEmails.has(email)) ||
-        (name && seenNames.has(name));
+        !isSelf &&
+        ((targetId && seenTargetIds.has(targetId)) ||
+          (email && seenEmails.has(email)) ||
+          (name && seenNames.has(name)));
 
       if (hasSeen) {
         return false;
@@ -241,9 +319,8 @@ export default function MessagesPage() {
 
       return true;
     });
-  }, [filteredContacts, convByContact]);
+  }, [filteredContacts, convByContact, user]);
 
-  // De-duplicated list of contacts sorted alphabetically for the "New Message" dialog
   const uniqueContactsAlphabetical = useMemo(() => {
     const sorted = [...contacts].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     const seenTargetIds = new Set<string>();
@@ -255,10 +332,15 @@ export default function MessagesPage() {
       const email = c.email ? c.email.toLowerCase().trim() : "";
       const name = c.name ? c.name.toLowerCase().trim() : "";
 
+      const isSelf =
+        targetId === user?.id ||
+        (user?.email && email && email === user.email.toLowerCase().trim());
+
       const hasSeen =
-        (targetId && seenTargetIds.has(targetId)) ||
-        (email && seenEmails.has(email)) ||
-        (name && seenNames.has(name));
+        !isSelf &&
+        ((targetId && seenTargetIds.has(targetId)) ||
+          (email && seenEmails.has(email)) ||
+          (name && seenNames.has(name)));
 
       if (hasSeen) {
         return false;
@@ -270,10 +352,8 @@ export default function MessagesPage() {
 
       return true;
     });
-  }, [contacts]);
+  }, [contacts, user]);
 
-
-  // Scroll to bottom helper with layout-safe execution
   const scrollToBottom = (behavior: "auto" | "smooth" = "smooth") => {
     setTimeout(() => {
       if (messagesEndRef.current) {
@@ -285,14 +365,12 @@ export default function MessagesPage() {
     }, 80);
   };
 
-  // Instant scroll when switching chats or loading finishes
   useEffect(() => {
     if (selectedConversationId && !isLoadingMessages) {
       scrollToBottom("auto");
     }
   }, [selectedConversationId, isLoadingMessages]);
 
-  // Smooth scroll when new messages are added/sent
   useEffect(() => {
     if (allMessages.length > 0) {
       scrollToBottom("smooth");
@@ -300,16 +378,66 @@ export default function MessagesPage() {
   }, [allMessages.length]);
 
   async function handleSelectContact(contact: DbContact) {
+    if (forwardingMessage) {
+      // Forward mode execution
+      try {
+        let conv = convByContact.get(contact.id);
+        let convId = conv?.id;
+        if (!convId) {
+          const newConv = await getOrCreateConv.mutateAsync(contact.id);
+          convId = newConv.id;
+        }
+        await sendMessage.mutateAsync({
+          conversationId: convId,
+          content: forwardingMessage.content,
+        });
+        toast({
+          title: "Message forwarded! 🚀",
+          description: `Successfully sent to ${contact.name}`,
+        });
+        setSelectedContactId(contact.id);
+        setSelectedConversationId(convId);
+        setSearchParams({ contactId: contact.id });
+      } catch (e: any) {
+        toast({
+          title: "Failed to forward message",
+          description: e.message || "An error occurred.",
+          variant: "destructive",
+        });
+      } finally {
+        setForwardingMessage(null);
+        setShowPicker(false);
+      }
+      return;
+    }
+
     setSearchParams({ contactId: contact.id });
     setShowPicker(false);
     setPickerSearch("");
   }
 
   async function handleSend() {
-    if (!messageText.trim() || !selectedContactId) return;
+    if (!messageText.trim()) {
+      toast({
+        title: "Validation error ⚠️",
+        description: "Cannot send an empty message.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!selectedContactId) return;
 
-    const textToSend = messageText.trim();
-    setMessageText(""); // Instantly clear input!
+    let textToSend = messageText.trim();
+    if (replyingTo) {
+      // Inline reply serialization block
+      const cleanReplied = replyingTo.content.startsWith("> 📝 Replying to:")
+        ? replyingTo.content.split("\n\n").slice(1).join("\n\n")
+        : replyingTo.content;
+      textToSend = `> 📝 Replying to: ${cleanReplied}\n\n${textToSend}`;
+    }
+
+    setMessageText("");
+    setReplyingTo(null);
 
     const tempId = `optimistic-${Date.now()}`;
     const optimisticMsg = {
@@ -338,8 +466,7 @@ export default function MessagesPage() {
       });
     } catch (error: any) {
       console.error("Message send error:", error);
-      // Restore text and remove optimistic message on failure
-      setMessageText(textToSend);
+      setMessageText(messageText); // restore original text
       setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempId));
       toast({
         title: "Failed to send message",
@@ -347,7 +474,6 @@ export default function MessagesPage() {
         variant: "destructive",
       });
     } finally {
-      // Clean up optimistic message after 1.5s to let database/realtime settle
       setTimeout(() => {
         setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempId));
       }, 1500);
@@ -363,9 +489,8 @@ export default function MessagesPage() {
 
   function isImageUrl(url: string) {
     try {
-      if (url.startsWith("blob:") && !url.includes("video")) return true; // optimistic preview
+      if (url.startsWith("blob:") && !url.includes("video") && !url.includes("audio")) return true;
       if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
-      // Strictly match image extensions only
       return url.match(/\.(jpeg|jpg|gif|png|webp|svg|bmp)(\?|$)/i) !== null;
     } catch {
       return false;
@@ -381,12 +506,20 @@ export default function MessagesPage() {
     }
   }
 
+  function isAudioUrl(url: string) {
+    try {
+      if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
+      return url.match(/\.(mp3|wav|m4a|ogg|aac|flac|opus)(\?|$)/i) !== null;
+    } catch {
+      return false;
+    }
+  }
+
   function isAttachmentUrl(url: string) {
     try {
       if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
-      // Attachment if it's in our storage but NOT an image or video (those render natively)
       const isStorage = url.includes("chat-attachments") || url.includes("/storage/v1/object/public/");
-      return isStorage && !isImageUrl(url) && !isVideoUrl(url);
+      return isStorage && !isImageUrl(url) && !isVideoUrl(url) && !isAudioUrl(url);
     } catch {
       return false;
     }
@@ -397,7 +530,6 @@ export default function MessagesPage() {
       const decoded = decodeURIComponent(url);
       const parts = decoded.split("/");
       const lastPart = parts[parts.length - 1];
-      // Strip off timestamp prefixes if any (e.g. 1715900000-)
       return lastPart.replace(/^\d+-/, "");
     } catch {
       return "Attachment";
@@ -418,7 +550,6 @@ export default function MessagesPage() {
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("Failed to download file:", error);
-      // Fallback: open in new tab if block or CORS fails
       window.open(url, "_blank");
     }
   }
@@ -471,7 +602,7 @@ export default function MessagesPage() {
               }
             },
             file.type,
-            0.75 // 75% quality compression
+            0.75
           );
         };
       };
@@ -479,7 +610,6 @@ export default function MessagesPage() {
     });
   }
 
-  // Map MIME type to file extension so URLs always have a detectable extension
   function getExtensionFromMime(mimeType: string): string {
     const map: Record<string, string> = {
       "image/jpeg": ".jpg",
@@ -497,6 +627,14 @@ export default function MessagesPage() {
       "video/x-matroska": ".mkv",
       "video/x-m4v": ".m4v",
       "video/3gpp": ".3gp",
+      "audio/mp3": ".mp3",
+      "audio/mpeg": ".mp3",
+      "audio/wav": ".wav",
+      "audio/x-wav": ".wav",
+      "audio/ogg": ".ogg",
+      "audio/aac": ".aac",
+      "audio/x-m4a": ".m4a",
+      "audio/m4a": ".m4a",
       "application/pdf": ".pdf",
       "application/msword": ".doc",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
@@ -507,20 +645,14 @@ export default function MessagesPage() {
     return map[mimeType] ?? "";
   }
 
-  // Ensure file name has the correct extension based on its MIME type
   function normalizeFileName(file: File): string {
     const ext = getExtensionFromMime(file.type);
     const baseName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "file";
-    // Already has correct extension
     if (ext && baseName.toLowerCase().endsWith(ext)) return baseName;
-    // Has some extension but wrong — replace it, or append correct one
     if (ext) return baseName.replace(/\.[^.]+$/, "") + ext;
     return baseName;
   }
 
-  // Read file into ArrayBuffer via FileReader.
-  // This is critical for Google Drive / content:// URI files on Android Chrome
-  // where direct streaming upload fails with "Failed to fetch".
   function readFileAsBuffer(file: File): Promise<ArrayBuffer> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -543,6 +675,7 @@ export default function MessagesPage() {
 
     const isImage = file.type.startsWith("image/");
     const isVideo = file.type.startsWith("video/");
+    const isAudio = file.type.startsWith("audio/");
     const localPreviewUrl = isImage ? URL.createObjectURL(file) : "";
     const tempId = `optimistic-${Date.now()}`;
 
@@ -561,13 +694,12 @@ export default function MessagesPage() {
       ]);
     } else {
       toast({
-        title: isVideo ? "Uploading video..." : "Uploading file...",
+        title: isVideo ? "Uploading video..." : isAudio ? "Uploading audio..." : "Uploading file...",
         description: `Sending ${file.name} to ${selectedContact?.name.split(" ")[0]}`,
       });
     }
 
     try {
-      // File size check: 50MB limit
       if (file.size > 50 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -579,7 +711,6 @@ export default function MessagesPage() {
         return;
       }
 
-      // Read into ArrayBuffer first — fixes Google Drive / content:// URI failures on Android
       const buffer = await readFileAsBuffer(isImage ? await compressImage(file) : file);
       const safeFileName = normalizeFileName(file);
       const uploadBlob = new Blob([buffer], { type: file.type });
@@ -612,7 +743,7 @@ export default function MessagesPage() {
 
       if (!isImage) {
         toast({
-          title: isVideo ? "Video sent! 🎥" : "File sent! 📎",
+          title: isVideo ? "Video sent! 🎥" : isAudio ? "Audio sent! 🎵" : "File sent! 📎",
         });
       }
     } catch (err: any) {
@@ -656,7 +787,10 @@ export default function MessagesPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-display font-bold text-foreground tracking-tight">Messages</h2>
               <Button
-                onClick={() => setShowPicker((p) => !p)}
+                onClick={() => {
+                  setForwardingMessage(null);
+                  setShowPicker((p) => !p);
+                }}
                 variant="ghost"
                 size="icon"
                 className="h-9 w-9 rounded-full bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
@@ -893,12 +1027,30 @@ export default function MessagesPage() {
                   ) : (
                     <div className="flex flex-col">
                       {allMessages.map((msg, idx) => {
-                        const isUser = msg.sender_type === "user" || msg.user_id === user?.id;
+                        // Strict database identification fix for sender bleed
+                        const isUser = msg.sender_type === "user";
                         const prevMsg = allMessages[idx - 1];
                         const nextMsg = allMessages[idx + 1];
                         
                         const isFirstInGroup = !prevMsg || prevMsg.sender_type !== msg.sender_type;
                         const isLastInGroup = !nextMsg || nextMsg.sender_type !== msg.sender_type;
+
+                        // Inline quote parser
+                        const isReply = msg.content.startsWith("> 📝 Replying to:");
+                        let replyText = "";
+                        let bodyText = msg.content;
+                        if (isReply) {
+                          const parts = msg.content.split("\n\n");
+                          if (parts.length > 1) {
+                            replyText = parts[0].replace("> 📝 Replying to:", "").trim();
+                            bodyText = parts.slice(1).join("\n\n");
+                          }
+                        }
+
+                        const isImg = isImageUrl(bodyText);
+                        const isVid = isVideoUrl(bodyText);
+                        const isAud = isAudioUrl(bodyText);
+                        const isDoc = isAttachmentUrl(bodyText);
 
                         return (
                           <div
@@ -930,16 +1082,55 @@ export default function MessagesPage() {
                                     : "bg-card border border-border/40 text-foreground"
                                 )}
                               >
-                                {isImageUrl(msg.content) ? (
+                                {/* Nested reply visualization block */}
+                                {isReply && (
+                                  <div className={cn(
+                                    "px-3 py-1.5 rounded-lg text-xs border-l-4 mb-1 text-left opacity-90 select-none max-w-xs truncate",
+                                    isUser 
+                                      ? "border-white/40 bg-white/10 text-white/90" 
+                                      : "border-primary/50 bg-muted text-muted-foreground"
+                                  )}>
+                                    <span className="font-bold text-[9px] block uppercase opacity-75">Replying to</span>
+                                    <span className="truncate block mt-0.5">{replyText}</span>
+                                  </div>
+                                )}
+
+                                {editingMessageId === msg.id ? (
+                                  <div className="flex flex-col gap-2 min-w-[200px]">
+                                    <textarea
+                                      value={editingText}
+                                      onChange={(e) => setEditingText(e.target.value)}
+                                      className="w-full bg-background/50 border border-border/40 rounded-lg p-2 text-sm text-foreground focus:outline-none focus:border-primary resize-none"
+                                      rows={2}
+                                    />
+                                    <div className="flex justify-end gap-1.5">
+                                      <Button 
+                                        size="sm" 
+                                        variant="ghost" 
+                                        onClick={() => setEditingMessageId(null)}
+                                        className="h-7 text-xs hover:bg-white/15"
+                                      >
+                                        Cancel
+                                      </Button>
+                                      <Button 
+                                        size="sm" 
+                                        onClick={() => handleSaveEdit(msg.id)}
+                                        className="h-7 text-xs bg-primary hover:bg-primary/95 text-white"
+                                      >
+                                        Save
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : isImg ? (
                                   <div className="relative rounded-xl overflow-hidden max-w-xs sm:max-w-sm md:max-w-md cursor-zoom-in hover:brightness-95 transition-all my-0.5">
                                     <img 
-                                      src={msg.content} 
+                                      src={bodyText} 
                                       alt="Attachment" 
                                       className={cn(
                                         "max-h-60 w-full object-cover rounded-xl border border-border/10",
                                         msg.isOptimistic && "blur-[2px] opacity-70"
                                       )}
-                                      onClick={() => !msg.isOptimistic && window.open(msg.content, "_blank")}
+                                      onClick={() => !msg.isOptimistic && window.open(bodyText, "_blank")}
                                     />
                                     {msg.isOptimistic && (
                                       <div className="absolute inset-0 flex items-center justify-center bg-black/25 rounded-xl">
@@ -947,10 +1138,10 @@ export default function MessagesPage() {
                                       </div>
                                     )}
                                   </div>
-                                ) : isVideoUrl(msg.content) ? (
+                                ) : isVid ? (
                                   <div className="relative rounded-xl overflow-hidden max-w-xs sm:max-w-sm md:max-w-md my-0.5">
                                     <video
-                                      src={msg.content}
+                                      src={bodyText}
                                       controls
                                       playsInline
                                       preload="metadata"
@@ -958,9 +1149,21 @@ export default function MessagesPage() {
                                       style={{ maxWidth: "280px" }}
                                     />
                                   </div>
-                                ) : isAttachmentUrl(msg.content) ? (
+                                ) : isAud ? (
+                                  <div className="my-1 min-w-[260px]">
+                                    <div className="flex items-center gap-2 mb-1.5 opacity-90">
+                                      <Music className={cn("h-4 w-4 shrink-0", isUser ? "text-white" : "text-primary")} />
+                                      <span className="text-xs font-bold truncate">{getFileNameFromUrl(bodyText)}</span>
+                                    </div>
+                                    <audio
+                                      src={bodyText}
+                                      controls
+                                      className="w-full h-8 rounded bg-transparent opacity-95 filter invert dark:invert-0"
+                                    />
+                                  </div>
+                                ) : isDoc ? (
                                   <div 
-                                    onClick={() => window.open(msg.content, "_blank")}
+                                    onClick={() => window.open(bodyText, "_blank")}
                                     className={cn(
                                       "flex items-center gap-3.5 p-3 rounded-xl border transition-all duration-200 cursor-pointer select-none max-w-xs w-[260px] my-0.5 shadow-sm",
                                       isUser
@@ -976,19 +1179,19 @@ export default function MessagesPage() {
                                     </div>
                                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                       <p className="text-xs font-bold truncate leading-tight">
-                                        {getFileNameFromUrl(msg.content)}
+                                        {getFileNameFromUrl(bodyText)}
                                       </p>
                                       <p className={cn(
                                         "text-[9px] font-bold tracking-wide uppercase leading-none opacity-60",
                                         isUser ? "text-white" : "text-foreground"
                                       )}>
-                                        {msg.content.split('.').pop()?.split('?')[0].toUpperCase() || "FILE"} DOCUMENT
+                                        {bodyText.split('.').pop()?.split('?')[0].toUpperCase() || "FILE"} DOCUMENT
                                       </p>
                                     </div>
                                     <div 
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        downloadFile(msg.content, getFileNameFromUrl(msg.content));
+                                        downloadFile(bodyText, getFileNameFromUrl(bodyText));
                                       }}
                                       className={cn(
                                         "h-8 w-8 shrink-0 rounded-full flex items-center justify-center border transition-all cursor-pointer",
@@ -1002,33 +1205,91 @@ export default function MessagesPage() {
                                     </div>
                                   </div>
                                 ) : (
-                                  <p className="text-[14.5px] leading-snug whitespace-pre-wrap break-words font-medium text-left w-full pr-1">{msg.content}</p>
+                                  <p className="text-[14.5px] leading-snug whitespace-pre-wrap break-words font-medium text-left w-full pr-1">{bodyText}</p>
                                 )}
                                 
-                                <span className={cn(
-                                  "text-[10px] font-semibold self-end leading-none mt-0.5 select-none",
-                                  isUser ? "text-white/60" : "text-muted-foreground/60"
-                                )}>
-                                  {format(new Date(msg.created_at), "h:mm a")}
-                                </span>
+                                <div className="flex items-center gap-1.5 mt-0.5 justify-end self-end select-none opacity-85">
+                                  <span className={cn(
+                                    "text-[9px] font-semibold leading-none",
+                                    isUser ? "text-white/60" : "text-muted-foreground/60"
+                                  )}>
+                                    {format(new Date(msg.created_at), "h:mm a")}
+                                  </span>
+                                  {isUser && !msg.isOptimistic && (
+                                    <CheckCheck className="h-3 w-3 text-white/80 shrink-0" title="Delivered" />
+                                  )}
+                                </div>
                               </div>
                             </div>
-                            
-                            {/* Unsend/Delete Action Button */}
-                            {isUser && !msg.isOptimistic && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  if (confirm("Unsend this message? This will delete it for both participants.")) {
-                                    handleDeleteMessage(msg.id);
-                                  }
-                                }}
-                                className="h-8 w-8 rounded-full text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 shrink-0 mb-1.5 self-end opacity-100 md:opacity-0 group-hover:opacity-100"
-                                title="Unsend message"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+
+                            {/* Floating premium message context dropdown menu */}
+                            {!msg.isOptimistic && (
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 self-center shrink-0 mx-1">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-muted/80 text-muted-foreground">
+                                      <MoreVertical className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align={isUser ? "end" : "start"} className="w-40 rounded-xl">
+                                    <DropdownMenuItem 
+                                      onClick={() => setReplyingTo(msg)}
+                                      className="gap-2 cursor-pointer text-xs"
+                                    >
+                                      <Reply className="h-3.5 w-3.5" />
+                                      Reply
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(bodyText);
+                                        toast({ title: "Copied to clipboard! 📋" });
+                                      }}
+                                      className="gap-2 cursor-pointer text-xs"
+                                    >
+                                      <Copy className="h-3.5 w-3.5" />
+                                      Copy Text
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => {
+                                        setForwardingMessage(msg);
+                                        setShowPicker(true);
+                                      }}
+                                      className="gap-2 cursor-pointer text-xs"
+                                    >
+                                      <Forward className="h-3.5 w-3.5" />
+                                      Forward
+                                    </DropdownMenuItem>
+                                    {isUser && !isImg && !isVid && !isAud && !isDoc && (
+                                      <DropdownMenuItem 
+                                        onClick={() => {
+                                          setEditingMessageId(msg.id);
+                                          setEditingText(bodyText);
+                                        }}
+                                        className="gap-2 cursor-pointer text-xs"
+                                      >
+                                        <Edit3 className="h-3.5 w-3.5" />
+                                        Edit Message
+                                      </DropdownMenuItem>
+                                    )}
+                                    {isUser && (
+                                      <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem 
+                                          onClick={() => {
+                                            if (confirm("Unsend this message? This will delete it for both participants.")) {
+                                              handleDeleteMessage(msg.id);
+                                            }
+                                          }}
+                                          className="gap-2 cursor-pointer text-xs text-destructive focus:text-destructive"
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                          Unsend
+                                        </DropdownMenuItem>
+                                      </>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             )}
                           </div>
                         );
@@ -1039,15 +1300,34 @@ export default function MessagesPage() {
                 </div>
               </ScrollArea>
 
-              {/* Message Input Area */}
-              <div className="p-6 bg-card/40 backdrop-blur-xl border-t border-border/40">
+              {/* Message Input Area with reply state rendering */}
+              <div className="p-6 bg-card/40 backdrop-blur-xl border-t border-border/40 relative">
+                {replyingTo && (
+                  <div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-2 mb-3 bg-muted/65 border border-border/50 rounded-2xl animate-in slide-in-from-bottom-2 duration-200">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Reply className="h-4 w-4 text-primary shrink-0" />
+                      <div className="min-w-0 text-left">
+                        <p className="text-[10px] font-bold tracking-wider uppercase text-primary">Replying to {replyingTo.sender_type === "user" ? "yourself" : selectedContact.name.split(" ")[0]}</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-md">
+                          {replyingTo.content.startsWith("> 📝 Replying to:")
+                            ? replyingTo.content.split("\n\n").slice(1).join("\n\n")
+                            : replyingTo.content}
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setReplyingTo(null)} className="h-6 w-6 rounded-full">
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+
                 <div className="max-w-4xl mx-auto flex items-end gap-3">
                   <div className="flex-1 relative group bg-background/50 rounded-[28px] border border-border/60 focus-within:border-primary/30 focus-within:bg-background focus-within:shadow-[0_0_20px_rgba(var(--primary-rgb),0.05)] transition-all duration-500">
                     <input
                       ref={attachmentInputRef}
                       type="file"
                       className="hidden"
-                      accept="image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
+                      accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
                       onChange={handleAttachmentUpload}
                     />
                     <textarea
@@ -1056,7 +1336,7 @@ export default function MessagesPage() {
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      className="w-full bg-transparent border-0 ring-0 focus:ring-0 px-6 py-4 text-[15px] max-h-32 resize-none placeholder:text-muted-foreground/40 transition-all scrollbar-none outline-none appearance-none"
+                      className="w-full bg-transparent border-0 ring-0 focus:ring-0 px-6 py-4 text-[15px] max-h-32 resize-none placeholder:text-muted-foreground/40 transition-all scrollbar-none outline-none appearance-none text-left"
                     />
                     <div className="absolute right-4 bottom-3 flex items-center gap-2">
                       <Button
@@ -1110,7 +1390,7 @@ export default function MessagesPage() {
         </div>
       )}
 
-      {/* Contact Picker Modal for New Messages */}
+      {/* Contact Picker Modal for New Messages & Forwarding */}
       {showPicker && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <motion.div
@@ -1120,8 +1400,10 @@ export default function MessagesPage() {
           >
             <div className="p-6 border-b border-border/40 bg-card/50 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-display font-bold text-foreground">New Message</h3>
-                <Button variant="ghost" size="icon" onClick={() => { setShowPicker(false); setPickerSearch(""); }} className="rounded-full h-8 w-8">
+                <h3 className="text-xl font-display font-bold text-foreground">
+                  {forwardingMessage ? "Forward Message" : "New Message"}
+                </h3>
+                <Button variant="ghost" size="icon" onClick={() => { setShowPicker(false); setPickerSearch(""); setForwardingMessage(null); }} className="rounded-full h-8 w-8">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
