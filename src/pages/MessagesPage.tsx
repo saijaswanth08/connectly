@@ -38,8 +38,6 @@ import {
   Reply,
   Forward,
   Edit3,
-  Check,
-  CheckCheck,
   Music,
 } from "lucide-react";
 import {
@@ -1227,9 +1225,6 @@ export default function MessagesPage() {
                                   )}>
                                     {format(new Date(msg.created_at), "h:mm a")}
                                   </span>
-                                  {isUser && !msg.isOptimistic && (
-                                    <CheckCheck className="h-3 w-3 text-white/80 shrink-0" title="Delivered" />
-                                  )}
                                 </div>
                               </div>
                             </div>
