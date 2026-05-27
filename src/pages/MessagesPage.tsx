@@ -140,6 +140,26 @@ export default function MessagesPage() {
   const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
   const { data: conversations = [] } = useConversations();
 
+  // Helper to determine if a contact is online, fallback to matching sibling contacts
+  const getContactOnlineStatus = (c: DbContact) => {
+    if (!c) return false;
+    if (c.target_user_id && c.target_user_id !== user?.id) {
+      if (onlineUsers.has(c.target_user_id)) return true;
+    }
+    const name = c.name ? c.name.toLowerCase().trim() : "";
+    const email = c.email ? c.email.toLowerCase().trim() : "";
+    
+    return contacts.some((other) => {
+      if (other.target_user_id === user?.id) return false;
+      if (!other.target_user_id) return false;
+      
+      const nameMatch = name && other.name && other.name.toLowerCase().trim() === name;
+      const emailMatch = email && other.email && other.email.toLowerCase().trim() === email;
+      
+      return (nameMatch || emailMatch) && onlineUsers.has(other.target_user_id);
+    });
+  };
+
   // Build a map of contact_id -> conversation
   const convByContact = useMemo(() => 
     new Map(conversations.map((c) => [c.contact_id, c])),
@@ -848,7 +868,7 @@ export default function MessagesPage() {
               <div className="space-y-1">
                 {sortedContacts.map((contact) => {
                   const conv = convByContact.get(contact.id);
-                  const isOnline = isUserOnline(onlineUsers, contact.target_user_id) && contact.target_user_id !== user?.id;
+                  const isOnline = getContactOnlineStatus(contact);
                   const isActive = selectedContactId === contact.id || 
                     siblingContacts.some((sc) => sc.id === contact.id);
                   
@@ -945,7 +965,7 @@ export default function MessagesPage() {
                     <div>
                       <h2 className="text-base font-bold text-foreground leading-tight tracking-tight hover:text-primary transition-colors">{selectedContact.name}</h2>
                       <div className="flex items-center mt-1">
-                        {isUserOnline(onlineUsers, selectedContact.target_user_id) && selectedContact.target_user_id !== user?.id ? (
+                        {getContactOnlineStatus(selectedContact) ? (
                           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/10 transition-all duration-300">
                             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                             <span className="text-[10px] font-bold tracking-wide uppercase">Online</span>
