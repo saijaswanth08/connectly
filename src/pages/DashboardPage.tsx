@@ -437,21 +437,23 @@ export default function DashboardPage() {
             {/* Visual glow blobs */}
             <div className="absolute -right-4 -bottom-4 h-20 w-20 rounded-full bg-white/10 blur-xl pointer-events-none" />
 
-            <div className="flex items-center justify-between gap-4 relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 backdrop-blur-md border border-white/25">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 relative z-10">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 backdrop-blur-md border border-white/25 mt-0.5 sm:mt-0">
                   <ImagePlus className="h-4 w-4 text-white animate-pulse" />
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-display font-semibold text-sm">Complete your profile photo</span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
-                    <Sparkles className="h-2.5 w-2.5" /> Recommended
-                  </span>
-                  <span className="text-xs text-indigo-100/80 hidden sm:inline">— A photo helps your network recognize you!</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                  <span className="font-display font-semibold text-sm leading-tight">Complete your profile photo</span>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider backdrop-blur-sm w-fit">
+                      <Sparkles className="h-2 w-2 sm:h-2.5 sm:w-2.5" /> Recommended
+                    </span>
+                    <span className="text-xs text-indigo-100/80 hidden sm:inline">— A photo helps your network recognize you!</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 -mt-8 sm:mt-0">
                 <Link
                   to="/dashboard/profile"
                   className="inline-flex h-8 items-center justify-center rounded-lg bg-white px-4 text-xs font-semibold text-indigo-600 shadow hover:bg-indigo-50 transition-all hover:scale-[1.02] active:scale-95 duration-200"

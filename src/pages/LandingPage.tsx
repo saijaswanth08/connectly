@@ -99,7 +99,7 @@ export default function LandingPage() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-card px-6 py-4 space-y-3">
+          <div className="absolute top-16 left-0 right-0 z-50 md:hidden border-b border-border bg-background/95 backdrop-blur-lg px-6 py-4 space-y-3 shadow-xl">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
@@ -133,7 +133,7 @@ export default function LandingPage() {
         <div className="relative z-10 w-full">
           <div className="mx-auto max-w-6xl px-6 reveal">
             <div className="flex flex-col md:grid md:grid-cols-2 items-center gap-8 md:gap-12">
-            <motion.div initial="hidden" animate="visible" className="space-y-6 order-2 md:order-1 text-center md:text-left w-full">
+            <motion.div initial="hidden" animate="visible" className="space-y-6 order-1 text-center md:text-left w-full">
               <motion.div custom={0} variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-1.5 mx-auto md:mx-0">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                 <span className="text-xs font-semibold text-primary tracking-wide uppercase">Personal CRM for Professionals</span>
@@ -166,7 +166,7 @@ export default function LandingPage() {
               </motion.div>
             </motion.div>
 
-            <div className="order-1 md:order-2 w-full flex justify-center">
+            <div className="order-2 w-full flex justify-center">
               <HeroFloatingElements />
             </div>
           </div>

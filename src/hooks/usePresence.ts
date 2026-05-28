@@ -129,12 +129,10 @@ export function usePresence() {
     };
 
     window.addEventListener('beforeunload', handleInstantUnload);
-    window.addEventListener('unload', handleInstantUnload);
     window.addEventListener('pagehide', handleInstantUnload);
 
     return () => {
       window.removeEventListener('beforeunload', handleInstantUnload);
-      window.removeEventListener('unload', handleInstantUnload);
       window.removeEventListener('pagehide', handleInstantUnload);
     };
   }, [user?.id]);

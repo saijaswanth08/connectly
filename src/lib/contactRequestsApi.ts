@@ -77,7 +77,7 @@ export async function acceptContactRequest(requestId: string, fromUserId: string
       .limit(1);
 
     if (!existingContacts || existingContacts.length === 0) {
-      await supabase.from('contacts').insert({
+      const { error: insertError } = await supabase.from('contacts').insert({
         user_id: user.id,
         name: p.name || 'Unknown',
         email: p.email || '',
@@ -92,6 +92,10 @@ export async function acceptContactRequest(requestId: string, fromUserId: string
         target_user_id: p.id,
         tags: [],
       });
+      if (insertError) {
+        console.error("Failed to insert contact on accept:", insertError);
+        throw insertError;
+      }
     }
   }
   const { error } = await supabase
