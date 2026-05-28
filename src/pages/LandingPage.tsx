@@ -138,7 +138,7 @@ export default function LandingPage() {
                 <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                 <span className="text-xs font-semibold text-primary tracking-wide uppercase">Personal CRM for Professionals</span>
               </motion.div>
-              <motion.h1 custom={1} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-[3.5rem] mx-auto md:mx-0 max-w-xl md:max-w-none">
+              <motion.h1 custom={1} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.15] text-foreground sm:text-5xl lg:text-[3.5rem] mx-auto md:mx-0 max-w-[16ch] md:max-w-none">
                 Remember Every{" "}
                 <span className="relative">
                   <span className="text-gradient">Connection</span>
