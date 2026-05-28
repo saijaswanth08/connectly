@@ -60,14 +60,16 @@ export function SidebarUserMenu() {
                     <Skeleton className="h-2.5 w-32" />
                   </>
                 ) : (
-                  <>
-                    <p className="text-xs font-medium text-sidebar-accent-foreground truncate">
+                  <div className="flex flex-col justify-center">
+                    <p className="text-sm font-medium text-sidebar-accent-foreground truncate leading-tight">
                       {displayName}
                     </p>
-                    <p className="text-[10px] text-sidebar-foreground truncate">
-                      {displayEmail}
-                    </p>
-                  </>
+                    {displayEmail && (
+                      <p className="text-xs text-sidebar-foreground truncate mt-0.5">
+                        {displayEmail}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
               <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-sidebar-foreground" />
