@@ -100,10 +100,10 @@ export default function NetworkGraphAnimated() {
             <motion.circle
               cx={node.x ?? 0}
               cy={node.y ?? 0}
-              r={(node.size ?? 6) * 0.8}
+              r={`${(node.size ?? 6) * 0.8}`}
               fill="url(#nodeGlow)"
               animate={{
-                r: [(node.size ?? 6) * 0.7, (node.size ?? 6) * 1.0, (node.size ?? 6) * 0.7],
+                r: [`${(node.size ?? 6) * 0.7}`, `${(node.size ?? 6) * 1.0}`, `${(node.size ?? 6) * 0.7}`],
                 opacity: [0.3, 0.6, 0.3],
               }}
               transition={{ duration: 3 + i * 0.3, repeat: Infinity, ease: "easeInOut" }}
@@ -112,11 +112,11 @@ export default function NetworkGraphAnimated() {
             <motion.circle
               cx={node.x ?? 0}
               cy={node.y ?? 0}
-              r={(node.size ?? 6) * 0.25}
+              r={`${(node.size ?? 6) * 0.25}`}
               fill="hsl(var(--soft-blue))"
               className="text-primary"
               animate={{
-                r: [(node.size ?? 6) * 0.22, (node.size ?? 6) * 0.28, (node.size ?? 6) * 0.22],
+                r: [`${(node.size ?? 6) * 0.22}`, `${(node.size ?? 6) * 0.28}`, `${(node.size ?? 6) * 0.22}`],
               }}
               transition={{ duration: 2 + i * 0.2, repeat: Infinity, ease: "easeInOut" }}
             />
