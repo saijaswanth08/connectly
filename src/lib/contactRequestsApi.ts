@@ -128,7 +128,7 @@ export async function addContactFromAcceptedRequest(requestId: string, toUserId:
       .limit(1);
 
     if (!existingContacts || existingContacts.length === 0) {
-      await supabase.from('contacts').insert({
+      const { error: insertError } = await supabase.from('contacts').insert({
         user_id: user.id,
         name: p.name || 'Unknown',
         email: p.email || '',
@@ -143,6 +143,11 @@ export async function addContactFromAcceptedRequest(requestId: string, toUserId:
         target_user_id: p.id,
         tags: [],
       });
+
+      if (insertError) {
+        console.error("Failed to insert contact from accepted request:", insertError);
+        throw new Error(`Database error saving contact: ${insertError.message}`);
+      }
     }
   }
   // Repurpose "declined" as "processed" to hide from outgoing accepted list
