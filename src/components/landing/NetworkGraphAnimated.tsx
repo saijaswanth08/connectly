@@ -92,31 +92,31 @@ export default function NetworkGraphAnimated() {
         {nodes.map((node, i) => (
           <motion.g
             key={`node-${i}`}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            initial={{ scale: 0, opacity: 0, x: node.x ?? 0, y: node.y ?? 0 }}
+            animate={{ scale: 1, opacity: 1, x: node.x ?? 0, y: node.y ?? 0 }}
             transition={{ delay: node.delay, duration: 0.5, ease: "backOut" }}
           >
             {/* Glow circle */}
             <motion.circle
-              cx={node.x ?? 0}
-              cy={node.y ?? 0}
-              r={`${(node.size ?? 6) * 0.8}`}
+              cx={0}
+              cy={0}
+              r={(node.size ?? 6) * 0.8}
               fill="url(#nodeGlow)"
               animate={{
-                r: [`${(node.size ?? 6) * 0.7}`, `${(node.size ?? 6) * 1.0}`, `${(node.size ?? 6) * 0.7}`],
+                scale: [0.875, 1.25, 0.875],
                 opacity: [0.3, 0.6, 0.3],
               }}
               transition={{ duration: 3 + i * 0.3, repeat: Infinity, ease: "easeInOut" }}
             />
             {/* Core dot */}
             <motion.circle
-              cx={node.x ?? 0}
-              cy={node.y ?? 0}
-              r={`${(node.size ?? 6) * 0.25}`}
+              cx={0}
+              cy={0}
+              r={(node.size ?? 6) * 0.25}
               fill="hsl(var(--soft-blue))"
               className="text-primary"
               animate={{
-                r: [`${(node.size ?? 6) * 0.22}`, `${(node.size ?? 6) * 0.28}`, `${(node.size ?? 6) * 0.22}`],
+                scale: [0.88, 1.12, 0.88],
               }}
               transition={{ duration: 2 + i * 0.2, repeat: Infinity, ease: "easeInOut" }}
             />
@@ -126,7 +126,7 @@ export default function NetworkGraphAnimated() {
                 animate={{ y: [0, -0.5, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: node.delay }}
               >
-                <PersonIcon x={node.x ?? 0} y={(node.y ?? 0) - (node.size ?? 6) * 0.6} size={node.size ?? 6} />
+                <PersonIcon x={0} y={-(node.size ?? 6) * 0.6} size={node.size ?? 6} />
               </motion.g>
             )}
           </motion.g>
