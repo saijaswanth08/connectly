@@ -43,8 +43,6 @@ export function deduplicateContacts(contacts: DbContact[]): DbContact[] {
       isDuplicate = true;
     } else if (phone && seenPhones.has(phone)) {
       isDuplicate = true;
-    } else if (name && seenNames.has(name)) {
-      isDuplicate = true;
     }
 
     if (!isDuplicate) {

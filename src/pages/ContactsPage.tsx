@@ -39,8 +39,7 @@ export default function ContactsPage() {
       const hasSeen =
         !isSelf &&
         ((targetId && seenTargetIds.has(targetId)) ||
-          (email && seenEmails.has(email)) ||
-          (name && seenNames.has(name)));
+          (email && seenEmails.has(email)));
 
       if (hasSeen) {
         return false;
