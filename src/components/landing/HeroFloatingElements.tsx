@@ -10,30 +10,14 @@ const floatingCards = [
     tagColor: "bg-amber-100 text-amber-700",
     initials: "O",
     avatarBg: "bg-primary/10 text-primary",
-    // Top right quadrant
-    className: "top-4 right-2 sm:top-6 sm:right-8 md:top-8 md:right-12",
-    lineEndpoint: { x: "85%", y: "20%" },
+    // Top right
+    className: "top-[5%] right-0 sm:top-[10%] sm:right-8",
+    lineEndpoint: { x: "85%", y: "15%" },
     delay: 0,
     duration: 8,
     y: [-4, 8, -4],
     x: [0, 6, 0],
     rotate: [0, 1.5, 0],
-  },
-  {
-    name: "Sarah Chen",
-    role: "Product Lead",
-    tag: "Client",
-    tagColor: "bg-blue-100 text-blue-700",
-    initials: "SC",
-    avatarBg: "bg-[hsl(var(--soft-purple)/0.12)] text-[hsl(var(--soft-purple))]",
-    // Bottom right quadrant
-    className: "bottom-8 right-0 sm:bottom-16 sm:right-4 md:bottom-20 md:right-6",
-    lineEndpoint: { x: "80%", y: "80%" },
-    delay: 2,
-    duration: 10,
-    y: [6, -6, 6],
-    x: [-4, 4, -4],
-    rotate: [0, -1, 0],
   },
   {
     name: "James Okafor",
@@ -42,14 +26,30 @@ const floatingCards = [
     tagColor: "bg-green-100 text-green-700",
     initials: "JO",
     avatarBg: "bg-[hsl(var(--soft-green)/0.12)] text-[hsl(var(--soft-green))]",
-    // Middle left quadrant
-    className: "top-[40%] left-0 sm:left-4 md:left-8",
-    lineEndpoint: { x: "15%", y: "50%" },
+    // Bottom left
+    className: "bottom-[20%] left-0 sm:bottom-[25%] sm:left-4",
+    lineEndpoint: { x: "25%", y: "80%" },
     delay: 4,
     duration: 9,
     y: [-6, 4, -6],
     x: [2, -4, 2],
     rotate: [-1, 1, -1],
+  },
+  {
+    name: "Sarah Chen",
+    role: "Product Lead",
+    tag: "Client",
+    tagColor: "bg-blue-100 text-blue-700",
+    initials: "SC",
+    avatarBg: "bg-[hsl(var(--soft-purple)/0.12)] text-[hsl(var(--soft-purple))]",
+    // Bottom right
+    className: "bottom-[2%] right-2 sm:bottom-[5%] sm:right-6",
+    lineEndpoint: { x: "85%", y: "90%" },
+    delay: 2,
+    duration: 10,
+    y: [6, -6, 6],
+    x: [-4, 4, -4],
+    rotate: [0, -1, 0],
   },
 ];
 
@@ -57,7 +57,7 @@ const floatingBubbles = [
   {
     icon: MessageSquare,
     text: "Great meeting!",
-    className: "top-0 left-12 sm:top-2 sm:left-1/4 md:top-6 md:left-1/3",
+    className: "top-[15%] left-2 sm:top-[20%] sm:left-8",
     delay: 1,
     duration: 7,
     y: [0, -10, 0],
@@ -65,7 +65,7 @@ const floatingBubbles = [
   {
     icon: Bell,
     text: "Follow up tomorrow",
-    className: "bottom-0 left-10 sm:bottom-8 sm:left-1/4 md:bottom-12 md:left-1/4",
+    className: "top-[45%] left-0 sm:top-[50%] sm:left-4",
     delay: 3,
     duration: 11,
     y: [4, -8, 4],
@@ -73,7 +73,7 @@ const floatingBubbles = [
   {
     icon: Calendar,
     text: "Coffee chat",
-    className: "top-[65%] right-8 sm:top-2/3 sm:right-1/4 md:top-2/3 md:right-1/4",
+    className: "top-[40%] right-2 sm:top-[45%] sm:right-6",
     delay: 5,
     duration: 8,
     y: [-4, 6, -4],
@@ -106,7 +106,7 @@ function HubAndSpokeLines() {
 
 export default function HeroFloatingElements() {
   return (
-    <div className="relative w-full max-w-lg mx-auto h-[340px] sm:h-[400px] md:h-[440px] flex items-center justify-center">
+    <div className="relative w-full max-w-lg mx-auto h-[360px] sm:h-[400px] md:h-[440px] flex items-center justify-center">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.05)_0%,transparent_70%)] rounded-full" />
       
@@ -114,7 +114,7 @@ export default function HeroFloatingElements() {
 
       {/* Central Hub Node */}
       <motion.div
-        className="absolute z-20 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white dark:bg-slate-900 border border-primary/20 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.4)]"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white dark:bg-slate-900 border border-primary/20 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.4)]"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
