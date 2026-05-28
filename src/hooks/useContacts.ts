@@ -55,9 +55,16 @@ export function deduplicateContacts(contacts: DbContact[]): DbContact[] {
 
   // Restore original ordering
   const originalIdOrder = new Map(contacts.map((c, index) => [c.id, index]));
-  return uniqueContacts.sort((a, b) => {
+  const result = uniqueContacts.sort((a, b) => {
     return (originalIdOrder.get(a.id) ?? 0) - (originalIdOrder.get(b.id) ?? 0);
   });
+  
+  console.log("DEBUG: deduplicateContacts fetched", contacts.length, "rows from DB. Returned", result.length, "rows.");
+  if (contacts.length !== result.length) {
+    console.log("DEBUG: Contacts hidden by deduplication:", contacts.filter(c => !result.find(r => r.id === c.id)));
+  }
+  
+  return result;
 }
 
 export function useContacts() {

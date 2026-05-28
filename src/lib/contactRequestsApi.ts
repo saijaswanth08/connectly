@@ -76,8 +76,11 @@ export async function acceptContactRequest(requestId: string, fromUserId: string
       .eq('email', p.email || '')
       .limit(1);
 
+    console.log("DEBUG: Existing contacts check for email", p.email, "=>", existingContacts);
+
     if (!existingContacts || existingContacts.length === 0) {
-      const { error: insertError } = await supabase.from('contacts').insert({
+      console.log("DEBUG: Attempting to insert new contact for", p.email);
+      const payload = {
         user_id: user.id,
         name: p.name || 'Unknown',
         email: p.email || '',
@@ -91,11 +94,19 @@ export async function acceptContactRequest(requestId: string, fromUserId: string
         avatar_url: p.avatar_url,
         target_user_id: p.id,
         tags: [],
-      });
+      };
+      console.log("DEBUG: Insert payload:", payload);
+      
+      const { data: insertedData, error: insertError } = await supabase.from('contacts').insert(payload).select();
+      
+      console.log("DEBUG: Insert result:", { insertedData, insertError });
+      
       if (insertError) {
         console.error("Failed to insert contact on accept:", insertError);
         throw insertError;
       }
+    } else {
+      console.log("DEBUG: Skipped insert because contact already exists!");
     }
   }
   const { error } = await supabase
