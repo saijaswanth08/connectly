@@ -51,7 +51,7 @@ const floatingBubbles = [
   {
     icon: MessageSquare,
     text: "Great meeting!",
-    x: "28%", y: "18%",
+    x: "45%", y: "15%",
     delay: 1,
     duration: 7,
     animY: [0, -10, 0],
@@ -59,7 +59,7 @@ const floatingBubbles = [
   {
     icon: Calendar,
     text: "Coffee chat — 3pm",
-    x: "55%", y: "55%",
+    x: "45%", y: "60%",
     delay: 5,
     duration: 8,
     animY: [-4, 6, -4],
@@ -67,7 +67,7 @@ const floatingBubbles = [
   {
     icon: Bell,
     text: "Follow up tomorrow",
-    x: "30%", y: "85%",
+    x: "65%", y: "92%",
     delay: 3,
     duration: 11,
     animY: [4, -8, 4],
@@ -75,7 +75,7 @@ const floatingBubbles = [
 ];
 
 const networkLines = [
-  { x1: "28%", y1: "18%", x2: "75%", y2: "15%", color: "hsl(var(--primary)/0.15)" },
+  { x1: "45%", y1: "15%", x2: "75%", y2: "15%", color: "hsl(var(--primary)/0.15)" },
   { x1: "25%", y1: "45%", x2: "75%", y2: "15%", color: "hsl(var(--primary)/0.15)" },
   { x1: "25%", y1: "45%", x2: "65%", y2: "75%", color: "hsl(var(--soft-purple)/0.3)" },
   { x1: "75%", y1: "15%", x2: "65%", y2: "75%", color: "hsl(var(--soft-green)/0.3)" },
