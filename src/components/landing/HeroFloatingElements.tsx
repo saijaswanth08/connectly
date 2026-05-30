@@ -10,11 +10,11 @@ const floatingCards = [
     tagColor: "bg-amber-100 text-amber-700",
     initials: "O",
     avatarBg: "bg-primary/10 text-primary",
-    className: "top-[12%] left-[55%]",
+    x: "75%", y: "15%",
     delay: 0,
     duration: 8,
-    y: [-4, 8, -4],
-    x: [0, 6, 0],
+    animY: [-4, 8, -4],
+    animX: [0, 6, 0],
     rotate: [0, 1.5, 0],
   },
   {
@@ -24,11 +24,11 @@ const floatingCards = [
     tagColor: "bg-green-100 text-green-700",
     initials: "JO",
     avatarBg: "bg-[hsl(var(--soft-green)/0.12)] text-[hsl(var(--soft-green))]",
-    className: "top-[40%] left-[10%]",
+    x: "25%", y: "45%",
     delay: 4,
     duration: 9,
-    y: [-6, 4, -6],
-    x: [2, -4, 2],
+    animY: [-6, 4, -6],
+    animX: [2, -4, 2],
     rotate: [-1, 1, -1],
   },
   {
@@ -38,11 +38,11 @@ const floatingCards = [
     tagColor: "bg-blue-100 text-blue-700",
     initials: "SC",
     avatarBg: "bg-[hsl(var(--soft-purple)/0.12)] text-[hsl(var(--soft-purple))]",
-    className: "top-[60%] left-[45%]",
+    x: "65%", y: "75%",
     delay: 2,
     duration: 10,
-    y: [6, -6, 6],
-    x: [-4, 4, -4],
+    animY: [6, -6, 6],
+    animX: [-4, 4, -4],
     rotate: [0, -1, 0],
   },
 ];
@@ -51,34 +51,34 @@ const floatingBubbles = [
   {
     icon: MessageSquare,
     text: "Great meeting!",
-    className: "top-[20%] left-[20%]",
+    x: "28%", y: "18%",
     delay: 1,
     duration: 7,
-    y: [0, -10, 0],
+    animY: [0, -10, 0],
   },
   {
     icon: Calendar,
     text: "Coffee chat — 3pm",
-    className: "top-[52%] left-[42%]",
+    x: "55%", y: "55%",
     delay: 5,
     duration: 8,
-    y: [-4, 6, -4],
+    animY: [-4, 6, -4],
   },
   {
     icon: Bell,
     text: "Follow up tomorrow",
-    className: "top-[75%] left-[25%]",
+    x: "30%", y: "85%",
     delay: 3,
     duration: 11,
-    y: [4, -8, 4],
+    animY: [4, -8, 4],
   },
 ];
 
 const networkLines = [
-  { x1: "30%", y1: "25%", x2: "70%", y2: "18%", color: "hsl(var(--primary)/0.15)" },
-  { x1: "26%", y1: "46%", x2: "70%", y2: "18%", color: "hsl(var(--primary)/0.15)" },
-  { x1: "26%", y1: "46%", x2: "61%", y2: "66%", color: "hsl(var(--soft-purple)/0.3)" },
-  { x1: "70%", y1: "18%", x2: "61%", y2: "66%", color: "hsl(var(--soft-green)/0.3)" },
+  { x1: "28%", y1: "18%", x2: "75%", y2: "15%", color: "hsl(var(--primary)/0.15)" },
+  { x1: "25%", y1: "45%", x2: "75%", y2: "15%", color: "hsl(var(--primary)/0.15)" },
+  { x1: "25%", y1: "45%", x2: "65%", y2: "75%", color: "hsl(var(--soft-purple)/0.3)" },
+  { x1: "75%", y1: "15%", x2: "65%", y2: "75%", color: "hsl(var(--soft-green)/0.3)" },
 ];
 
 function NetworkLines() {
@@ -113,63 +113,65 @@ export default function HeroFloatingElements() {
 
       {/* Floating contact cards */}
       {floatingCards.map((card) => (
-        <motion.div
-          key={card.name}
-          className={`absolute ${card.className} z-10 will-change-transform`}
-          style={{ transform: "translateZ(0)" }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            y: card.y,
-            x: card.x,
-            rotate: card.rotate,
-          }}
-          transition={{
-            opacity: { delay: card.delay * 0.3, duration: 0.4 },
-            scale: { delay: card.delay * 0.3, duration: 0.4 },
-            y: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
-            x: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
-            rotate: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
-          }}
-          whileHover={{ scale: 1.06, transition: { duration: 0.15 } }}
-        >
-          <div className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-border/80 bg-background px-3 sm:px-4 py-2 sm:py-3 shadow-xl shadow-black/5 cursor-default select-none">
-            <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-              <AvatarFallback className={`${card.avatarBg} font-display text-[10px] sm:text-xs font-semibold`}>
-                {card.initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="space-y-0.5">
-              <p className="text-xs sm:text-sm font-semibold text-foreground leading-none">{card.name}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">{card.role}</p>
+        <div key={card.name} className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={{ left: card.x, top: card.y }}>
+          <motion.div
+            className="will-change-transform"
+            style={{ transform: "translateZ(0)" }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: card.animY,
+              x: card.animX,
+              rotate: card.rotate,
+            }}
+            transition={{
+              opacity: { delay: card.delay * 0.3, duration: 0.4 },
+              scale: { delay: card.delay * 0.3, duration: 0.4 },
+              y: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
+              x: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
+              rotate: { delay: card.delay * 0.3, duration: card.duration, repeat: Infinity, ease: "easeInOut" },
+            }}
+            whileHover={{ scale: 1.06, transition: { duration: 0.15 } }}
+          >
+            <div className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-border/80 bg-background px-3 sm:px-4 py-2 sm:py-3 shadow-xl shadow-black/5 cursor-default select-none">
+              <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+                <AvatarFallback className={`${card.avatarBg} font-display text-[10px] sm:text-xs font-semibold`}>
+                  {card.initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-0.5">
+                <p className="text-xs sm:text-sm font-semibold text-foreground leading-none">{card.name}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{card.role}</p>
+              </div>
+              <span className={`ml-1.5 sm:ml-2 rounded-full px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-medium ${card.tagColor}`}>
+                {card.tag}
+              </span>
             </div>
-            <span className={`ml-1.5 sm:ml-2 rounded-full px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-medium ${card.tagColor}`}>
-              {card.tag}
-            </span>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       ))}
 
       {/* Floating message/reminder bubbles */}
       {floatingBubbles.map((bubble) => (
-        <motion.div
-          key={bubble.text}
-          className={`absolute ${bubble.className} z-30 flex will-change-transform`}
-          style={{ transform: "translateZ(0)" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, y: bubble.y }}
-          transition={{
-            opacity: { delay: bubble.delay * 0.3, duration: 0.4 },
-            y: { delay: bubble.delay * 0.3, duration: bubble.duration, repeat: Infinity, ease: "easeInOut" },
-          }}
-          whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
-        >
-          <div className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border/60 bg-background px-2.5 sm:px-3 py-1.5 shadow-md shadow-black/5 cursor-default select-none">
-            <bubble.icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary shrink-0" />
-            <span className="text-[10px] sm:text-xs font-medium text-foreground whitespace-nowrap">{bubble.text}</span>
-          </div>
-        </motion.div>
+        <div key={bubble.text} className="absolute z-30 -translate-x-1/2 -translate-y-1/2" style={{ left: bubble.x, top: bubble.y }}>
+          <motion.div
+            className="flex will-change-transform"
+            style={{ transform: "translateZ(0)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, y: bubble.animY }}
+            transition={{
+              opacity: { delay: bubble.delay * 0.3, duration: 0.4 },
+              y: { delay: bubble.delay * 0.3, duration: bubble.duration, repeat: Infinity, ease: "easeInOut" },
+            }}
+            whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
+          >
+            <div className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border/60 bg-background px-2.5 sm:px-3 py-1.5 shadow-md shadow-black/5 cursor-default select-none">
+              <bubble.icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary shrink-0" />
+              <span className="text-[10px] sm:text-xs font-medium text-foreground whitespace-nowrap">{bubble.text}</span>
+            </div>
+          </motion.div>
+        </div>
       ))}
     </div>
   );
