@@ -10,9 +10,8 @@ const floatingCards = [
     tagColor: "bg-amber-100 text-amber-700",
     initials: "O",
     avatarBg: "bg-primary/10 text-primary",
-    // Top right
-    className: "top-[5%] right-0 sm:top-[10%] sm:right-8",
-    lineEndpoint: { x: "85%", y: "15%" },
+    className: "top-[12%] right-[12%]",
+    lineEndpoint: { x: "85%", y: "18%" },
     delay: 0,
     duration: 8,
     y: [-4, 8, -4],
@@ -26,9 +25,8 @@ const floatingCards = [
     tagColor: "bg-green-100 text-green-700",
     initials: "JO",
     avatarBg: "bg-[hsl(var(--soft-green)/0.12)] text-[hsl(var(--soft-green))]",
-    // Bottom left
-    className: "bottom-[20%] left-0 sm:bottom-[25%] sm:left-4",
-    lineEndpoint: { x: "25%", y: "80%" },
+    className: "bottom-[22%] left-[12%]",
+    lineEndpoint: { x: "20%", y: "75%" },
     delay: 4,
     duration: 9,
     y: [-6, 4, -6],
@@ -42,9 +40,8 @@ const floatingCards = [
     tagColor: "bg-blue-100 text-blue-700",
     initials: "SC",
     avatarBg: "bg-[hsl(var(--soft-purple)/0.12)] text-[hsl(var(--soft-purple))]",
-    // Bottom right
-    className: "bottom-[2%] right-2 sm:bottom-[5%] sm:right-6",
-    lineEndpoint: { x: "85%", y: "90%" },
+    className: "bottom-[12%] right-[22%]",
+    lineEndpoint: { x: "75%", y: "85%" },
     delay: 2,
     duration: 10,
     y: [6, -6, 6],
@@ -57,7 +54,7 @@ const floatingBubbles = [
   {
     icon: MessageSquare,
     text: "Great meeting!",
-    className: "top-[15%] left-2 sm:top-[20%] sm:left-8",
+    className: "top-[25%] left-[18%]",
     delay: 1,
     duration: 7,
     y: [0, -10, 0],
@@ -65,7 +62,7 @@ const floatingBubbles = [
   {
     icon: Bell,
     text: "Follow up tomorrow",
-    className: "top-[45%] left-0 sm:top-[50%] sm:left-4",
+    className: "top-[52%] left-[8%]",
     delay: 3,
     duration: 11,
     y: [4, -8, 4],
@@ -73,7 +70,7 @@ const floatingBubbles = [
   {
     icon: Calendar,
     text: "Coffee chat",
-    className: "top-[40%] right-2 sm:top-[45%] sm:right-6",
+    className: "top-[45%] right-[8%]",
     delay: 5,
     duration: 8,
     y: [-4, 6, -4],
