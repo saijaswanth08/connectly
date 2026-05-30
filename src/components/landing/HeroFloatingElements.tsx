@@ -10,8 +10,8 @@ const floatingCards = [
     tagColor: "bg-amber-100 text-amber-700",
     initials: "O",
     avatarBg: "bg-primary/10 text-primary",
-    className: "top-[12%] right-[12%]",
-    lineEndpoint: { x: "85%", y: "18%" },
+    className: "top-[15%] right-[5%]",
+    lineEndpoint: { x: "78%", y: "22%" },
     delay: 0,
     duration: 8,
     y: [-4, 8, -4],
@@ -25,8 +25,8 @@ const floatingCards = [
     tagColor: "bg-green-100 text-green-700",
     initials: "JO",
     avatarBg: "bg-[hsl(var(--soft-green)/0.12)] text-[hsl(var(--soft-green))]",
-    className: "bottom-[22%] left-[12%]",
-    lineEndpoint: { x: "20%", y: "75%" },
+    className: "bottom-[20%] left-[5%]",
+    lineEndpoint: { x: "25%", y: "72%" },
     delay: 4,
     duration: 9,
     y: [-6, 4, -6],
@@ -40,8 +40,8 @@ const floatingCards = [
     tagColor: "bg-blue-100 text-blue-700",
     initials: "SC",
     avatarBg: "bg-[hsl(var(--soft-purple)/0.12)] text-[hsl(var(--soft-purple))]",
-    className: "bottom-[12%] right-[22%]",
-    lineEndpoint: { x: "75%", y: "85%" },
+    className: "bottom-[10%] right-[20%]",
+    lineEndpoint: { x: "68%", y: "82%" },
     delay: 2,
     duration: 10,
     y: [6, -6, 6],
@@ -54,7 +54,8 @@ const floatingBubbles = [
   {
     icon: MessageSquare,
     text: "Great meeting!",
-    className: "top-[25%] left-[18%]",
+    className: "top-[25%] left-[10%]",
+    lineEndpoint: { x: "25%", y: "28%" },
     delay: 1,
     duration: 7,
     y: [0, -10, 0],
@@ -62,7 +63,8 @@ const floatingBubbles = [
   {
     icon: Bell,
     text: "Follow up tomorrow",
-    className: "top-[52%] left-[8%]",
+    className: "top-[55%] left-[2%]",
+    lineEndpoint: { x: "20%", y: "58%" },
     delay: 3,
     duration: 11,
     y: [4, -8, 4],
@@ -70,7 +72,8 @@ const floatingBubbles = [
   {
     icon: Calendar,
     text: "Coffee chat",
-    className: "top-[45%] right-[8%]",
+    className: "top-[42%] right-[2%]",
+    lineEndpoint: { x: "82%", y: "45%" },
     delay: 5,
     duration: 8,
     y: [-4, 6, -4],
@@ -78,23 +81,24 @@ const floatingBubbles = [
 ];
 
 function HubAndSpokeLines() {
+  const allElements = [...floatingCards, ...floatingBubbles];
   return (
     <svg
       className="absolute inset-0 w-full h-full pointer-events-none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {floatingCards.map((card, i) => (
+      {allElements.map((el, i) => (
         <motion.line
           key={`line-${i}`}
           x1="50%" y1="50%"
-          x2={card.lineEndpoint.x}
-          y2={card.lineEndpoint.y}
+          x2={el.lineEndpoint.x}
+          y2={el.lineEndpoint.y}
           stroke="hsl(var(--primary) / 0.15)"
           strokeWidth="1.5"
           strokeDasharray="4 4"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ delay: 1 + i * 0.4, duration: 1.5, ease: "easeOut" }}
+          transition={{ delay: 1 + i * 0.2, duration: 1.5, ease: "easeOut" }}
         />
       ))}
     </svg>
@@ -103,7 +107,7 @@ function HubAndSpokeLines() {
 
 export default function HeroFloatingElements() {
   return (
-    <div className="relative w-full max-w-lg mx-auto h-[360px] sm:h-[400px] md:h-[440px] flex items-center justify-center">
+    <div className="relative w-full max-w-2xl mx-auto h-[400px] md:h-[500px] flex items-center justify-center">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.05)_0%,transparent_70%)] rounded-full" />
       
