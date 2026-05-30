@@ -194,37 +194,73 @@ export default function VideoMeetingsPage() {
     setActiveMeetingNotes("");
   };
 
-  const handleGenerateAiNotes = async (meeting: typeof meetings[0]) => {
+  // Client-side smart summary — no API key needed
+  const generateSmartSummary = (meeting: typeof meetings[0], contactName?: string): AiResult => {
+    const notes = (meeting.notes || "").trim();
+    const title = meeting.title || "Meeting";
+
+    if (!notes) {
+      return {
+        summary: `${title}${contactName ? ` with ${contactName}` : ""} was held on ${meeting.meeting_time ? new Date(meeting.meeting_time).toLocaleDateString() : "a past date"}. No notes were recorded for this meeting.`,
+        actionItems: [],
+      };
+    }
+
+    // Split into lines/sentences
+    const lines = notes
+      .split(/[\n•\-\*]/)
+      .map((l) => l.trim())
+      .filter((l) => l.length > 5);
+
+    const sentences = notes
+      .split(/[.!?]+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 10);
+
+    // Build summary from first 2-3 meaningful sentences
+    const summaryParts = sentences.slice(0, 3);
+    const summary = summaryParts.length > 0
+      ? `${title}${contactName ? ` with ${contactName}` : ""}: ${summaryParts.join(". ")}.`
+      : `${title}${contactName ? ` with ${contactName}` : ""} covered the topics noted below.`;
+
+    // Detect action items using keyword patterns
+    const actionKeywords = [
+      /\b(follow[\s-]?up|send|email|call|schedule|book|arrange|confirm|check|review|share|prepare|draft|update|create|reach out|connect|set up|look into|discuss|meeting)\b/i,
+    ];
+    const actionItems: string[] = [];
+
+    for (const line of lines) {
+      const isAction = actionKeywords.some((rx) => rx.test(line));
+      if (isAction && actionItems.length < 4) {
+        // Capitalize first letter
+        const cleaned = line.charAt(0).toUpperCase() + line.slice(1);
+        if (!actionItems.includes(cleaned)) actionItems.push(cleaned);
+      }
+    }
+
+    // If no action items found, suggest generic ones based on context
+    if (actionItems.length === 0 && sentences.length > 0) {
+      actionItems.push(`Follow up on topics discussed in ${title}`);
+      if (contactName) actionItems.push(`Send a recap email to ${contactName}`);
+    }
+
+    return { summary, actionItems };
+  };
+
+  const handleGenerateAiNotes = (meeting: typeof meetings[0]) => {
     const contact = contacts.find((c) => c.id === meeting.contact_id);
     setGeneratingAi(meeting.id);
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-meeting-notes", {
-        body: { meetingTitle: meeting.title, contactName: contact?.name, notes: meeting.notes },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
 
-      // Try to parse structured JSON; fall back gracefully
-      let result: AiResult;
-      try {
-        result = typeof data.summary === "string"
-          ? JSON.parse(data.summary)
-          : data;
-        if (!result.actionItems) result.actionItems = [];
-      } catch {
-        result = { summary: data.summary || "", actionItems: [] };
-      }
-
+    // Simulate brief processing feel (instant in reality)
+    setTimeout(() => {
+      const result = generateSmartSummary(meeting, contact?.name);
       setAiResults((prev) => ({ ...prev, [meeting.id]: result }));
       setExpandedAi(meeting.id);
-      toast({ title: "AI summary generated!" });
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Unknown error";
-      toast({ title: "Error generating summary", description: msg, variant: "destructive" });
-    } finally {
+      toast({ title: "Summary ready!" });
       setGeneratingAi(null);
-    }
+    }, 600);
   };
+
 
   const handleAddActionToReminder = async (meetingId: string, actionItem: string) => {
     if (!user) return;
