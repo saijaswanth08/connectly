@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useRef } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(() => getStoredSession());
   const [user, setUser] = useState<User | null>(() => getStoredSession()?.user || null);
   const [loading, setLoading] = useState(() => !getStoredSession());
+  const isSigningOutRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
@@ -72,6 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     //    Profile upsert is fire-and-forget to avoid blocking auth state updates.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+      if (isSigningOutRef.current) {
+        console.log("[useAuth] ignoring auth state change event because we are signing out:", event);
+        return;
+      }
 
       setSession(session);
       setUser(session?.user ?? null);
@@ -112,6 +117,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
+    isSigningOutRef.current = true;
+
     // Step 1: Clear all Supabase tokens from storage immediately.
     // This ensures getSession() returns null on the next page load.
     Object.keys(localStorage)
