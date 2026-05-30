@@ -100,22 +100,26 @@ export default function LandingPage() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="absolute top-16 left-0 right-0 z-50 md:hidden border-b border-border bg-background/95 backdrop-blur-lg px-6 py-4 space-y-3 shadow-xl">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                to={link.href}
-                className="block text-sm font-medium text-muted-foreground hover:text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <div className="flex gap-3 pt-3 border-t border-border">
-              <Button variant="outline" size="sm" className="rounded-full" asChild>
+          <div className="absolute top-16 left-0 right-0 z-50 md:hidden border-b border-border bg-background/95 backdrop-blur-lg px-6 py-6 shadow-xl">
+            {navLinks.length > 0 && (
+              <div className="space-y-4 mb-6">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    className="block text-base font-medium text-muted-foreground hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-col gap-3">
+              <Button variant="outline" size="lg" className="w-full rounded-full border-border/80 h-12" asChild>
                 <Link to="/login">Login</Link>
               </Button>
-              <Button size="sm" className="rounded-full" asChild>
+              <Button size="lg" className="w-full rounded-full shadow-md shadow-primary/20 h-12" asChild>
                 <Link to="/signup">Sign Up</Link>
               </Button>
             </div>
