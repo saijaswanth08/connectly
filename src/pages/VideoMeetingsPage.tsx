@@ -1,20 +1,21 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn, Bell, Sparkles, Loader2 } from "lucide-react";
+import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn, Bell, Sparkles, Loader2, FileText, PlusCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useMeetings, useCreateMeeting, useContacts } from "@/hooks/useContacts";
+import { useMeetings, useCreateMeeting, useUpdateMeeting, useContacts } from "@/hooks/useContacts";
 import { useCreateReminder } from "@/hooks/useReminders";
 import { JitsiMeetingRoom } from "@/components/JitsiMeetingRoom";
 import { cn } from "@/lib/utils";
@@ -25,22 +26,40 @@ function generateRoomId() {
   return `connectly-meeting-${id}`;
 }
 
+interface AiResult {
+  summary: string;
+  actionItems: string[];
+}
+
 export default function VideoMeetingsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { data: meetings = [] } = useMeetings();
   const { data: contacts = [] } = useContacts();
   const createMeeting = useCreateMeeting();
+  const updateMeeting = useUpdateMeeting();
 
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
+  const [activeMeetingId, setActiveMeetingId] = useState<string | null>(null);
+  const [activeMeetingNotes, setActiveMeetingNotes] = useState<string>("");
   const [lastMeetingContactId, setLastMeetingContactId] = useState<string | null>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
   const createReminder = useCreateReminder();
   const [joinCode, setJoinCode] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [aiSummaries, setAiSummaries] = useState<Record<string, string>>({});
+
+  // AI summaries: keyed by meeting id, stores parsed result
+  const [aiResults, setAiResults] = useState<Record<string, AiResult>>({});
   const [generatingAi, setGeneratingAi] = useState<string | null>(null);
+  const [expandedAi, setExpandedAi] = useState<string | null>(null);
+  const [addingReminder, setAddingReminder] = useState<string | null>(null);
+
+  // Edit Notes sheet
+  const [editNotesId, setEditNotesId] = useState<string | null>(null);
+  const [editNotesValue, setEditNotesValue] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+
   const [form, setForm] = useState({
     title: "",
     date: undefined as Date | undefined,
@@ -68,8 +87,9 @@ export default function VideoMeetingsPage() {
       {
         onSuccess: (newMeeting) => {
           setActiveRoom(roomId);
+          setActiveMeetingId(newMeeting.id);
+          setActiveMeetingNotes(newMeeting.notes || "");
           toast({ title: "Meeting started!", description: "Your meeting room is live." });
-          // Timeline event
           supabase.from("timeline_events").insert({
             user_id: user.id,
             contact_id: newMeeting.contact_id || null,
@@ -86,7 +106,6 @@ export default function VideoMeetingsPage() {
   const handleJoinMeeting = () => {
     const code = joinCode.trim();
     if (!code) return;
-    // Support full URL or just room code
     const roomId = code.includes("konferenz.netzbegruenung.de/")
       ? code.split("konferenz.netzbegruenung.de/")[1]?.split(/[#?]/)[0]
       : code.includes("meet.ffmuc.net/")
@@ -96,6 +115,8 @@ export default function VideoMeetingsPage() {
       : code;
     if (roomId) {
       setActiveRoom(roomId);
+      setActiveMeetingId(null);
+      setActiveMeetingNotes("");
       setJoinCode("");
     }
   };
@@ -125,7 +146,6 @@ export default function VideoMeetingsPage() {
           toast({ title: "Meeting scheduled!", description: `"${form.title}" has been scheduled.` });
           setForm({ title: "", date: undefined, time: "09:00", meetingType: "video_call", contactId: "", notes: "" });
           setScheduleOpen(false);
-          // Timeline event
           if (form.contactId) {
             supabase.from("timeline_events").insert({
               user_id: user.id,
@@ -147,7 +167,8 @@ export default function VideoMeetingsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const joinFromHistory = (link: string) => {
+  const joinFromHistory = (meeting: typeof meetings[0]) => {
+    const link = meeting.meeting_link || "";
     const roomId = link.includes("konferenz.netzbegruenung.de/")
       ? link.split("konferenz.netzbegruenung.de/")[1]?.split(/[#?]/)[0]
       : link.includes("meet.ffmuc.net/")
@@ -155,7 +176,11 @@ export default function VideoMeetingsPage() {
       : link.includes("meet.jit.si/")
       ? link.split("meet.jit.si/")[1]?.split(/[#?]/)[0]
       : null;
-    if (roomId) setActiveRoom(roomId);
+    if (roomId) {
+      setActiveRoom(roomId);
+      setActiveMeetingId(meeting.id);
+      setActiveMeetingNotes(meeting.notes || "");
+    }
   };
 
   const handleLeaveRoom = () => {
@@ -165,6 +190,8 @@ export default function VideoMeetingsPage() {
       setShowFollowUp(true);
     }
     setActiveRoom(null);
+    setActiveMeetingId(null);
+    setActiveMeetingNotes("");
   };
 
   const handleGenerateAiNotes = async (meeting: typeof meetings[0]) => {
@@ -176,13 +203,50 @@ export default function VideoMeetingsPage() {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setAiSummaries((prev) => ({ ...prev, [meeting.id]: data.summary }));
+
+      // Try to parse structured JSON; fall back gracefully
+      let result: AiResult;
+      try {
+        result = typeof data.summary === "string"
+          ? JSON.parse(data.summary)
+          : data;
+        if (!result.actionItems) result.actionItems = [];
+      } catch {
+        result = { summary: data.summary || "", actionItems: [] };
+      }
+
+      setAiResults((prev) => ({ ...prev, [meeting.id]: result }));
+      setExpandedAi(meeting.id);
       toast({ title: "AI summary generated!" });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       toast({ title: "Error generating summary", description: msg, variant: "destructive" });
     } finally {
       setGeneratingAi(null);
+    }
+  };
+
+  const handleAddActionToReminder = async (meetingId: string, actionItem: string) => {
+    if (!user) return;
+    const key = `${meetingId}-${actionItem}`;
+    setAddingReminder(key);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    try {
+      await createReminder.mutateAsync({
+        user_id: user.id,
+        title: actionItem,
+        message: "Action item from AI meeting summary",
+        contact_id: null,
+        reminder_date: tomorrow.toISOString(),
+        completed: false,
+      });
+      toast({ title: "Reminder added!", description: actionItem });
+    } catch {
+      toast({ title: "Failed to add reminder", variant: "destructive" });
+    } finally {
+      setAddingReminder(null);
     }
   };
 
@@ -205,11 +269,36 @@ export default function VideoMeetingsPage() {
     setLastMeetingContactId(null);
   };
 
+  const openEditNotes = (meeting: typeof meetings[0]) => {
+    setEditNotesId(meeting.id);
+    setEditNotesValue(meeting.notes || "");
+  };
+
+  const handleSaveNotes = async () => {
+    if (!editNotesId) return;
+    setSavingNotes(true);
+    try {
+      await updateMeeting.mutateAsync({ id: editNotesId, updates: { notes: editNotesValue } });
+      toast({ title: "Notes saved!" });
+      setEditNotesId(null);
+    } catch {
+      toast({ title: "Failed to save notes", variant: "destructive" });
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
   // If a meeting room is active, show the embedded Jitsi view
   if (activeRoom) {
     return (
       <div className="p-6 max-w-6xl mx-auto">
-        <JitsiMeetingRoom roomId={activeRoom} onLeave={handleLeaveRoom} title="Connectly Meeting" />
+        <JitsiMeetingRoom
+          roomId={activeRoom}
+          onLeave={handleLeaveRoom}
+          title="Connectly Meeting"
+          meetingId={activeMeetingId}
+          initialNotes={activeMeetingNotes}
+        />
       </div>
     );
   }
@@ -221,6 +310,33 @@ export default function VideoMeetingsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
+      {/* Edit Notes Sheet */}
+      <Sheet open={!!editNotesId} onOpenChange={(open) => !open && setEditNotesId(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col gap-0 p-0">
+          <SheetHeader className="px-6 py-4 border-b">
+            <SheetTitle className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              Edit Meeting Notes
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 flex flex-col p-6 gap-4">
+            <Textarea
+              value={editNotesValue}
+              onChange={(e) => setEditNotesValue(e.target.value)}
+              placeholder={"Add your notes here...\n\n• Key discussion points\n• Decisions made\n• Action items"}
+              className="flex-1 resize-none text-sm leading-relaxed min-h-[300px]"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setEditNotesId(null)}>Cancel</Button>
+              <Button onClick={handleSaveNotes} disabled={savingNotes} className="gap-2">
+                {savingNotes && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Save Notes
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Follow-up suggestion after meeting */}
       {showFollowUp && followUpContact && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-primary/30 bg-accent/50 p-5 flex items-center justify-between gap-4">
@@ -345,8 +461,13 @@ export default function VideoMeetingsPage() {
                   <div>
                     <h3 className="font-display font-semibold text-card-foreground">{m.title}</h3>
                     {contact && <p className="text-sm text-muted-foreground">with {contact.name}</p>}
+                    {m.notes && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2 italic">
+                        {m.notes.length > 100 ? m.notes.slice(0, 100) + "…" : m.notes}
+                      </p>
+                    )}
                   </div>
-                  <Badge variant="secondary" className="capitalize">{m.meeting_type.replace("_", " ")}</Badge>
+                  <Badge variant="secondary" className="capitalize shrink-0">{m.meeting_type.replace("_", " ")}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                   {m.meeting_time && (<span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{format(new Date(m.meeting_time), "PPp")}</span>)}
@@ -359,12 +480,14 @@ export default function VideoMeetingsPage() {
                       {copiedId === m.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                       {copiedId === m.id ? "Copied" : "Copy"}
                     </Button>
-                    <Button size="sm" variant="default" className="gap-1.5 shrink-0" onClick={() => joinFromHistory(m.meeting_link!)}>
+                    <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={() => openEditNotes(m)}>
+                      <FileText className="h-3.5 w-3.5" /> Notes
+                    </Button>
+                    <Button size="sm" variant="default" className="gap-1.5 shrink-0" onClick={() => joinFromHistory(m)}>
                       <Video className="h-3.5 w-3.5" /> Join
                     </Button>
                   </div>
                 )}
-                {m.notes && <p className="text-sm text-muted-foreground">{m.notes}</p>}
               </motion.div>
             );
           })}
@@ -379,29 +502,95 @@ export default function VideoMeetingsPage() {
           )}
           {past.map((m, i) => {
             const contact = contacts.find((c) => c.id === m.contact_id);
+            const aiResult = aiResults[m.id];
+            const isExpanded = expandedAi === m.id;
             return (
-              <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-sm opacity-80">
+              <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} className="rounded-xl border border-border bg-card p-5 space-y-2 shadow-sm">
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <h3 className="font-display font-semibold text-card-foreground">{m.title}</h3>
                     {contact && <p className="text-sm text-muted-foreground">with {contact.name}</p>}
+                    {/* Notes Preview */}
+                    {m.notes && (
+                      <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 italic">
+                        {m.notes.length > 120 ? m.notes.slice(0, 120) + "…" : m.notes}
+                      </p>
+                    )}
                   </div>
-                  <Badge variant="outline" className="capitalize">{m.status}</Badge>
+                  <Badge variant="outline" className="capitalize shrink-0 ml-2">{m.status}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                   {m.meeting_time && (<span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{format(new Date(m.meeting_time), "PPp")}</span>)}
                 </div>
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-2 pt-1 flex-wrap">
+                  <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => openEditNotes(m)}>
+                    <FileText className="h-3.5 w-3.5" /> Notes
+                  </Button>
                   <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => handleGenerateAiNotes(m)} disabled={generatingAi === m.id}>
                     {generatingAi === m.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                     {generatingAi === m.id ? "Generating..." : "AI Summary"}
                   </Button>
+                  {aiResult && (
+                    <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-muted-foreground" onClick={() => setExpandedAi(isExpanded ? null : m.id)}>
+                      {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                      {isExpanded ? "Hide" : "View Summary"}
+                    </Button>
+                  )}
                 </div>
-                {aiSummaries[m.id] && (
-                  <div className="mt-2 rounded-lg bg-accent/50 border border-border/50 p-4 text-sm text-foreground whitespace-pre-wrap">
-                    {aiSummaries[m.id]}
-                  </div>
-                )}
+
+                {/* AI Summary Panel */}
+                <AnimatePresence>
+                  {aiResult && isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-2 rounded-xl bg-accent/50 border border-border/60 p-4 space-y-3">
+                        {/* Summary */}
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                            <Sparkles className="h-3 w-3 text-primary" /> Summary
+                          </p>
+                          <p className="text-sm text-foreground leading-relaxed">{aiResult.summary}</p>
+                        </div>
+
+                        {/* Action Items */}
+                        {aiResult.actionItems && aiResult.actionItems.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                              <Bell className="h-3 w-3 text-primary" /> Action Items
+                            </p>
+                            <div className="space-y-2">
+                              {aiResult.actionItems.map((item, idx) => {
+                                const reminderKey = `${m.id}-${item}`;
+                                return (
+                                  <div key={idx} className="flex items-center justify-between gap-3 rounded-lg bg-background/60 border border-border/40 px-3 py-2">
+                                    <p className="text-sm text-foreground flex-1">{item}</p>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="gap-1.5 text-xs shrink-0 h-7"
+                                      disabled={addingReminder === reminderKey}
+                                      onClick={() => handleAddActionToReminder(m.id, item)}
+                                    >
+                                      {addingReminder === reminderKey
+                                        ? <Loader2 className="h-3 w-3 animate-spin" />
+                                        : <PlusCircle className="h-3 w-3" />}
+                                      Add Reminder
+                                    </Button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             );
           })}

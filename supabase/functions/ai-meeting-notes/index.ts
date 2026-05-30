@@ -13,25 +13,27 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const prompt = `You are a professional meeting notes summarizer for a CRM platform. 
-Given the following meeting details, generate a concise summary with key points and suggested follow-up actions.
+    const prompt = `You are an expert meeting notes analyst for a professional CRM platform.
+Given the following meeting details, generate a concise structured summary.
 
 Meeting Title: ${meetingTitle || "Untitled Meeting"}
 Contact: ${contactName || "Unknown"}
 Notes: ${notes || "No notes provided"}
 
-Format your response as:
-## Meeting Summary
-**Topic:** [brief topic]
+Respond ONLY with valid JSON in exactly this format (no markdown, no extra text):
+{
+  "summary": "2-3 sentence overview of what was discussed and decided.",
+  "actionItems": [
+    "Specific action item 1",
+    "Specific action item 2"
+  ]
+}
 
-**Key Points:**
-• [point 1]
-• [point 2]
-• [point 3]
-
-**Suggested Follow-up Actions:**
-• [action 1]
-• [action 2]`;
+Rules:
+- summary must be 2-3 sentences max
+- actionItems must be 2-4 concrete, actionable tasks starting with a verb (e.g., "Send", "Schedule", "Follow up")
+- If no clear action items exist, return an empty array for actionItems
+- Do NOT include any text outside the JSON object`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -42,7 +44,7 @@ Format your response as:
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "You are a concise meeting notes summarizer. Keep responses under 200 words." },
+          { role: "system", content: "You are a concise meeting notes analyst. Always respond with valid JSON only, no markdown, no extra text." },
           { role: "user", content: prompt },
         ],
       }),
@@ -65,9 +67,20 @@ Format your response as:
     }
 
     const data = await response.json();
-    const summary = data.choices?.[0]?.message?.content || "Unable to generate summary.";
+    const rawContent = data.choices?.[0]?.message?.content || "{}";
 
-    return new Response(JSON.stringify({ summary }), {
+    // Parse structured JSON from AI response
+    let result: { summary: string; actionItems: string[] };
+    try {
+      result = JSON.parse(rawContent);
+      if (!result.summary) result.summary = "No summary available.";
+      if (!Array.isArray(result.actionItems)) result.actionItems = [];
+    } catch {
+      // Fallback: treat raw content as plain summary
+      result = { summary: rawContent, actionItems: [] };
+    }
+
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
@@ -77,3 +90,4 @@ Format your response as:
     });
   }
 });
+
