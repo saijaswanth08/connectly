@@ -147,7 +147,7 @@ export default function HeroFloatingElements() {
           }}
           whileHover={{ scale: 1.06, transition: { duration: 0.15 } }}
         >
-          <div className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-border/80 bg-background/95 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 shadow-lg shadow-black/5 cursor-default select-none">
+          <div className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-border/80 bg-background px-3 sm:px-4 py-2 sm:py-3 shadow-xl shadow-black/5 cursor-default select-none">
             <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
               <AvatarFallback className={`${card.avatarBg} font-display text-[10px] sm:text-xs font-semibold`}>
                 {card.initials}
