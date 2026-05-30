@@ -33,6 +33,7 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false); // keep closed by default
   const [notes, setNotes] = useState(initialNotes);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const isMobile = useIsMobile();
@@ -80,6 +81,36 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     };
   }, []);
 
+  // Listen for Jitsi's built-in hangup/end-call button → return to dashboard
+  useEffect(() => {
+    const handleJitsiMessage = (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        
+        const isReadyToClose = 
+          data?.name === "readyToClose" ||
+          data?.action === "readyToClose" ||
+          data?.type === "readyToClose" ||
+          data?.event === "readyToClose" ||
+          data?.name === "videoConferenceLeft" ||
+          data?.action === "videoConferenceLeft" ||
+          data?.type === "videoConferenceLeft" ||
+          data?.event === "videoConferenceLeft" ||
+          (typeof event.data === "string" && (event.data.includes("readyToClose") || event.data.includes("videoConferenceLeft")));
+
+        if (isReadyToClose) {
+          console.log("[JitsiMeetingRoom] Received readyToClose/videoConferenceLeft event, leaving meeting immediately.");
+          setIsLeaving(true);
+          onLeave();
+        }
+      } catch {
+        // ignore non-JSON messages
+      }
+    };
+    window.addEventListener("message", handleJitsiMessage);
+    return () => window.removeEventListener("message", handleJitsiMessage);
+  }, [onLeave]);
+
   // Detect meeting end via iframe reload:
   // Jitsi navigates the iframe back to its lobby/home page when the user
   // clicks the hangup button. We track load count — first load = meeting
@@ -89,6 +120,7 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     iframeLoadCount.current += 1;
     if (iframeLoadCount.current > 1) {
       // Jitsi reloaded → meeting has ended
+      setIsLeaving(true);
       onLeave();
     }
   };
@@ -208,7 +240,7 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
       {/* Main Area: Jitsi + Notes Panel */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Jitsi iframe */}
-        <div className="flex-1 relative min-w-0">
+        <div className={`flex-1 relative min-w-0 transition-opacity duration-150 ${isLeaving ? "opacity-0 pointer-events-none" : ""}`}>
           <iframe
             src={`${meetingUrl}#${jitsiConfig}`}
             className="absolute inset-0 w-full h-full"
