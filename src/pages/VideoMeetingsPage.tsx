@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { Video, Plus, Copy, Clock, Users, CalendarIcon, Check, ExternalLink, LogIn, Bell, Sparkles, Loader2, FileText, PlusCircle, ChevronDown, ChevronUp } from "lucide-react";
@@ -38,6 +39,7 @@ export default function VideoMeetingsPage() {
   const { data: contacts = [] } = useContacts();
   const createMeeting = useCreateMeeting();
   const updateMeeting = useUpdateMeeting();
+  const queryClient = useQueryClient();
 
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
   const [activeMeetingId, setActiveMeetingId] = useState<string | null>(null);
@@ -192,6 +194,8 @@ export default function VideoMeetingsPage() {
     setActiveRoom(null);
     setActiveMeetingId(null);
     setActiveMeetingNotes("");
+    // Force-refresh meetings so notes saved during the session appear immediately
+    queryClient.invalidateQueries({ queryKey: ["meetings"] });
   };
 
   // Client-side smart summary — no API key needed
