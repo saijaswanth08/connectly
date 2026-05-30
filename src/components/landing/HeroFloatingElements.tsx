@@ -10,8 +10,8 @@ const floatingCards = [
     tagColor: "bg-amber-100 text-amber-700",
     initials: "O",
     avatarBg: "bg-primary/10 text-primary",
-    className: "top-[15%] right-[5%]",
-    lineEndpoint: { x: "78%", y: "22%" },
+    className: "top-[8%] right-[8%]",
+    lineEndpoint: { x: "75%", y: "15%" },
     delay: 0,
     duration: 8,
     y: [-4, 8, -4],
@@ -25,8 +25,8 @@ const floatingCards = [
     tagColor: "bg-green-100 text-green-700",
     initials: "JO",
     avatarBg: "bg-[hsl(var(--soft-green)/0.12)] text-[hsl(var(--soft-green))]",
-    className: "bottom-[20%] left-[5%]",
-    lineEndpoint: { x: "25%", y: "72%" },
+    className: "bottom-[35%] left-[2%]",
+    lineEndpoint: { x: "20%", y: "60%" },
     delay: 4,
     duration: 9,
     y: [-6, 4, -6],
@@ -40,8 +40,8 @@ const floatingCards = [
     tagColor: "bg-blue-100 text-blue-700",
     initials: "SC",
     avatarBg: "bg-[hsl(var(--soft-purple)/0.12)] text-[hsl(var(--soft-purple))]",
-    className: "bottom-[10%] right-[20%]",
-    lineEndpoint: { x: "68%", y: "82%" },
+    className: "bottom-[5%] right-[5%]",
+    lineEndpoint: { x: "80%", y: "85%" },
     delay: 2,
     duration: 10,
     y: [6, -6, 6],
@@ -114,15 +114,17 @@ export default function HeroFloatingElements() {
       <HubAndSpokeLines />
 
       {/* Central Hub Node */}
-      <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white dark:bg-slate-900 border border-primary/20 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.4)]"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
-      >
-        <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping opacity-75 duration-3000" />
-        <Network className="w-7 h-7 sm:w-8 sm:h-8 text-primary relative z-10" />
-      </motion.div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+        <motion.div
+          className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white dark:bg-slate-900 border border-primary/20 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.4)]"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
+        >
+          <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping opacity-75 duration-3000" />
+          <Network className="w-7 h-7 sm:w-8 sm:h-8 text-primary relative z-10" />
+        </motion.div>
+      </div>
 
       {/* Floating contact cards */}
       {floatingCards.map((card) => (
