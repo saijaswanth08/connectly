@@ -9,6 +9,7 @@ import cors from 'cors';
 const { default: reportIssueRouter } = await import('./api/report-issue.ts');
 const { default: sendOtpRouter } = await import('./api/send-otp.ts');
 const { default: passwordUpdateRouter } = await import('./api/password-update.ts');
+const { default: sendVerificationEmailRouter } = await import('./api/send-verification-email.ts');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -20,6 +21,7 @@ app.use(express.json());
 // Routes
 app.use('/api', reportIssueRouter);
 app.use('/api', sendOtpRouter);
+app.use('/api', sendVerificationEmailRouter);
 app.use('/api/password-update', passwordUpdateRouter);
 
 // Start server

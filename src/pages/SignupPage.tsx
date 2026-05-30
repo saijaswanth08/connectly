@@ -31,6 +31,7 @@ export default function SignupPage() {
       toast({ title: "Passwords don't match", description: "Please make sure your passwords match", variant: "destructive" });
       return;
     }
+    setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -50,9 +51,31 @@ export default function SignupPage() {
             : error.message, 
           variant: "destructive" 
         });
-      } else if (data.session) {
-        toast({ title: "Account created!", description: "Welcome to Connectly." });
-        // Redirection handled by AuthProvider
+      } else if (data.user) {
+        // Send custom verification email via Nodemailer
+        try {
+          const verificationResponse = await fetch('/api/send-verification-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, fullName: name }),
+          });
+
+          const verificationData = await verificationResponse.json();
+
+          if (!verificationResponse.ok) {
+            console.error('Failed to send verification email:', verificationData.error);
+            toast({
+              title: "Email sending issue",
+              description: "Account created but verification email could not be sent. Please request a new verification email.",
+              variant: "destructive",
+            });
+          }
+        } catch (emailErr) {
+          console.error('Verification email error:', emailErr);
+        }
+
+        setLoading(false);
+        setSuccess(true);
       } else {
         setLoading(false);
         setSuccess(true);
@@ -69,6 +92,30 @@ export default function SignupPage() {
         variant: "destructive" 
       });
       console.error("Signup exception:", error);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/send-verification-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, fullName: name }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({ title: "Email sent!", description: data.message });
+      } else {
+        toast({ title: "Failed", description: data.error, variant: "destructive" });
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Network error";
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,7 +157,13 @@ export default function SignupPage() {
           <ConnectlyLogoIcon size={40} className="mx-auto" />
           <h2 className="font-display text-xl font-bold text-foreground">Check your email</h2>
           <p className="text-muted-foreground text-sm">We've sent a confirmation link to <strong>{email}</strong>. Click the link to activate your account.</p>
-          <Link to="/login" className="text-primary hover:underline text-sm font-medium">Back to login</Link>
+          <p className="text-muted-foreground text-xs">The verification link expires in 2 minutes.</p>
+          <div className="pt-4 space-y-2">
+            <Button onClick={handleResendVerification} disabled={loading} className="w-full rounded-full">
+              {loading ? "Sending..." : "Resend Verification Email"}
+            </Button>
+            <Link to="/login" className="text-primary hover:underline text-sm font-medium block">Back to login</Link>
+          </div>
         </div>
       </div>
     );
