@@ -176,70 +176,10 @@ export default function CompleteProfilePage() {
     navigate("/dashboard", { replace: true });
   };
 
+  // While auth is loading or checking existing profile, show nothing (blank)
+  // — avoids the skeleton flash since the redirect happens quickly.
   if (loading || checkingExisting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
-        {/* Ambient decorative blobs */}
-        <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-indigo-500/5 blur-3xl" />
-        </div>
-
-        <div className="w-full max-w-md space-y-6">
-          {/* Header Skeleton */}
-          <div className="text-center space-y-3">
-            <div className="inline-flex items-center gap-2 font-display text-2xl font-bold text-foreground">
-              <Skeleton className="h-7 w-7 rounded-lg shrink-0" />
-              <Skeleton className="h-6 w-28 rounded" />
-            </div>
-            
-            {/* Sparkles icon bubble skeleton */}
-            <Skeleton className="mx-auto h-16 w-16 rounded-full shrink-0" />
-
-            <div className="space-y-2 flex flex-col items-center">
-              <Skeleton className="h-6 w-48 rounded" />
-              <Skeleton className="h-4 w-72 rounded opacity-60" />
-            </div>
-          </div>
-
-          {/* Form Card Skeleton */}
-          <div className="rounded-2xl border border-border bg-card p-8 shadow-sm space-y-6 animate-in fade-in duration-500">
-            {/* Info banner skeleton */}
-            <div className="flex items-start gap-3 rounded-xl bg-indigo-500/5 border border-indigo-500/10 px-4 py-3">
-              <Skeleton className="h-5 w-5 rounded-full shrink-0 mt-0.5" />
-              <div className="space-y-1.5 flex-1">
-                <Skeleton className="h-4 w-32 rounded" />
-                <Skeleton className="h-3 w-full rounded opacity-60" />
-                <Skeleton className="h-3 w-5/6 rounded opacity-60" />
-              </div>
-            </div>
-
-            {/* Form Inputs skeletons */}
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-12 rounded" />
-                <Skeleton className="h-10 w-full rounded-md" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24 rounded" />
-                <Skeleton className="h-10 w-full rounded-md" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-32 rounded" />
-                <Skeleton className="h-10 w-full rounded-md" />
-              </div>
-              
-              {/* Form buttons skeletons */}
-              <div className="flex flex-col gap-2 pt-2">
-                <Skeleton className="h-10 w-full rounded-full" />
-                <Skeleton className="h-10 w-full rounded-full" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const displayName =
