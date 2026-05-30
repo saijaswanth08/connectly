@@ -180,7 +180,7 @@ export default function HeroFloatingElements() {
           }}
           whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
         >
-          <div className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border/60 bg-background/95 backdrop-blur-md px-2.5 sm:px-3 py-1.5 shadow-md shadow-black/5 cursor-default select-none">
+          <div className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border/60 bg-background px-2.5 sm:px-3 py-1.5 shadow-md shadow-black/5 cursor-default select-none">
             <bubble.icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary shrink-0" />
             <span className="text-[10px] sm:text-xs font-medium text-foreground whitespace-nowrap">{bubble.text}</span>
           </div>
