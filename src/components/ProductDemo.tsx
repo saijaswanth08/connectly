@@ -260,7 +260,7 @@ export function ProductDemo({ onClose }: { onClose: () => void }) {
                         }
                     }}
                 >
-                    {currentScene === scenes.length - 1 ? (isAutoPlaying ? "Restart Tour" : "Finish Tour") : "Continue"}
+                    {currentScene === scenes.length - 1 ? (isAutoPlaying ? "Experience Again" : "Finish Tour") : "Continue"}
                 </Button>
             </div>
         </div>
