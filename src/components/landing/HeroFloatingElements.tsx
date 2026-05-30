@@ -67,7 +67,7 @@ const floatingBubbles = [
   {
     icon: Bell,
     text: "Follow up tomorrow",
-    x: "70%", y: "45%", // Midpoint of Oliver (75,15) and Sarah (65,75)
+    x: "65%", y: "92%",
     delay: 3,
     duration: 11,
     animY: [4, -8, 4],
