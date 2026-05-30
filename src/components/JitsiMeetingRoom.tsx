@@ -80,11 +80,33 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     };
   }, []);
 
+  // Listen for Jitsi's built-in hangup/end-call button → return to dashboard
+  useEffect(() => {
+    const handleJitsiMessage = (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        // Jitsi fires 'readyToClose' when the user clicks the hangup button internally
+        if (
+          data?.name === "readyToClose" ||
+          data?.action === "readyToClose" ||
+          data?.type === "readyToClose"
+        ) {
+          onLeave();
+        }
+      } catch {
+        // ignore non-JSON messages
+      }
+    };
+    window.addEventListener("message", handleJitsiMessage);
+    return () => window.removeEventListener("message", handleJitsiMessage);
+  }, [onLeave]);
+
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || "User";
   const email = user?.email || "";
 
   const jitsiConfig = [
     "config.prejoinConfig.enabled=false",
+    "config.prejoinPageEnabled=false",
     "config.startWithVideoMuted=false",
     "config.startWithAudioMuted=true",
     "config.disableDeepLinking=true",
