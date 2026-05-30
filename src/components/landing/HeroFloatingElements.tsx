@@ -10,8 +10,7 @@ const floatingCards = [
     tagColor: "bg-amber-100 text-amber-700",
     initials: "O",
     avatarBg: "bg-primary/10 text-primary",
-    className: "top-[8%] right-[8%]",
-    lineEndpoint: { x: "75%", y: "15%" },
+    className: "top-[12%] left-[55%]",
     delay: 0,
     duration: 8,
     y: [-4, 8, -4],
@@ -25,8 +24,7 @@ const floatingCards = [
     tagColor: "bg-green-100 text-green-700",
     initials: "JO",
     avatarBg: "bg-[hsl(var(--soft-green)/0.12)] text-[hsl(var(--soft-green))]",
-    className: "bottom-[8%] left-[5%]",
-    lineEndpoint: { x: "25%", y: "82%" },
+    className: "top-[40%] left-[10%]",
     delay: 4,
     duration: 9,
     y: [-6, 4, -6],
@@ -40,8 +38,7 @@ const floatingCards = [
     tagColor: "bg-blue-100 text-blue-700",
     initials: "SC",
     avatarBg: "bg-[hsl(var(--soft-purple)/0.12)] text-[hsl(var(--soft-purple))]",
-    className: "bottom-[8%] right-[15%]",
-    lineEndpoint: { x: "70%", y: "82%" },
+    className: "top-[60%] left-[45%]",
     delay: 2,
     duration: 10,
     y: [6, -6, 6],
@@ -54,51 +51,52 @@ const floatingBubbles = [
   {
     icon: MessageSquare,
     text: "Great meeting!",
-    className: "top-[20%] left-[10%]",
-    lineEndpoint: { x: "25%", y: "25%" },
+    className: "top-[20%] left-[20%]",
     delay: 1,
     duration: 7,
     y: [0, -10, 0],
   },
   {
-    icon: Bell,
-    text: "Follow up tomorrow",
-    className: "top-[50%] left-[2%]",
-    lineEndpoint: { x: "20%", y: "55%" },
-    delay: 3,
-    duration: 11,
-    y: [4, -8, 4],
-  },
-  {
     icon: Calendar,
-    text: "Coffee chat",
-    className: "top-[45%] right-[2%]",
-    lineEndpoint: { x: "82%", y: "48%" },
+    text: "Coffee chat — 3pm",
+    className: "top-[52%] left-[42%]",
     delay: 5,
     duration: 8,
     y: [-4, 6, -4],
   },
+  {
+    icon: Bell,
+    text: "Follow up tomorrow",
+    className: "top-[75%] left-[25%]",
+    delay: 3,
+    duration: 11,
+    y: [4, -8, 4],
+  },
 ];
 
-function HubAndSpokeLines() {
-  const allElements = [...floatingCards, ...floatingBubbles];
+const networkLines = [
+  { x1: "30%", y1: "25%", x2: "70%", y2: "18%", color: "hsl(var(--primary)/0.15)" },
+  { x1: "26%", y1: "46%", x2: "70%", y2: "18%", color: "hsl(var(--primary)/0.15)" },
+  { x1: "26%", y1: "46%", x2: "61%", y2: "66%", color: "hsl(var(--soft-purple)/0.3)" },
+  { x1: "70%", y1: "18%", x2: "61%", y2: "66%", color: "hsl(var(--soft-green)/0.3)" },
+];
+
+function NetworkLines() {
   return (
     <svg
-      className="absolute inset-0 w-full h-full pointer-events-none"
+      className="absolute inset-0 w-full h-full pointer-events-none z-0"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {allElements.map((el, i) => (
+      {networkLines.map((line, i) => (
         <motion.line
           key={`line-${i}`}
-          x1="50%" y1="50%"
-          x2={el.lineEndpoint.x}
-          y2={el.lineEndpoint.y}
-          stroke="hsl(var(--primary) / 0.15)"
+          x1={line.x1} y1={line.y1}
+          x2={line.x2} y2={line.y2}
+          stroke={line.color}
           strokeWidth="1.5"
-          strokeDasharray="4 4"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ delay: 1 + i * 0.2, duration: 1.5, ease: "easeOut" }}
+          transition={{ delay: 1 + i * 0.3, duration: 1.5, ease: "easeOut" }}
         />
       ))}
     </svg>
@@ -111,20 +109,7 @@ export default function HeroFloatingElements() {
       {/* Background decoration */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.05)_0%,transparent_70%)] rounded-full" />
       
-      <HubAndSpokeLines />
-
-      {/* Central Hub Node */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-        <motion.div
-          className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white dark:bg-slate-900 border border-primary/20 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.4)]"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
-        >
-          <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping opacity-75 duration-3000" />
-          <Network className="w-7 h-7 sm:w-8 sm:h-8 text-primary relative z-10" />
-        </motion.div>
-      </div>
+      <NetworkLines />
 
       {/* Floating contact cards */}
       {floatingCards.map((card) => (
