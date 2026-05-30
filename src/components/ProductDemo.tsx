@@ -252,11 +252,15 @@ export function ProductDemo({ onClose }: { onClose: () => void }) {
                         if (currentScene < scenes.length - 1) {
                             setCurrentScene(s => s + 1);
                         } else {
-                            onClose();
+                            if (isAutoPlaying) {
+                                setCurrentScene(0);
+                            } else {
+                                onClose();
+                            }
                         }
                     }}
                 >
-                    {currentScene === scenes.length - 1 ? "Finish Tour" : "Continue"}
+                    {currentScene === scenes.length - 1 ? (isAutoPlaying ? "Restart Tour" : "Finish Tour") : "Continue"}
                 </Button>
             </div>
         </div>
