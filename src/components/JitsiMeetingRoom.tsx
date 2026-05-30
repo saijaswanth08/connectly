@@ -31,7 +31,7 @@ interface JitsiMeetingRoomProps {
 export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNotes = "" }: JitsiMeetingRoomProps) {
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [notesOpen, setNotesOpen] = useState(!!meetingId); // auto-open if meetingId exists
+  const [notesOpen, setNotesOpen] = useState(false); // keep closed by default
   const [notes, setNotes] = useState(initialNotes);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
