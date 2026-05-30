@@ -70,12 +70,12 @@ Rules:
     const rawContent = data.choices?.[0]?.message?.content || "{}";
 
     // Parse structured JSON from AI response
-    let result: { summary: string; actionItems: string[] };
+    let result: { summary: string; actionItems: string[] } = { summary: "", actionItems: [] };
     try {
       result = JSON.parse(rawContent);
       if (!result.summary) result.summary = "No summary available.";
       if (!Array.isArray(result.actionItems)) result.actionItems = [];
-    } catch {
+    } catch (_e) {
       // Fallback: treat raw content as plain summary
       result = { summary: rawContent, actionItems: [] };
     }
