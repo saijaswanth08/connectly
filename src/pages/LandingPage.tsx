@@ -144,15 +144,12 @@ export default function LandingPage() {
                 <span className="hidden md:inline text-xs font-semibold text-primary tracking-wide uppercase">Personal CRM for Professionals</span>
                 <span className="md:hidden text-[11px] font-semibold text-primary tracking-wide">Your Professional Relationships, Simplified ✨</span>
               </motion.div>
-              <motion.h1 custom={1} variants={fadeUp} className="font-display text-[2.75rem] md:text-4xl font-extrabold leading-[1.15] text-foreground sm:text-5xl lg:text-[3.5rem] mx-auto md:mx-0 max-w-[16ch] md:max-w-none tracking-tight">
-                Remember Every{" "}
-                <br className="md:hidden" />
-                <span className="relative">
-                  <span className="text-gradient">Connection</span>
-                </span>{" "}
-                <span className="hidden md:inline">You Make</span>
+              <motion.h1 custom={1} variants={fadeUp} className="font-display text-[2.75rem] md:text-5xl lg:text-[4rem] font-extrabold leading-[1.1] text-foreground mx-auto md:mx-0 tracking-tight">
+                <span className="block">Remember Every</span>
+                <span className="text-gradient block mt-1 md:mt-2">Connection</span>
+                <span className="hidden md:block mt-1 md:mt-2">You Make</span>
               </motion.h1>
-              <motion.p custom={2} variants={fadeUp} className="max-w-[280px] md:max-w-lg mx-auto md:mx-0 text-base md:text-lg text-muted-foreground leading-relaxed">
+              <motion.p custom={2} variants={fadeUp} className="max-w-[280px] md:max-w-md lg:max-w-lg mx-auto md:mx-0 text-base md:text-lg text-muted-foreground leading-relaxed mt-2 md:mt-4">
                 <span className="hidden md:inline">Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.</span>
                 <span className="md:hidden">Organize contacts, meeting notes, and follow-ups in one intelligent workspace.</span>
               </motion.p>
