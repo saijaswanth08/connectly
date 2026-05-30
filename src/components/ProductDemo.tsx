@@ -29,7 +29,7 @@ export function ProductDemo({ onClose }: { onClose: () => void }) {
                 animate={{ rotateY: 0, rotateX: 0, scale: 1, opacity: 1 }}
                 transition={{ duration: 1, ease: "easeOut" }}
             >
-                <div className="absolute top-0 right-0 p-8 opacity-10">
+                <div className="absolute top-0 right-0 p-8 opacity-10 hidden sm:block">
                     <ConnectlyLogoIcon size={150} className="sm:w-[200px] sm:h-[200px]" />
                 </div>
                 <div className="flex flex-col items-center text-center gap-4 sm:gap-6 relative z-10">
