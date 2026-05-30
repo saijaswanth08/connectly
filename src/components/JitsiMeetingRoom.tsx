@@ -102,6 +102,8 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     "config.startWithVideoMuted=false",
     "config.startWithAudioMuted=true",
     "config.disableDeepLinking=true",
+    "config.enableClosePage=true",
+    "config.welcomePageEnabled=false",
     "config.toolbarButtons=[\"microphone\",\"camera\",\"desktop\",\"chat\",\"participants-pane\",\"raisehand\",\"tileview\",\"hangup\",\"fullscreen\"]",
     "interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS=false",
     `userInfo.displayName="${displayName}"`,
