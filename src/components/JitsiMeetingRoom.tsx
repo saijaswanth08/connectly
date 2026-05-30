@@ -80,26 +80,18 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     };
   }, []);
 
-  // Listen for Jitsi's built-in hangup/end-call button → return to dashboard
-  useEffect(() => {
-    const handleJitsiMessage = (event: MessageEvent) => {
-      try {
-        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-        // Jitsi fires 'readyToClose' when the user clicks the hangup button internally
-        if (
-          data?.name === "readyToClose" ||
-          data?.action === "readyToClose" ||
-          data?.type === "readyToClose"
-        ) {
-          onLeave();
-        }
-      } catch {
-        // ignore non-JSON messages
-      }
-    };
-    window.addEventListener("message", handleJitsiMessage);
-    return () => window.removeEventListener("message", handleJitsiMessage);
-  }, [onLeave]);
+  // Detect meeting end via iframe reload:
+  // Jitsi navigates the iframe back to its lobby/home page when the user
+  // clicks the hangup button. We track load count — first load = meeting
+  // started, second+ load = meeting ended → auto-leave.
+  const iframeLoadCount = useRef(0);
+  const handleIframeLoad = () => {
+    iframeLoadCount.current += 1;
+    if (iframeLoadCount.current > 1) {
+      // Jitsi reloaded → meeting has ended
+      onLeave();
+    }
+  };
 
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || "User";
   const email = user?.email || "";
@@ -111,8 +103,6 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     "config.startWithAudioMuted=true",
     "config.disableDeepLinking=true",
     "config.toolbarButtons=[\"microphone\",\"camera\",\"desktop\",\"chat\",\"participants-pane\",\"raisehand\",\"tileview\",\"hangup\",\"fullscreen\"]",
-    "interfaceConfig.SHOW_JITSI_WATERMARK=false",
-    "interfaceConfig.DEFAULT_BACKGROUND=#0F172A",
     "interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS=false",
     `userInfo.displayName="${displayName}"`,
     ...(email ? [`userInfo.email="${email}"`] : []),
@@ -223,6 +213,7 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
             allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write"
             style={{ border: "none" }}
             title="Video Meeting"
+            onLoad={handleIframeLoad}
           />
         </div>
 

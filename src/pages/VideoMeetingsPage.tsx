@@ -212,7 +212,7 @@ export default function VideoMeetingsPage() {
 
     // Split into lines/sentences
     const lines = notes
-      .split(/[\n•\-\*]/)
+      .split(/[\n•\-*]/)
       .map((l) => l.trim())
       .filter((l) => l.length > 5);
 
