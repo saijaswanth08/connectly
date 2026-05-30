@@ -6,6 +6,7 @@ import {
 import { Button } from "@/components/ui/button";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import HeroFloatingElements from "@/components/landing/HeroFloatingElements";
+import MobileHeroMockup from "@/components/landing/MobileHeroMockup";
 import NetworkGraphAnimated from "@/components/landing/NetworkGraphAnimated";
 import { ConnectlyLogoIcon } from "@/components/ConnectlyLogo";
 import { useState, useEffect } from "react";
@@ -132,24 +133,27 @@ export default function LandingPage() {
         </div>
         <div className="relative z-10 w-full">
           <div className="mx-auto max-w-6xl px-6 reveal">
-            <div className="flex flex-col md:grid md:grid-cols-2 items-center gap-8 md:gap-12">
-            <motion.div initial="hidden" animate="visible" className="space-y-6 order-1 text-center md:text-left w-full">
+            <div className="flex flex-col md:grid md:grid-cols-2 items-center gap-10 md:gap-12">
+            <motion.div initial="hidden" animate="visible" className="space-y-6 md:space-y-6 order-1 text-center md:text-left w-full mt-4 md:mt-0">
               <motion.div custom={0} variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-1.5 mx-auto md:mx-0">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-semibold text-primary tracking-wide uppercase">Personal CRM for Professionals</span>
+                <span className="hidden md:inline text-xs font-semibold text-primary tracking-wide uppercase">Personal CRM for Professionals</span>
+                <span className="md:hidden text-[11px] font-semibold text-primary tracking-wide">Your Professional Relationships, Simplified ✨</span>
               </motion.div>
-              <motion.h1 custom={1} variants={fadeUp} className="font-display text-4xl font-extrabold leading-[1.15] text-foreground sm:text-5xl lg:text-[3.5rem] mx-auto md:mx-0 max-w-[16ch] md:max-w-none">
+              <motion.h1 custom={1} variants={fadeUp} className="font-display text-[2.75rem] md:text-4xl font-extrabold leading-[1.15] text-foreground sm:text-5xl lg:text-[3.5rem] mx-auto md:mx-0 max-w-[16ch] md:max-w-none tracking-tight">
                 Remember Every{" "}
+                <br className="md:hidden" />
                 <span className="relative">
                   <span className="text-gradient">Connection</span>
                 </span>{" "}
-                You Make
+                <span className="hidden md:inline">You Make</span>
               </motion.h1>
-              <motion.p custom={2} variants={fadeUp} className="max-w-lg mx-auto md:mx-0 text-lg text-muted-foreground leading-relaxed">
-                Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.
+              <motion.p custom={2} variants={fadeUp} className="max-w-[280px] md:max-w-lg mx-auto md:mx-0 text-base md:text-lg text-muted-foreground leading-relaxed">
+                <span className="hidden md:inline">Connectly helps professionals organize contacts, meeting notes, and relationships in one intelligent workspace.</span>
+                <span className="md:hidden">Organize contacts, meeting notes, and follow-ups in one intelligent workspace.</span>
               </motion.p>
-              <motion.div custom={3} variants={fadeUp} className="flex flex-wrap gap-3 justify-center md:justify-start pt-1">
-                <Button size="lg" className="rounded-full gap-2 px-8 text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow" asChild>
+              <motion.div custom={3} variants={fadeUp} className="flex flex-col md:flex-row flex-wrap gap-3 md:gap-4 justify-center md:justify-start pt-2 px-4 md:px-0">
+                <Button size="lg" className="w-full md:w-auto rounded-xl md:rounded-full gap-2 px-8 text-base shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow h-12 md:h-11" asChild>
                   <Link to="/signup">
                     Get Started <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -157,17 +161,26 @@ export default function LandingPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-full px-8 text-base group/demo relative overflow-hidden border-border/60 hover:border-primary/40"
+                  className="w-full md:w-auto rounded-xl md:rounded-full px-8 text-base group/demo relative overflow-hidden border-border/80 shadow-sm bg-white hover:border-primary/40 h-12 md:h-11"
                   onClick={() => setShowDemo(true)}
                 >
-                  <span className="relative z-10">Watch Demo</span>
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <span className="md:hidden text-lg leading-none">▶</span> Watch Demo
+                  </span>
                   <div className="absolute inset-0 bg-primary/5 translate-y-full group-hover/demo:translate-y-0 transition-transform duration-300" />
                 </Button>
               </motion.div>
             </motion.div>
 
-            <div className="order-2 w-full flex justify-center">
-              <HeroFloatingElements />
+            <div className="order-2 w-full flex justify-center pt-4 md:pt-0">
+              <div className="hidden md:block w-full">
+                <HeroFloatingElements />
+              </div>
+              <div className="md:hidden w-full max-w-[340px] px-2 relative">
+                {/* A glowing backdrop to pop the phone off the page a bit */}
+                <div className="absolute inset-x-8 top-12 bottom-0 bg-primary/20 blur-3xl rounded-full" />
+                <MobileHeroMockup />
+              </div>
             </div>
           </div>
           </div>
