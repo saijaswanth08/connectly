@@ -4,7 +4,7 @@ import { ImportanceBadge } from "./ImportanceBadge";
 import { Building2, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function ContactCard({ contact, index = 0 }: { contact: DbContact; index?: number }) {
   const initials = contact.name.split(" ").map((n) => n[0]).join("").slice(0, 2);
@@ -19,9 +19,12 @@ export function ContactCard({ contact, index = 0 }: { contact: DbContact; index?
         to={`/contacts/${contact.id}`}
         className="glass-card rounded-xl p-4 block hover:border-primary/30 transition-all duration-200 hover:shadow-md group dark:bg-slate-800 dark:border-slate-700"
       >
-        <div className="flex items-start gap-3">
-          <Avatar className="h-11 w-11 shrink-0">
-            <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm">
+        <div className="flex items-start gap-3 select-none">
+          <Avatar className="h-11 w-11 shrink-0 pointer-events-none select-none">
+            {contact.avatar_url && (
+              <AvatarImage src={contact.avatar_url} alt={contact.name} className="object-cover" draggable={false} />
+            )}
+            <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm select-none">
               {initials}
             </AvatarFallback>
           </Avatar>

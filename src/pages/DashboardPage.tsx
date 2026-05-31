@@ -221,12 +221,12 @@ function ClickableContactCard({
       onClick={() => onSelect(contact)}
       className="glass-card rounded-xl p-4 block w-full text-left hover:border-primary/30 transition-all duration-200 hover:shadow-md group dark:bg-slate-800 dark:border-slate-700"
     >
-      <div className="flex items-start gap-3">
-        <Avatar className="h-11 w-11 shrink-0">
+      <div className="flex items-start gap-3 select-none">
+        <Avatar className="h-11 w-11 shrink-0 pointer-events-none select-none">
           {contact.avatar_url && (
-            <AvatarImage src={contact.avatar_url} alt={contact.name} className="object-cover" />
+            <AvatarImage src={contact.avatar_url} alt={contact.name} className="object-cover" draggable={false} />
           )}
-          <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm">
+          <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm select-none">
             {initials}
           </AvatarFallback>
         </Avatar>

@@ -1016,10 +1016,10 @@ export default function MessagesPage() {
                           transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         />
                       )}
-                      <div className="relative shrink-0">
-                        <Avatar className="h-12 w-12 border-2 border-background shadow-sm group-hover:scale-105 transition-transform duration-300">
-                          {contact.avatar_url && <AvatarImage src={contact.avatar_url} className="object-cover" />}
-                          <AvatarFallback className="bg-primary/10 text-primary font-bold">{(contact.name || "U").charAt(0)}</AvatarFallback>
+                      <div className="relative shrink-0 select-none">
+                        <Avatar className="h-12 w-12 border-2 border-background shadow-sm group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none">
+                          {contact.avatar_url && <AvatarImage src={contact.avatar_url} className="object-cover" draggable={false} />}
+                          <AvatarFallback className="bg-primary/10 text-primary font-bold select-none">{(contact.name || "U").charAt(0)}</AvatarFallback>
                         </Avatar>
                         {isOnline && (
                           <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full shadow-sm ring-2 ring-green-500/10" />
@@ -1630,11 +1630,11 @@ export default function MessagesPage() {
                     <button
                       key={contact.id}
                       onClick={() => handleSelectContact(contact)}
-                      className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-primary/5 transition-all duration-300 text-left group"
+                      className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-primary/5 transition-all duration-300 text-left group select-none"
                     >
-                      <Avatar className="h-12 w-12 border-2 border-background shadow-sm group-hover:scale-105 transition-transform duration-300">
-                        {contact.avatar_url && <AvatarImage src={contact.avatar_url} className="object-cover" />}
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold">{(contact.name || "U").charAt(0)}</AvatarFallback>
+                      <Avatar className="h-12 w-12 border-2 border-background shadow-sm group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none">
+                        {contact.avatar_url && <AvatarImage src={contact.avatar_url} className="object-cover" draggable={false} />}
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold select-none">{(contact.name || "U").charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">{contact.name}</p>
