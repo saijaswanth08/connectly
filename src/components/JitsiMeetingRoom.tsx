@@ -31,7 +31,10 @@ interface JitsiMeetingRoomProps {
 export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNotes = "" }: JitsiMeetingRoomProps) {
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [notesOpen, setNotesOpen] = useState(false); // keep closed by default
+  const [notesOpen, setNotesOpen] = useState(() => {
+    // Automatically pop up the notes panel by default on mobile viewports
+    return typeof window !== "undefined" && window.innerWidth < 768;
+  });
   const [notes, setNotes] = useState(initialNotes);
   const [isLeaving, setIsLeaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
