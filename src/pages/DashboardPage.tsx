@@ -11,6 +11,7 @@ import { TagBadge } from "@/components/TagBadge";
 import { useReminders } from "@/hooks/useReminders";
 import { useMeetings, useContacts } from "@/hooks/useContacts";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DbContact, DbReminder, DbMeeting } from "@/lib/api";
 import { AddContactDialog } from "@/components/AddContactDialog";
@@ -196,17 +197,21 @@ function ClickableContactCard({
   contact,
   index = 0,
   onSelect,
+  isLoading = false,
 }: {
-  contact: DbContact;
+  contact?: DbContact;
   index?: number;
-  onSelect: (c: DbContact) => void;
+  onSelect?: (c: DbContact) => void;
+  isLoading?: boolean;
 }) {
-  const initials = (contact.name || "")
-    .split(" ")
-    .map((n) => n[0] || "")
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = contact
+    ? (contact.name || "")
+        .split(" ")
+        .map((n) => n[0] || "")
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "";
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
   const transitionProps = isMobile
@@ -218,41 +223,55 @@ function ClickableContactCard({
       initial={isMobile ? { opacity: 0 } : { opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={transitionProps}
-      onClick={() => onSelect(contact)}
-      className="glass-card rounded-xl p-4 block w-full text-left hover:border-primary/30 transition-all duration-200 hover:shadow-md group dark:bg-slate-800 dark:border-slate-700"
+      onClick={contact && onSelect ? () => onSelect(contact) : undefined}
+      disabled={isLoading}
+      className={cn(
+        "glass-card rounded-xl p-4 block w-full text-left transition-all duration-200 hover:shadow-md group dark:bg-slate-800 dark:border-slate-700",
+        isLoading ? "pointer-events-none select-none" : "hover:border-primary/30"
+      )}
     >
-      <div className="flex items-start gap-3 select-none">
-        <Avatar className="h-11 w-11 shrink-0 pointer-events-none select-none">
-          {contact.avatar_url && (
-            <AvatarImage src={contact.avatar_url} alt={contact.name} className="object-cover" draggable={false} />
-          )}
-          <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm select-none">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0 space-y-1">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="font-display font-semibold text-sm truncate group-hover:text-primary transition-colors">
-              {contact.name}
-            </h3>
-            <ImportanceBadge level={contact.priority} />
+      {isLoading ? (
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-11 w-11 rounded-full shrink-0" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-32 rounded" />
+            <Skeleton className="h-3 w-24 rounded opacity-60" />
           </div>
-          {((contact.job_title && contact.job_title.trim()) || (contact.company && contact.company.trim())) && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Building2 className="h-3 w-3 shrink-0" />
-              <span className="truncate">
-                {contact.job_title || "No Title"} {contact.company ? `at ${contact.company}` : ""}
-              </span>
-            </div>
-          )}
-          {contact.email && contact.email.trim() && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Mail className="h-3 w-3 shrink-0" />
-              <span className="truncate">{contact.email}</span>
-            </div>
-          )}
         </div>
-      </div>
+      ) : (
+        <div className="flex items-start gap-3 select-none">
+          <Avatar className="h-11 w-11 shrink-0 pointer-events-none select-none">
+            {contact?.avatar_url && (
+              <AvatarImage src={contact.avatar_url} alt={contact.name} className="object-cover" draggable={false} />
+            )}
+            <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm select-none">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0 space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-display font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                {contact?.name}
+              </h3>
+              {contact && <ImportanceBadge level={contact.priority} />}
+            </div>
+            {contact && ((contact.job_title && contact.job_title.trim()) || (contact.company && contact.company.trim())) && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Building2 className="h-3 w-3 shrink-0" />
+                <span className="truncate">
+                  {contact.job_title || "No Title"} {contact.company ? `at ${contact.company}` : ""}
+                </span>
+              </div>
+            )}
+            {contact?.email && contact.email.trim() && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Mail className="h-3 w-3 shrink-0" />
+                <span className="truncate">{contact.email}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </motion.button>
   );
 }
@@ -695,13 +714,10 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-card rounded-xl p-4 border border-border/50 flex items-center gap-3">
-                  <Skeleton className="h-11 w-11 rounded-full shrink-0" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-4 w-32 rounded" />
-                    <Skeleton className="h-3 w-24 rounded opacity-60" />
-                  </div>
-                </div>
+                <ClickableContactCard
+                  key={`contact-slot-${i}`}
+                  isLoading={true}
+                />
               ))
             ) : recentContacts.length === 0 ? (
               <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center rounded-xl border border-dashed border-border/60 bg-muted/20">
@@ -718,7 +734,7 @@ export default function DashboardPage() {
             ) : (
               recentContacts.map((c, i) => (
                 <ClickableContactCard
-                  key={c.id}
+                  key={`contact-slot-${i}`}
                   contact={c}
                   index={i}
                   onSelect={handleSelectContact}
