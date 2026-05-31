@@ -299,3 +299,18 @@
 .skeleton-footer {
   width: 30%;
 }
+
+/* Focused meeting view styles - Hides standard sidebar, header, and profile incomplete banners to maximize meeting viewport */
+body.meeting-active header,
+body.meeting-active aside,
+body.meeting-active [data-sidebar="sidebar"],
+body.meeting-active .bg-amber-50 {
+  display: none !important;
+}
+
+body.meeting-active main {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+  overflow: hidden !important;
+}

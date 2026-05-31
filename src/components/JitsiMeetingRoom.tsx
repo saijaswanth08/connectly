@@ -81,6 +81,14 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     };
   }, []);
 
+  // Add meeting-active class to body when meeting room is mounted to hide sidebars and headers
+  useEffect(() => {
+    document.body.classList.add("meeting-active");
+    return () => {
+      document.body.classList.remove("meeting-active");
+    };
+  }, []);
+
   // Listen for Jitsi's built-in hangup/end-call button → return to dashboard
   useEffect(() => {
     const handleJitsiMessage = (event: MessageEvent) => {
@@ -146,7 +154,7 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col h-[calc(100vh-4rem)] -m-6 bg-[#0F172A] text-white overflow-hidden"
+      className="flex flex-col h-screen w-full bg-[#0F172A] text-white overflow-hidden"
     >
       {/* Meeting Header */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#0F172A]/95 border-b border-white/10 backdrop-blur-sm z-10 shrink-0">
@@ -238,7 +246,7 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
       </div>
 
       {/* Main Area: Jitsi + Notes Panel */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden relative">
         {/* Jitsi iframe */}
         <div className={`flex-1 relative min-w-0 transition-opacity duration-150 ${isLeaving ? "opacity-0 pointer-events-none" : ""}`}>
           <iframe
@@ -254,13 +262,24 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
         {/* Notes Side Panel */}
         {notesOpen && meetingId && (
           <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: isMobile ? "100%" : 320, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
+            initial={isMobile ? { y: "100%", opacity: 0 } : { width: 0, opacity: 0 }}
+            animate={isMobile ? { y: 0, opacity: 1 } : { width: 320, opacity: 1 }}
+            exit={isMobile ? { y: "100%", opacity: 0 } : { width: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="flex flex-col border-l border-white/10 bg-[#0a0f1e] shrink-0 overflow-hidden"
-            style={{ width: isMobile ? "100%" : 320 }}
+            className={
+              isMobile
+                ? "absolute bottom-0 left-0 right-0 z-20 w-full h-[38%] flex flex-col border-t border-white/10 bg-[#0a0f1e]/90 backdrop-blur-md rounded-t-2xl shadow-2xl overflow-hidden"
+                : "flex flex-col border-l border-white/10 bg-[#0a0f1e] shrink-0 overflow-hidden"
+            }
+            style={isMobile ? { height: "38%" } : { width: 320 }}
           >
+            {/* Grab Handle for Mobile Bottom Sheet */}
+            {isMobile && (
+              <div className="flex justify-center pt-2.5 shrink-0">
+                <div className="w-12 h-1 bg-white/20 rounded-full" />
+              </div>
+            )}
+
             {/* Panel Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
               <div className="flex items-center gap-2">

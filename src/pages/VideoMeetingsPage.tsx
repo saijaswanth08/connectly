@@ -331,15 +331,13 @@ export default function VideoMeetingsPage() {
   // If a meeting room is active, show the embedded Jitsi view
   if (activeRoom) {
     return (
-      <div className="p-6 max-w-6xl mx-auto">
-        <JitsiMeetingRoom
-          roomId={activeRoom}
-          onLeave={handleLeaveRoom}
-          title="Connectly Meeting"
-          meetingId={activeMeetingId}
-          initialNotes={activeMeetingNotes}
-        />
-      </div>
+      <JitsiMeetingRoom
+        roomId={activeRoom}
+        onLeave={handleLeaveRoom}
+        title="Connectly Meeting"
+        meetingId={activeMeetingId}
+        initialNotes={activeMeetingNotes}
+      />
     );
   }
 
