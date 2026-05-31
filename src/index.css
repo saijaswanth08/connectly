@@ -117,7 +117,12 @@
 @layer base {
   *:not([class*="animate"]):not([data-framer]) {
     @apply border-border;
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  @media (min-width: 1024px) {
+    *:not([class*="animate"]):not([data-framer]) {
+      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
   }
 
   ::selection {
@@ -181,6 +186,46 @@
   }
   .glow-emerald {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.15), 0 0 60px hsl(var(--primary) / 0.05);
+  }
+
+  /* GPU-Accelerated inertial scrolling for all mobile custom scrollable areas */
+  .overflow-auto, .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Disable heavy backdrop blur on mobile viewports for high frame-rate scrolling and dynamic updates */
+  @media (max-width: 1023px) {
+    .backdrop-blur-sm,
+    .backdrop-blur-md,
+    .backdrop-blur-lg,
+    .backdrop-blur-xl,
+    .backdrop-blur-2xl,
+    .backdrop-blur-3xl,
+    .backdrop-blur {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    
+    /* Compensate backgrounds opacity on mobile for premium aesthetics */
+    .bg-card\/30 {
+      background-color: hsl(var(--card) / 0.85) !important;
+    }
+    .bg-card\/40 {
+      background-color: hsl(var(--card) / 0.9) !important;
+    }
+    .bg-card\/50 {
+      background-color: hsl(var(--card) / 0.92) !important;
+    }
+    .bg-card\/60 {
+      background-color: hsl(var(--card) / 0.95) !important;
+    }
+    .glass-card {
+      @apply bg-card/85 border border-white/10 shadow-xl !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
   }
 }
 
