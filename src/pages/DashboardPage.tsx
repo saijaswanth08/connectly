@@ -54,10 +54,13 @@ function ContactDetailView({
     }
   }
 
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={isMobile ? { opacity: 0 } : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: isMobile ? 0.12 : 0.25 }}
       className="space-y-6"
     >
       <div className="flex items-center justify-between">
@@ -205,11 +208,16 @@ function ClickableContactCard({
     .slice(0, 2)
     .toUpperCase();
 
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+  const transitionProps = isMobile
+    ? { duration: 0.12 }
+    : { delay: Math.min(index, 6) * 0.04, duration: 0.2 };
+
   return (
     <motion.button
-      initial={{ opacity: 0, y: 8 }}
+      initial={isMobile ? { opacity: 0 } : { opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+      transition={transitionProps}
       onClick={() => onSelect(contact)}
       className="glass-card rounded-xl p-4 block w-full text-left hover:border-primary/30 transition-all duration-200 hover:shadow-md group dark:bg-slate-800 dark:border-slate-700"
     >
@@ -570,8 +578,9 @@ export default function DashboardPage() {
         /* Tab sub-views */
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, y: 12 }}
+          initial={isMobile ? { opacity: 0 } : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: isMobile ? 0.12 : 0.25 }}
           className="space-y-4"
         >
           {activeTab === "contacts" && (
@@ -675,9 +684,9 @@ export default function DashboardPage() {
       ) : (
         /* Default dashboard overview — Recent Contacts */
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={isMobile ? { opacity: 0 } : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={isMobile ? { duration: 0.12 } : { delay: 0.2, duration: 0.25 }}
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold">Recent Contacts</h2>

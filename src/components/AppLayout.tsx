@@ -52,7 +52,7 @@ export function AppLayout() {
             </div>
           </header>
           <IncompleteProfileBanner />
-          <main className="flex-1 overflow-auto min-h-0">
+          <main className="flex-1 overflow-auto min-h-0 main-viewport-scroll">
             <Outlet />
           </main>
         </div>
