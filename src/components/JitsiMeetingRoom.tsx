@@ -154,7 +154,7 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col h-screen w-full bg-[#0F172A] text-white overflow-hidden"
+      className="flex flex-col h-full w-full bg-[#0F172A] text-white overflow-hidden"
     >
       {/* Meeting Header */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#0F172A]/95 border-b border-white/10 backdrop-blur-sm z-10 shrink-0">
