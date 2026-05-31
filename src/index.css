@@ -193,11 +193,9 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* GPU-Accelerated compositor layer promotion for the main mobile viewport layout */
+  /* Optimized touch scrolling for the main mobile viewport layout without scroll-blocking layer promotion */
   .main-viewport-scroll {
     -webkit-overflow-scrolling: touch;
-    will-change: transform;
-    transform: translate3d(0, 0, 0);
   }
 
   /* Disable heavy backdrop blur on mobile viewports for high frame-rate scrolling and dynamic updates */
