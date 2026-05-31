@@ -266,6 +266,7 @@ type ActiveTab = "contacts" | "vip" | "reminders" | "meetings" | null;
 // DashboardPage
 // ────────────────────────────────────────────────────────────
 export default function DashboardPage() {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
   const { user } = useAuth();
   const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
   const { toast } = useToast();
