@@ -63,10 +63,27 @@ export function useContacts() {
   const { user } = useAuth();
   return useQuery<DbContact[]>({
     queryKey: ["contacts", user?.id],
-    queryFn: fetchContacts,
+    queryFn: async () => {
+      const data = await fetchContacts();
+      if (user?.id) {
+        localStorage.setItem(`connectly-contacts-cache-${user.id}`, JSON.stringify(data));
+      }
+      return data;
+    },
     enabled: !!user?.id,
     refetchOnMount: true,
     select: deduplicateContacts,
+    initialData: () => {
+      if (typeof window !== "undefined" && user?.id) {
+        try {
+          const cached = localStorage.getItem(`connectly-contacts-cache-${user.id}`);
+          if (cached) return JSON.parse(cached);
+        } catch (e) {
+          console.error("Failed to parse cached contacts", e);
+        }
+      }
+      return undefined;
+    },
   });
 }
 
@@ -105,9 +122,28 @@ export function useDeleteContact() {
 }
 
 export function useMeetings() {
+  const { user } = useAuth();
   return useQuery<DbMeeting[]>({
-    queryKey: ["meetings"],
-    queryFn: fetchMeetings,
+    queryKey: ["meetings", user?.id],
+    queryFn: async () => {
+      const data = await fetchMeetings();
+      if (user?.id) {
+        localStorage.setItem(`connectly-meetings-cache-${user.id}`, JSON.stringify(data));
+      }
+      return data;
+    },
+    enabled: !!user?.id,
+    initialData: () => {
+      if (typeof window !== "undefined" && user?.id) {
+        try {
+          const cached = localStorage.getItem(`connectly-meetings-cache-${user.id}`);
+          if (cached) return JSON.parse(cached);
+        } catch (e) {
+          console.error("Failed to parse cached meetings", e);
+        }
+      }
+      return undefined;
+    },
   });
 }
 
