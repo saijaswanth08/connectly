@@ -29,27 +29,19 @@ export function deduplicateContacts(contacts: DbContact[]): DbContact[] {
 
   const uniqueContacts: DbContact[] = [];
   const seenEmails = new Set<string>();
-  const seenPhones = new Set<string>();
-  const seenNames = new Set<string>();
 
   for (const c of sorted) {
     const email = c.email?.trim().toLowerCase();
-    const phone = c.phone?.trim();
-    const name = c.name?.trim().toLowerCase();
 
     let isDuplicate = false;
 
     if (email && seenEmails.has(email)) {
-      isDuplicate = true;
-    } else if (phone && seenPhones.has(phone)) {
       isDuplicate = true;
     }
 
     if (!isDuplicate) {
       uniqueContacts.push(c);
       if (email) seenEmails.add(email);
-      if (phone) seenPhones.add(phone);
-      if (name) seenNames.add(name);
     }
   }
 

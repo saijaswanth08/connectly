@@ -22,15 +22,13 @@ export default function ContactsPage() {
       (c.email && c.email.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
-    // De-duplicate contacts by partner identity using robust case-insensitive field matching
+    // De-duplicate contacts by partner identity using robust case-insensitive email matching
     const seenTargetIds = new Set<string>();
     const seenEmails = new Set<string>();
-    const seenNames = new Set<string>();
 
     return list.filter((c) => {
       const targetId = c.target_user_id;
       const email = c.email ? c.email.toLowerCase().trim() : "";
-      const name = c.name ? c.name.toLowerCase().trim() : "";
 
       const isSelf =
         targetId === user?.id ||
@@ -47,7 +45,6 @@ export default function ContactsPage() {
 
       if (targetId) seenTargetIds.add(targetId);
       if (email) seenEmails.add(email);
-      if (name) seenNames.add(name);
 
       return true;
     });

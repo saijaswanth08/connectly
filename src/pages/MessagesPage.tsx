@@ -177,17 +177,16 @@ export default function MessagesPage() {
     if (c.target_user_id && c.target_user_id !== user?.id) {
       if (onlineUsers.has(c.target_user_id)) return true;
     }
-    const name = c.name ? c.name.toLowerCase().trim() : "";
     const email = c.email ? c.email.toLowerCase().trim() : "";
+    if (!email) return false;
     
     return contacts.some((other) => {
       if (other.target_user_id === user?.id) return false;
       if (!other.target_user_id) return false;
       
-      const nameMatch = name && other.name && other.name.toLowerCase().trim() === name;
-      const emailMatch = email && other.email && other.email.toLowerCase().trim() === email;
+      const emailMatch = other.email && other.email.toLowerCase().trim() === email;
       
-      return (nameMatch || emailMatch) && onlineUsers.has(other.target_user_id);
+      return emailMatch && onlineUsers.has(other.target_user_id);
     });
   };
 
@@ -196,18 +195,17 @@ export default function MessagesPage() {
     if (!c) return c;
     if (c.target_user_id) return c;
     
-    const name = c.name ? c.name.toLowerCase().trim() : "";
     const email = c.email ? c.email.toLowerCase().trim() : "";
+    if (!email) return c;
     
     const validSibling = contacts.find((other) => {
       if (other.id === c.id) return false;
       if (other.target_user_id === user?.id) return false;
       if (!other.target_user_id) return false;
       
-      const nameMatch = name && other.name && other.name.toLowerCase().trim() === name;
-      const emailMatch = email && other.email && other.email.toLowerCase().trim() === email;
+      const emailMatch = other.email && other.email.toLowerCase().trim() === email;
       
-      return nameMatch || emailMatch;
+      return emailMatch;
     });
     
     return validSibling || c;
@@ -252,7 +250,6 @@ export default function MessagesPage() {
 
     const targetId = selectedContact.target_user_id;
     const email = selectedContact.email ? selectedContact.email.toLowerCase().trim() : "";
-    const name = selectedContact.name ? selectedContact.name.toLowerCase().trim() : "";
 
     return contacts.filter((c) => {
       const cIsSelf =
@@ -266,9 +263,6 @@ export default function MessagesPage() {
       
       const cEmail = c.email ? c.email.toLowerCase().trim() : "";
       if (email && cEmail === email) return true;
-      
-      const cName = c.name ? c.name.toLowerCase().trim() : "";
-      if (name && cName === name) return true;
       
       return false;
     });
@@ -423,12 +417,10 @@ export default function MessagesPage() {
 
     const seenTargetIds = new Set<string>();
     const seenEmails = new Set<string>();
-    const seenNames = new Set<string>();
 
     return sorted.filter((c) => {
       const targetId = c.target_user_id;
       const email = c.email ? c.email.toLowerCase().trim() : "";
-      const name = c.name ? c.name.toLowerCase().trim() : "";
 
       const isSelf =
         targetId === user?.id ||
@@ -437,8 +429,7 @@ export default function MessagesPage() {
       const hasSeen =
         !isSelf &&
         ((targetId && seenTargetIds.has(targetId)) ||
-          (email && seenEmails.has(email)) ||
-          (name && seenNames.has(name)));
+          (email && seenEmails.has(email)));
 
       if (hasSeen) {
         return false;
@@ -446,7 +437,6 @@ export default function MessagesPage() {
 
       if (targetId) seenTargetIds.add(targetId);
       if (email) seenEmails.add(email);
-      if (name) seenNames.add(name);
 
       return true;
     });
@@ -456,12 +446,10 @@ export default function MessagesPage() {
     const sorted = [...contacts].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     const seenTargetIds = new Set<string>();
     const seenEmails = new Set<string>();
-    const seenNames = new Set<string>();
 
     return sorted.filter((c) => {
       const targetId = c.target_user_id;
       const email = c.email ? c.email.toLowerCase().trim() : "";
-      const name = c.name ? c.name.toLowerCase().trim() : "";
 
       const isSelf =
         targetId === user?.id ||
@@ -470,8 +458,7 @@ export default function MessagesPage() {
       const hasSeen =
         !isSelf &&
         ((targetId && seenTargetIds.has(targetId)) ||
-          (email && seenEmails.has(email)) ||
-          (name && seenNames.has(name)));
+          (email && seenEmails.has(email)));
 
       if (hasSeen) {
         return false;
@@ -479,7 +466,6 @@ export default function MessagesPage() {
 
       if (targetId) seenTargetIds.add(targetId);
       if (email) seenEmails.add(email);
-      if (name) seenNames.add(name);
 
       return true;
     });
