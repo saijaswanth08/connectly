@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
@@ -41,10 +41,43 @@ export default function VideoMeetingsPage() {
   const updateMeeting = useUpdateMeeting();
   const queryClient = useQueryClient();
 
-  const [activeRoom, setActiveRoom] = useState<string | null>(null);
-  const [activeMeetingId, setActiveMeetingId] = useState<string | null>(null);
-  const [activeMeetingNotes, setActiveMeetingNotes] = useState<string>("");
+  const [activeRoom, setActiveRoom] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("connectly-active-room");
+    }
+    return null;
+  });
+  const [activeMeetingId, setActiveMeetingId] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("connectly-active-meeting-id");
+    }
+    return null;
+  });
+  const [activeMeetingNotes, setActiveMeetingNotes] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("connectly-active-meeting-notes") || "";
+    }
+    return "";
+  });
   const [lastMeetingContactId, setLastMeetingContactId] = useState<string | null>(null);
+
+  // Sync active meeting state to sessionStorage to survive accidental page reloads
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (activeRoom) {
+      sessionStorage.setItem("connectly-active-room", activeRoom);
+      if (activeMeetingId) {
+        sessionStorage.setItem("connectly-active-meeting-id", activeMeetingId);
+      } else {
+        sessionStorage.removeItem("connectly-active-meeting-id");
+      }
+      sessionStorage.setItem("connectly-active-meeting-notes", activeMeetingNotes);
+    } else {
+      sessionStorage.removeItem("connectly-active-room");
+      sessionStorage.removeItem("connectly-active-meeting-id");
+      sessionStorage.removeItem("connectly-active-meeting-notes");
+    }
+  }, [activeRoom, activeMeetingId, activeMeetingNotes]);
   const [showFollowUp, setShowFollowUp] = useState(false);
   const createReminder = useCreateReminder();
   const [joinCode, setJoinCode] = useState("");

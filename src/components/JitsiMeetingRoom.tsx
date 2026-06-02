@@ -73,6 +73,9 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
 
   const handleNotesChange = (value: string) => {
     setNotes(value);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("connectly-active-meeting-notes", value);
+    }
     setSaveStatus("saving");
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => saveNotes(value), 2000);
