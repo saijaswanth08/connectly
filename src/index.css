@@ -308,10 +308,19 @@ body.meeting-active .bg-amber-50 {
   display: none !important;
 }
 
+/* Force body and all outer layout wrappers to strictly match 100dvh during meetings, preventing mobile address bar overflows */
+html.meeting-active,
+body.meeting-active,
+body.meeting-active #root,
+body.meeting-active [data-sidebar="wrapper"],
+body.meeting-active .h-screen,
+body.meeting-active .flex-1.flex.flex-col,
 body.meeting-active main {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
   padding: 0 !important;
   margin: 0 !important;
   max-width: none !important;
-  overflow: hidden !important;
-  height: 100dvh !important;
 }

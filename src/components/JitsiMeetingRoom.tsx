@@ -84,11 +84,13 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     };
   }, []);
 
-  // Add meeting-active class to body when meeting room is mounted to hide sidebars and headers
+  // Add meeting-active class to body and html when meeting room is mounted to hide sidebars and headers and lock viewport height
   useEffect(() => {
     document.body.classList.add("meeting-active");
+    document.documentElement.classList.add("meeting-active");
     return () => {
       document.body.classList.remove("meeting-active");
+      document.documentElement.classList.remove("meeting-active");
     };
   }, []);
 
