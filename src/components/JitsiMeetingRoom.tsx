@@ -92,6 +92,36 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
     };
   }, []);
 
+  // Reset scroll position on mount and counteract any automatic browser focus scrolling
+  useEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo(0, 0);
+      const mainElement = document.querySelector("main") || document.querySelector(".main-viewport-scroll");
+      if (mainElement) {
+        mainElement.scrollTop = 0;
+        mainElement.scrollLeft = 0;
+      }
+      const appLayout = document.querySelector(".flex-1.flex.flex-col");
+      if (appLayout) {
+        appLayout.scrollTop = 0;
+      }
+    };
+
+    // Reset immediately on mount
+    resetScroll();
+
+    // Repeatedly reset for the first 2.5 seconds to counteract Jitsi autofocus scroll shifts
+    const interval = setInterval(resetScroll, 100);
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+    }, 2500);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, []);
+
   // Listen for Jitsi's built-in hangup/end-call button → return to dashboard
   useEffect(() => {
     const handleJitsiMessage = (event: MessageEvent) => {
@@ -133,6 +163,13 @@ export function JitsiMeetingRoom({ roomId, onLeave, title, meetingId, initialNot
       // Jitsi reloaded → meeting has ended
       setIsLeaving(true);
       onLeave();
+    } else {
+      // Force scroll reset on initial iframe load to ensure perfect alignment
+      window.scrollTo(0, 0);
+      const mainElement = document.querySelector("main") || document.querySelector(".main-viewport-scroll");
+      if (mainElement) {
+        mainElement.scrollTop = 0;
+      }
     }
   };
 
