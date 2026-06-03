@@ -196,6 +196,7 @@
   /* Optimized touch scrolling for the main mobile viewport layout without scroll-blocking layer promotion */
   .main-viewport-scroll {
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
 
   /* Disable heavy backdrop blur on mobile viewports for high frame-rate scrolling and dynamic updates */
@@ -323,4 +324,17 @@ body.meeting-active main {
   padding: 0 !important;
   margin: 0 !important;
   max-width: none !important;
+}
+
+/* Prevent mobile scroll trapping and boundary freezes inside the logged-in application layout */
+html.app-layout-active,
+body.app-layout-active,
+body.app-layout-active #root,
+body.app-layout-active [data-sidebar="wrapper"],
+body.app-layout-active .h-screen,
+body.app-layout-active .flex-1.flex.flex-col {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
 }

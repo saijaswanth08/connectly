@@ -34,6 +34,16 @@ export function AppLayout() {
   if (!isLoading && isProfileIncomplete && !allowedPaths.includes(location.pathname)) {
     return <Navigate to="/dashboard/profile-settings" replace />;
   }
+
+  // Lock parent layout and body/html height inside the application viewport to prevent mobile scroll-chaining and scroll-trapping bugs
+  useEffect(() => {
+    document.body.classList.add("app-layout-active");
+    document.documentElement.classList.add("app-layout-active");
+    return () => {
+      document.body.classList.remove("app-layout-active");
+      document.documentElement.classList.remove("app-layout-active");
+    };
+  }, []);
   
   return (
     <SidebarProvider>
