@@ -15,7 +15,6 @@ import {
   HelpCircle,
   LogOut,
   ChevronsUpDown,
-  BookOpen,
   Bug,
   Moon,
   Sun,
@@ -90,17 +89,13 @@ export function SidebarUserMenu() {
         className="w-[220px] mb-1"
         sideOffset={8}
       >
-        <DropdownMenuItem onClick={() => handleNavigate("/help")}>
-          <BookOpen className="mr-2 h-4 w-4" />
-          Help Center
+        <DropdownMenuItem onClick={() => handleNavigate("/support")}>
+          <HelpCircle className="mr-2 h-4 w-4" />
+          Help & Support
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleNavigate("/report-issue")}>
           <Bug className="mr-2 h-4 w-4" />
-          Report a Bug
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleNavigate("/support")}>
-          <HelpCircle className="mr-2 h-4 w-4" />
-          Get Help
+          Report an Issue
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
