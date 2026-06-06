@@ -96,7 +96,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border bg-red-500">
+      <SidebarFooter className="p-3 border-t border-border/50 dark:border-slate-800">
         <SidebarUserMenu />
       </SidebarFooter>
     </Sidebar>
