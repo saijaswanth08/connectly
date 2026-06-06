@@ -25,16 +25,6 @@ export function AppLayout() {
   useRealtimeContacts(user?.id);
   usePresence(); // Enable global presence tracking while in dashboard
   
-  const { data: profile, isLoading } = useProfile();
-  
-  // Enforce profile completion before accessing other features
-  const isProfileIncomplete = profile && (!profile.company || !profile.job_title || !profile.phone);
-  const allowedPaths = ["/dashboard/profile-settings", "/dashboard/settings", "/support", "/report-issue"];
-  
-  if (!isLoading && isProfileIncomplete && !allowedPaths.includes(location.pathname)) {
-    return <Navigate to="/dashboard/profile-settings" replace />;
-  }
-
   // Lock parent layout and body/html height inside the application viewport to prevent mobile scroll-chaining and scroll-trapping bugs
   useEffect(() => {
     document.body.classList.add("app-layout-active");
@@ -44,6 +34,16 @@ export function AppLayout() {
       document.documentElement.classList.remove("app-layout-active");
     };
   }, []);
+
+  const { data: profile, isLoading } = useProfile();
+  
+  // Enforce profile completion before accessing other features
+  const isProfileIncomplete = profile && (!profile.company || !profile.job_title || !profile.phone);
+  const allowedPaths = ["/dashboard/profile-settings", "/dashboard/settings", "/support", "/report-issue"];
+  
+  if (!isLoading && isProfileIncomplete && !allowedPaths.includes(location.pathname)) {
+    return <Navigate to="/dashboard/profile-settings" replace />;
+  }
   
   return (
     <SidebarProvider>
