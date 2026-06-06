@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, KeyRound } from "lucide-react";
+import { User, LogOut, KeyRound, Bug, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function ProfileDropdown() {
@@ -56,6 +56,14 @@ export function ProfileDropdown() {
         
         <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
           <KeyRound className="mr-2 h-4 w-4" /> Access & Security
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate("/report-issue")}>
+          <Bug className="mr-2 h-4 w-4" /> Report an Issue
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem onClick={() => navigate("/support")}>
+          <HelpCircle className="mr-2 h-4 w-4" /> Get Help
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />

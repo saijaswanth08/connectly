@@ -67,7 +67,7 @@ export default function ReportIssuePage() {
         throw new Error("Failed to send report");
       }
 
-      showToast("Bug report submitted successfully. Thank you for helping improve Connectly.", "success");
+      showToast("Thank you! Your bug report has been received. The Connectly support team will respond as soon as possible.", "success");
       setForm({ title: "", category: "", priority: "Medium", description: "", steps: "" });
       setScreenshot(null);
     } catch (err: unknown) {

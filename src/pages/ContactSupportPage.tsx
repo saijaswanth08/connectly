@@ -38,7 +38,7 @@ export default function ContactSupportPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/api/report-issue", {
+      const response = await fetch("/api/report-issue", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -47,6 +47,7 @@ export default function ContactSupportPage() {
           category: form.subject,
           priority: "Normal",
           description: form.message,
+          type: "support",
         }),
       });
 
@@ -55,7 +56,7 @@ export default function ContactSupportPage() {
         throw new Error(data.error || "Failed to send message");
       }
 
-      showToast("Your message has been sent. Our support team will contact you soon.", "success");
+      showToast("Thank you! Your support request has been received. The Connectly support team will respond as soon as possible.", "success");
       setForm({ name: user?.user_metadata?.full_name || "", email: user?.email || "", subject: "", message: "" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Unable to send message. Please try again later.";

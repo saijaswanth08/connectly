@@ -45,7 +45,7 @@ if (transporter) {
 
 router.post('/report-issue', upload.single('screenshot'), async (req: Request, res: Response) => {
   try {
-    const { name, email, category, priority, description, steps } = req.body;
+    const { name, email, category, priority, description, steps, type } = req.body;
     const screenshot = req.file;
 
     console.log("Report received:", req.body);
@@ -62,8 +62,17 @@ router.post('/report-issue', upload.single('screenshot'), async (req: Request, r
       return res.status(503).json({ success: false, error: 'Email service is not configured. Please contact support.' });
     }
 
+    const isSupport = type === 'support' || category.includes('Question') || category.includes('Help') || category.includes('Request');
+    const subject = isSupport ? `New Support Inquiry – Connectly` : `New Bug Report – Connectly`;
+
     // Format the email body
-    const mailText = `
+    const mailText = isSupport ? `
+User Name: ${name}
+User Email: ${email}
+Support Topic: ${category}
+Message:
+${description}
+    `.trim() : `
 Reporter Name: ${name}
 Reporter Email: ${email}
 Bug Category: ${category}
@@ -78,8 +87,8 @@ ${steps || "N/A"}
     // Prepare email message options
     const mailOptions: nodemailer.SendMailOptions = {
       from: EMAIL_USER,
-      to: EMAIL_USER, // sent to the support inbox
-      subject: `New Bug Report – Connectly`,
+      to: 'support.connectly@gmail.com', // Sent directly to the support inbox
+      subject: subject,
       text: mailText,
     };
 
@@ -94,11 +103,11 @@ ${steps || "N/A"}
       ];
     }
 
-    console.log("Starting email sending to", EMAIL_USER);
+    console.log("Starting email sending to support.connectly@gmail.com");
     await transporter.sendMail(mailOptions);
     console.log("Email sending completed successfully.");
 
-    res.status(200).json({ success: true, message: 'Bug report sent successfully' });
+    res.status(200).json({ success: true, message: 'Message sent successfully' });
   } catch (error) {
     console.error("Email sending failed:", error);
     res.status(500).json({ success: false, error: 'Failed to send report' });
