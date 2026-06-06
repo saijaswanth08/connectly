@@ -2,6 +2,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTheme } from "next-themes";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +17,8 @@ import {
   ChevronsUpDown,
   BookOpen,
   Bug,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +28,8 @@ export function SidebarUserMenu() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
 
   const { data: profile, isLoading } = useProfile();
 
@@ -95,6 +101,22 @@ export function SidebarUserMenu() {
         <DropdownMenuItem onClick={() => handleNavigate("/support")}>
           <HelpCircle className="mr-2 h-4 w-4" />
           Get Help
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            setTheme(isDark ? "light" : "dark");
+          }}
+          className="flex items-center justify-between cursor-pointer"
+        >
+          <div className="flex items-center">
+            {isDark ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+            <span>Dark Mode</span>
+          </div>
+          <Switch checked={isDark} className="scale-75 pointer-events-none" />
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
